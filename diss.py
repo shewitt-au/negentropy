@@ -18,22 +18,22 @@ class AddrMode(Enum):
 	IndirectY = auto()
 	Relative = auto()
 
-formatters = {
-	AddrMode.Implied		: "",
-	AddrMode.Accumulator	: "A",
-	AddrMode.Immediate		: "#{}",
-	AddrMode.ZeroPageX		: "{},X",
-	AddrMode.ZeroPageY		: "{},Y",
-	AddrMode.Absolute		: "{}",
-	AddrMode.AbsoluteX		: "{},X",
-	AddrMode.AbsoluteY		: "{},Y",
-	AddrMode.AbsIndirect	: "({})",
-	AddrMode.IndirectX		: "({},X)",
-	AddrMode.IndirectY		: "({}),Y",
-	AddrMode.Relative		: "{}"
+modes = {
+	AddrMode.Implied		: (0, ""),
+	AddrMode.Accumulator	: (0, "A"),
+	AddrMode.Immediate		: (1, "#{}"),
+	AddrMode.ZeroPageX		: (1, "{},X"),
+	AddrMode.ZeroPageY		: (1, "{},Y"),
+	AddrMode.Absolute		: (2, "{}"),
+	AddrMode.AbsoluteX		: (2, "{},X"),
+	AddrMode.AbsoluteY		: (2, "{},Y"),
+	AddrMode.AbsIndirect	: (2, "({})"),
+	AddrMode.IndirectX		: (2, "({},X)"),
+	AddrMode.IndirectY		: (2, "({}),Y"),
+	AddrMode.Relative		: (1, "{}")
 	}
 
-menumonics_modes = [
+menumonics = [
 	("BRK",   AddrMode.Implied),
 	("ORA",   AddrMode.IndirectX),
 	("JAM",   AddrMode.Implied),
@@ -290,7 +290,7 @@ menumonics_modes = [
 	("SBC",   AddrMode.AbsoluteX),
 	("INC",   AddrMode.AbsoluteX),
 	("ISB",   AddrMode.Absolute)
-]
+	]
 
 def read_word(b, i):
 	return b[i]+b[i+1]*256
@@ -298,7 +298,9 @@ def read_word(b, i):
 try:
 	f = open("5000-8fff.bin", "rb")
 	b = f.read()
-	print([hex(v) for v in b])
-	print(hex(read_word(b, 0xfca)))
+
+	mm = menumonics[b[0x1b16]];
+	print(mm[0]+" "+modes[mm[1]][1].format(b[0x1b17]))
+
 finally:
 	f.close()
