@@ -18,7 +18,7 @@ class AddrMode(Enum):
 	IndirectY = auto()
 	Relative = auto()
 
-modes = {
+mode_to_operand_info = {
 	AddrMode.Implied		: (0, ""),
 	AddrMode.Accumulator	: (0, "A"),
 	AddrMode.Immediate		: (1, "#{}"),
@@ -34,7 +34,7 @@ modes = {
 	AddrMode.Relative		: (1, "{}")
 	}
 
-opcodes = [
+opcode_to_mnemonic_and_mode = [
 	("BRK",   AddrMode.Implied),		#$00
 	("ORA",   AddrMode.IndirectX),		#$01
 	("JAM",   AddrMode.Implied),		#$02
@@ -319,7 +319,7 @@ def sign_extend(x):
 	return (x^0x80)-0x80;
 
 def get_operand(mem, mode):
-	mode_info = modes[mode];
+	mode_info = mode_to_operand_info[mode];
 	sz = mode_info[0]
 	fmt = mode_info[1]
 	if sz==0:
@@ -341,7 +341,7 @@ def main():
 
 		m.seek(0x7d19)
 		while m.addr()<0x7d2b:
-			op_info = opcodes[m.r8()]
+			op_info = opcode_to_mnemonic_and_mode[m.r8()]
 			mnemonic = op_info[0]
 			mode = op_info[1]
 			print(mnemonic+" "+get_operand(m, mode))
