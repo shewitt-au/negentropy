@@ -33,7 +33,7 @@ modes = {
 	AddrMode.Relative		: (1, "{}")
 	}
 
-menumonics = [
+opcodes = [
 	("BRK",   AddrMode.Implied),		#$00
 	("ORA",   AddrMode.IndirectX),		#$01
 	("JAM",   AddrMode.Implied),		#$02
@@ -295,13 +295,22 @@ menumonics = [
 def read_word(b, i):
 	return b[i]+b[i+1]*256
 
-def get_operand(b, i, mode):
-	sz = mode[0]
-	fmt = mode[1]
+def sign_extend(x):
+	if x&(1<<7):
+		return -((x^((1<<8)-1))+1)
+	return x
+
+def get_operand(b, i, a, mode):
+	mode_info = modes[mode];
+	sz = mode_info[0]
+	fmt = mode_info[1]
 	if sz==0:
 		return fmt
 	elif sz==1:
-		return fmt.format("${:02x}".format(b[i]))
+		if mode != AddrMode.Relative:
+			return fmt.format("${:02x}".format(b[i]))
+		else:
+			return fmt.format("${:04x}".format((a+2+sign_extend(b[i]))))
 	elif sz==2:
 		return fmt.format("${:04x}".format(read_word(b, i)))
 	else:
@@ -311,12 +320,13 @@ try:
 	f = open("5000-8fff.bin", "rb")
 	b = f.read()
 
-	addr = 0x1b44;
-	mnm = menumonics[b[addr]]
-	md = modes[mnm[1]]
-	addr += 1
-	print(mnm[0]+" "+get_operand(b, addr, md))
-	addr += md[0]
+	addr = 0x7d61
+	addr -= 0x5000
+	op_info = opcodes[b[addr]]
+	mnemonic = op_info[0]
+	mode = op_info[1]
+	print(mnemonic+" "+get_operand(b, addr+1, addr+0x5000, mode))
+	addr += 1+modes[mode][0]
 
 finally:
 	f.close()
