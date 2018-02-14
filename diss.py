@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import symbols
 from enum import Enum, unique, auto
 
 @unique
@@ -19,19 +20,19 @@ class AddrMode(Enum):
 	Relative = auto()
 
 mode_to_operand_info = {
-	AddrMode.Implied		: (0, ""),
-	AddrMode.Accumulator	: (0, "A"),
-	AddrMode.Immediate		: (1, "#{}"),
-	AddrMode.ZeroPage		: (1, "{}"),
-	AddrMode.ZeroPageX		: (1, "{},X"),
-	AddrMode.ZeroPageY		: (1, "{},Y"),
-	AddrMode.Absolute		: (2, "{}"),
-	AddrMode.AbsoluteX		: (2, "{},X"),
-	AddrMode.AbsoluteY		: (2, "{},Y"),
-	AddrMode.AbsIndirect	: (2, "({})"),
-	AddrMode.IndirectX		: (1, "({},X)"),
-	AddrMode.IndirectY		: (1, "({}),Y"),
-	AddrMode.Relative		: (1, "{}")
+	AddrMode.Implied		: (0, False, ""),
+	AddrMode.Accumulator	: (0, False, "A"),
+	AddrMode.Immediate		: (1, False, "#{}"),
+	AddrMode.ZeroPage		: (1, True, "{}"),
+	AddrMode.ZeroPageX		: (1, True, "{},X"),
+	AddrMode.ZeroPageY		: (1, True, "{},Y"),
+	AddrMode.Absolute		: (2, True, "{}"),
+	AddrMode.AbsoluteX		: (2, True, "{},X"),
+	AddrMode.AbsoluteY		: (2, True, "{},Y"),
+	AddrMode.AbsIndirect	: (2, True, "({})"),
+	AddrMode.IndirectX		: (1, True, "({},X)"),
+	AddrMode.IndirectY		: (1, True, "({}),Y"),
+	AddrMode.Relative		: (1, True, "{}")
 	}
 
 opcode_to_mnemonic_and_mode = [
@@ -318,32 +319,47 @@ class Memory:
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-def get_operand(mem, mode):
+def get_operand(mem, mode, sym):
 	mode_info = mode_to_operand_info[mode];
-	sz = mode_info[0]
-	fmt = mode_info[1]
+	sz, lookup, fmt = mode_info
 	if sz==0:
 		return fmt
 	elif sz==1:
+		val = mem.r8()
 		if mode != AddrMode.Relative:
-			return fmt.format("${:02x}".format(mem.r8()))
+			if lookup and val in sym:
+				return sym[val]
+			else:
+				return fmt.format("${:02x}".format(val))
 		else:
-			return fmt.format("${:04x}".format((mem.addr()+1+sign_extend(mem.r8()))))
+			val = mem.addr()+sign_extend(val)
+			if lookup and val in sym:
+				return sym[val]
+			else:
+				return fmt.format("${:04x}".format(val))
 	elif sz==2:
-		return fmt.format("${:04x}".format(mem.r16()))
+		val = mem.r16()
+		if lookup and val in sym:
+			return sym[val]
+		else:
+			return fmt.format("${:04x}".format(val))
 	else:
 		raise IndexError("Illegal operand size.")
 
 def main():
+	sym = symbols.read_symbols()
+
 	with open("5000-8fff.bin", "rb") as f:
 		f = open("5000-8fff.bin", "rb")
 		m = Memory(f.read(), 0x5000)
 
-		m.seek(0x7d19)
-		while m.addr()<0x7d2b:
+		m.seek(0x7e8e)
+		while m.addr()<0x7edc:
+			if m.addr() in sym:
+				print(sym[m.addr()]+":")
 			op_info = opcode_to_mnemonic_and_mode[m.r8()]
 			mnemonic = op_info[0]
 			mode = op_info[1]
-			print(mnemonic+" "+get_operand(m, mode))
+			print(mnemonic+" "+get_operand(m, mode, sym))
 
 main()
