@@ -360,6 +360,6 @@ def main():
 			op_info = opcode_to_mnemonic_and_mode[m.r8()]
 			mnemonic = op_info[0]
 			mode = op_info[1]
-			print(mnemonic+" "+get_operand(m, mode, sym))
+			print("{:04x}\t".format(m.addr())+mnemonic+" "+get_operand(m, mode, sym))
 
 main()
