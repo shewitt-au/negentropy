@@ -292,13 +292,32 @@ opcodes = [
 	("ISB",   AddrMode.Absolute)		#$ff
 	]
 
-def read_word(b, i):
-	return b[i]+b[i+1]*256
+class Memory:
+	def __init__(self, data, org):
+		self.data = data
+		self.org = org
+		self.idx = 0
+
+	def seek(self, addr):
+		self.idx = addr - self.org
+
+	def addr(self):
+		return self.org + self.idx
+
+	def r8(self):
+		v = self.data[self.idx]
+		self.idx += 1
+		return v
+
+	def r16(self):
+		v = self.data[self.idx] + self.data[self.idx+1]*256
+		self.idx += 2
+		return v
 
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-def get_operand(b, i, a, mode):
+def get_operand(mem, mode):
 	mode_info = modes[mode];
 	sz = mode_info[0]
 	fmt = mode_info[1]
@@ -306,25 +325,26 @@ def get_operand(b, i, a, mode):
 		return fmt
 	elif sz==1:
 		if mode != AddrMode.Relative:
-			return fmt.format("${:02x}".format(b[i]))
+			return fmt.format("${:02x}".format(mem.r8()))
 		else:
-			return fmt.format("${:04x}".format((a+2+sign_extend(b[i]))))
+			return fmt.format("${:04x}".format((mem.addr()+1+sign_extend(mem.r8()))))
 	elif sz==2:
-		return fmt.format("${:04x}".format(read_word(b, i)))
+		return fmt.format("${:04x}".format(mem.r16()))
 	else:
 		raise IndexError("Illegal operand size.")
 
-try:
-	f = open("5000-8fff.bin", "rb")
-	b = f.read()
+def main():
+	try:
+		f = open("5000-8fff.bin", "rb")
+		m = Memory(f.read(), 0x5000)
 
-	addr = 0x7d87
-	addr -= 0x5000
-	op_info = opcodes[b[addr]]
-	mnemonic = op_info[0]
-	mode = op_info[1]
-	print(mnemonic+" "+get_operand(b, addr+1, addr+0x5000, mode))
-	addr += 1+modes[mode][0]
+		m.seek(0x7d87)
+		op_info = opcodes[m.r8()]
+		mnemonic = op_info[0]
+		mode = op_info[1]
+		print(mnemonic+" "+get_operand(m, mode))
 
-finally:
-	f.close()
+	finally:
+		f.close()
+
+main()
