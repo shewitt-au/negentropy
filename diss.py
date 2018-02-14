@@ -335,7 +335,7 @@ def get_operand(mem, mode):
 		raise IndexError("Illegal operand size.")
 
 def main():
-	try:
+	with open("5000-8fff.bin", "rb") as f:
 		f = open("5000-8fff.bin", "rb")
 		m = Memory(f.read(), 0x5000)
 
@@ -345,8 +345,5 @@ def main():
 			mnemonic = op_info[0]
 			mode = op_info[1]
 			print(mnemonic+" "+get_operand(m, mode))
-
-	finally:
-		f.close()
 
 main()
