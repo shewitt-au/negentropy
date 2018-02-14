@@ -22,6 +22,7 @@ modes = {
 	AddrMode.Implied		: (0, ""),
 	AddrMode.Accumulator	: (0, "A"),
 	AddrMode.Immediate		: (1, "#{}"),
+	AddrMode.ZeroPage		: (1, "{}"),
 	AddrMode.ZeroPageX		: (1, "{},X"),
 	AddrMode.ZeroPageY		: (1, "{},Y"),
 	AddrMode.Absolute		: (2, "{}"),
@@ -338,11 +339,12 @@ def main():
 		f = open("5000-8fff.bin", "rb")
 		m = Memory(f.read(), 0x5000)
 
-		m.seek(0x7d87)
-		op_info = opcodes[m.r8()]
-		mnemonic = op_info[0]
-		mode = op_info[1]
-		print(mnemonic+" "+get_operand(m, mode))
+		m.seek(0x7d19)
+		while m.addr()<0x7d2b:
+			op_info = opcodes[m.r8()]
+			mnemonic = op_info[0]
+			mode = op_info[1]
+			print(mnemonic+" "+get_operand(m, mode))
 
 	finally:
 		f.close()
