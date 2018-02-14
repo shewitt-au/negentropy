@@ -296,9 +296,7 @@ def read_word(b, i):
 	return b[i]+b[i+1]*256
 
 def sign_extend(x):
-	if x&(1<<7):
-		return -((x^((1<<8)-1))+1)
-	return x
+	return (x^0x80)-0x80;
 
 def get_operand(b, i, a, mode):
 	mode_info = modes[mode];
@@ -320,7 +318,7 @@ try:
 	f = open("5000-8fff.bin", "rb")
 	b = f.read()
 
-	addr = 0x7d61
+	addr = 0x7d87
 	addr -= 0x5000
 	op_info = opcodes[b[addr]]
 	mnemonic = op_info[0]
