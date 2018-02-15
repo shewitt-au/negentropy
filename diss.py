@@ -294,57 +294,88 @@ opcode_to_mnemonic_and_mode = [
 	("ISB",   AddrMode.Absolute)		#$ff
 	]
 
-class Memory:
+class Memory(object):
 	def __init__(self, data, org):
 		self.data = data
 		self.org = org
-		self.idx = 0
 
-	def seek(self, addr):
-		self.idx = addr - self.org
+	def r(self, addr, sz):
+		return self.data[addr-self.org : addr-self.org+sz]
 
-	def addr(self):
-		return self.org + self.idx
+	def r8(self, addr):
+		return self.data[addr-self.org]
 
-	def r8(self):
-		v = self.data[self.idx]
-		self.idx += 1
-		return v
-
-	def r16(self):
-		v = self.data[self.idx] + self.data[self.idx+1]*256
-		self.idx += 2
-		return v
+	def r16(self, addr):
+		return self.data[addr-self.org] + self.data[addr-self.org+1]*256
 
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-def get_operand(mem, mode, sym):
-	mode_info = mode_to_operand_info[mode];
-	sz, lookup, fmt = mode_info
-	if sz==0:
-		return fmt
-	elif sz==1:
-		val = mem.r8()
-		if mode != AddrMode.Relative:
-			if lookup and val in sym:
-				return sym[val]
+class Diss(object):
+	def __init__(self, mem, syms):
+		self._mem = mem
+		self._syms = syms
+
+	def analyse(self, addr):
+		self.addr = addr
+		self.opcode = self._mem.r8(addr)
+		self._op_info = opcode_to_mnemonic_and_mode[self.opcode]
+		self._mode_info = mode_to_operand_info[self.mode];
+
+	def _get_instruction(self):
+		return "{:04x}\t\t{:8}\t\t{} {}".format(self.addr, self.bytes, self.mnemonic, self.operand)
+
+	def _get_mnemonic(self):
+		return self._op_info[0]
+
+	def _get_operand(self):
+		if self.size==1:
+			return self.fmt_str
+		elif self.size==2:
+			val = self._mem.r8(self.addr+1)
+			if self.mode != AddrMode.Relative:
+				if self.has_addr and val in self._syms:
+					return self._syms[val]
+				else:
+					return self.fmt_str.format("${:02x}".format(val))
 			else:
-				return fmt.format("${:02x}".format(val))
-		else:
-			val = mem.addr()+sign_extend(val)
-			if lookup and val in sym:
-				return sym[val]
+				val = self.addr+sign_extend(val)+2
+				if self.has_addr and val in self._syms:
+					return self._syms[val]
+				else:
+					return self.fmt_str.format("${:04x}".format(val))
+		elif self.size==3:
+			val = self._mem.r16(self.addr+1)
+			if self.has_addr and val in self._syms:
+				return self._syms[val]
 			else:
-				return fmt.format("${:04x}".format(val))
-	elif sz==2:
-		val = mem.r16()
-		if lookup and val in sym:
-			return sym[val]
+				return self.fmt_str.format("${:04x}".format(val))
 		else:
-			return fmt.format("${:04x}".format(val))
-	else:
-		raise IndexError("Illegal operand size.")
+			raise IndexError("Illegal operand size.")
+
+	def _get_mode(self):
+		return self._op_info[1]
+
+	def _get_size(self):
+		return self._mode_info[0]+1;
+
+	def _get_has_addr(self):
+		return self._mode_info[1]
+
+	def _get_fmt_str(self):
+		return self._mode_info[2]
+
+	def _get_bytes(self):
+		return " ".join(["{:02x}".format(v) for v in self._mem.r(self.addr, self.size)])
+
+	mnemonic = property(_get_mnemonic)
+	instruction = property(_get_instruction)
+	operand = property(_get_operand)
+	mode = property(_get_mode)
+	size = property(_get_size)
+	has_addr = property(_get_has_addr)
+	fmt_str = property(_get_fmt_str)
+	bytes = property(_get_bytes)
 
 def main():
 	sym = symbols.read_symbols()
@@ -353,13 +384,11 @@ def main():
 		f = open("5000-8fff.bin", "rb")
 		m = Memory(f.read(), 0x5000)
 
-		m.seek(0x7e8e)
-		while m.addr()<0x7edc:
-			if m.addr() in sym:
-				print(sym[m.addr()]+":")
-			op_info = opcode_to_mnemonic_and_mode[m.r8()]
-			mnemonic = op_info[0]
-			mode = op_info[1]
-			print("{:04x}\t".format(m.addr())+mnemonic+" "+get_operand(m, mode, sym))
+	d = Diss(m, sym)
+	a = 0x7e8e
+	while a!=0x7edc:
+		d.analyse(a)
+		print(d.instruction)
+		a += d.size
 
 main()
