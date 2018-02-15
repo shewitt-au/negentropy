@@ -337,19 +337,19 @@ class Diss(object):
 			val = self._mem.r8(self.addr+1)
 			if self.mode != AddrMode.Relative:
 				if self.has_addr and val in self._syms:
-					return self._syms[val]
+					return self.fmt_str.format(self._syms[val])
 				else:
 					return self.fmt_str.format("${:02x}".format(val))
 			else:
 				val = self.addr+sign_extend(val)+2
 				if self.has_addr and val in self._syms:
-					return self._syms[val]
+					return self.fmt_str.format(self._syms[val])
 				else:
 					return self.fmt_str.format("${:04x}".format(val))
 		elif self.size==3:
 			val = self._mem.r16(self.addr+1)
 			if self.has_addr and val in self._syms:
-				return self._syms[val]
+				return self.fmt_str.format(self._syms[val])
 			else:
 				return self.fmt_str.format("${:04x}".format(val))
 		else:
