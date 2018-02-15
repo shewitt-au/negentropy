@@ -323,6 +323,8 @@ class Diss(object):
 		self._mode_info = mode_to_operand_info[self.mode];
 
 	def _get_instruction(self):
+		if self.addr in self._syms:
+			print("{}:".format(self._syms[self.addr]))
 		return "{:04x}\t\t{:8}\t\t{} {}".format(self.addr, self.bytes, self.mnemonic, self.operand)
 
 	def _get_mnemonic(self):
