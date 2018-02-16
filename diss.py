@@ -381,14 +381,17 @@ class Diss(object):
 
 def main():
 	sym = symbols.read_symbols()
+	cmt = symbols.read_comments()
 
 	with open("5000-8fff.bin", "rb") as f:
 		f = open("5000-8fff.bin", "rb")
 		m = Memory(f.read(), 0x5000)
 
 	d = Diss(m, sym)
-	a = 0x7e8e
-	while a!=0x7edc:
+	a = 0x88ab
+	while a!=0x88fb:
+		if a in cmt:
+			print("".join(["; {}\n".format(cl) for cl in cmt[a].splitlines()]), end="")
 		d.analyse(a)
 		print(d.instruction)
 		a += d.size
