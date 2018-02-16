@@ -322,9 +322,11 @@ class Diss(object):
 		self._op_info = opcode_to_mnemonic_and_mode[self.opcode]
 		self._mode_info = mode_to_operand_info[self.mode];
 
-	def _get_instruction(self):
+	def _get_label(self):
 		if self.addr in self._syms:
-			print("{}:".format(self._syms[self.addr]))
+			return "{}:".format(self._syms[self.addr])
+
+	def _get_instruction(self):
 		return "{:04x}\t\t{:8}\t\t{} {}".format(self.addr, self.bytes, self.mnemonic, self.operand)
 
 	def _get_mnemonic(self):
@@ -371,6 +373,7 @@ class Diss(object):
 		return " ".join(["{:02x}".format(v) for v in self._mem.r(self.addr, self.size)])
 
 	mnemonic = property(_get_mnemonic)
+	label = property(_get_label)
 	instruction = property(_get_instruction)
 	operand = property(_get_operand)
 	mode = property(_get_mode)
@@ -390,9 +393,14 @@ def main():
 	d = Diss(m, sym)
 	a = 0x88ab
 	while a!=0x88fb:
-		if a in cmt:
-			print("".join(["; {}\n".format(cl) for cl in cmt[a].splitlines()]), end="")
+		c = cmt.get(a)
 		d.analyse(a)
+		if c and not c[0]:
+			print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
+		if d.label:
+			print(d.label)
+		if c and c[0]:
+			print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
 		print(d.instruction)
 		a += d.size
 

@@ -20,6 +20,12 @@ comments_re = re.compile(r"([0-9A-Fa-f]{4})\s*(.*)")
 def read_comments():
 	comments = {}
 
+	def add():
+		if cmt[0:2] == r"\/":
+			comments[addr] = (True, cmt[2:])
+		else:
+			comments[addr] = (False, cmt)
+
 	cmt = ""
 	addr = None
 
@@ -40,11 +46,11 @@ def read_comments():
 					if addr == newaddr:
 						cmt += "\n"+m[2]
 					else:
-						comments[addr] = cmt # Add the previous complete comment
+						add() # Add the previous complete comment
 						addr = newaddr
 						cmt = m[2]
 
 	# Add the last one
-	comments[addr] = cmt
+	add()
 
 	return comments
