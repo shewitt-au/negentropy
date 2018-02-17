@@ -391,17 +391,20 @@ def main():
 		m = Memory(f.read(), 0x5000)
 
 	d = Diss(m, sym)
-	a = 0x88ab
-	while a!=0x88fb:
+	a = 0x6b16
+	while a!=0x6b5d:
 		c = cmt.get(a)
 		d.analyse(a)
-		if c and not c[0]:
-			print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
+		if c and c[0]:
+			print("".join(["; {}\n".format(cl) for cl in c[0].splitlines()]), end="")
 		if d.label:
 			print(d.label)
-		if c and c[0]:
+		if c and c[1]:
 			print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
-		print(d.instruction)
+		print(d.instruction, end="")
+		if c and c[2]:
+			print("".join([" ; {}\n".format(cl) for cl in c[2].splitlines()]).rstrip(), end="")
+		print()
 		a += d.size
 
 main()
