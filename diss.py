@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import memtype
 import symbols
 from enum import Enum, unique, auto
 
@@ -406,5 +407,7 @@ def main():
 			print("".join([" ; {}\n".format(cl) for cl in c[2].splitlines()]).rstrip(), end="")
 		print()
 		a += d.size
+
+	print(memtype.read_memtype())
 
 main()
