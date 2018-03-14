@@ -2,6 +2,7 @@
 
 import memtype
 import symbols
+import decoders
 from enum import Enum, unique, auto
 
 @unique
@@ -313,75 +314,79 @@ def sign_extend(x):
 	return (x^0x80)-0x80;
 
 class Diss(object):
-	def __init__(self, mem, syms):
-		self._mem = mem
-		self._syms = syms
+	def __init__(self, mem, syms, cmts):
+		self.mem = mem
+		self.syms = syms
+		self.cmts = cmts
 
 	def analyse(self, addr):
-		self.addr = addr
-		self.opcode = self._mem.r8(addr)
-		self._op_info = opcode_to_mnemonic_and_mode[self.opcode]
-		self._mode_info = mode_to_operand_info[self.mode];
+		opcode = self.mem.r8(addr)
+		op_info = opcode_to_mnemonic_and_mode[opcode]
 
-	def _get_label(self):
-		if self.addr in self._syms:
-			return "{}:".format(self._syms[self.addr])
+		def label(self):
+			if addr in self.syms:
+				return "{}:".format(self.syms[addr])
 
-	def _get_instruction(self):
-		return "{:04x}\t\t{:8}\t\t{} {}".format(self.addr, self.bytes, self.mnemonic, self.operand)
+		def instruction(self):
+			return "{:04x}\t\t{:8}\t\t{} {}".format(addr, bytes(), mnemonic(), operand(self))
 
-	def _get_mnemonic(self):
-		return self._op_info[0]
+		def mnemonic():
+			return op_info[0]
 
-	def _get_operand(self):
-		if self.size==1:
-			return self.fmt_str
-		elif self.size==2:
-			val = self._mem.r8(self.addr+1)
-			if self.mode != AddrMode.Relative:
-				if self.has_addr and val in self._syms:
-					return self.fmt_str.format(self._syms[val])
+		def operand(self):
+			if size()==1:
+				return fmt_str()
+			elif size()==2:
+				val = self.mem.r8(addr+1)
+				if mode() != AddrMode.Relative:
+					if has_addr() and val in self.syms:
+						return fmt_str().format(self.syms[val])
+					else:
+						return fmt_str().format("${:02x}".format(val))
 				else:
-					return self.fmt_str.format("${:02x}".format(val))
-			else:
-				val = self.addr+sign_extend(val)+2
-				if self.has_addr and val in self._syms:
-					return self.fmt_str.format(self._syms[val])
+					val = addr+sign_extend(val)+2
+					if has_addr() and val in self.syms:
+						return fmt_str().format(self._syms[val])
+					else:
+						return fmt_str().format("${:04x}".format(val))
+			elif size()==3:
+				val = self.mem.r16(addr+1)
+				if has_addr() and val in self.syms:
+					return fmt_str().format(self.syms[val])
 				else:
-					return self.fmt_str.format("${:04x}".format(val))
-		elif self.size==3:
-			val = self._mem.r16(self.addr+1)
-			if self.has_addr and val in self._syms:
-				return self.fmt_str.format(self._syms[val])
+					return fmt_str().format("${:04x}".format(val))
 			else:
-				return self.fmt_str.format("${:04x}".format(val))
-		else:
-			raise IndexError("Illegal operand size.")
+				raise IndexError("Illegal operand size.")
 
-	def _get_mode(self):
-		return self._op_info[1]
+		def mode():
+			return op_info[1]
 
-	def _get_size(self):
-		return self._mode_info[0]+1;
+		def size():
+			return mode_info[0]+1;
 
-	def _get_has_addr(self):
-		return self._mode_info[1]
+		def has_addr():
+			return mode_info[1]
 
-	def _get_fmt_str(self):
-		return self._mode_info[2]
+		def fmt_str():
+			return mode_info[2]
 
-	def _get_bytes(self):
-		return " ".join(["{:02x}".format(v) for v in self._mem.r(self.addr, self.size)])
+		def bytes():
+			return " ".join(["{:02x}".format(v) for v in self.mem.r(addr, size())])
 
-	mnemonic = property(_get_mnemonic)
-	label = property(_get_label)
-	instruction = property(_get_instruction)
-	operand = property(_get_operand)
-	mode = property(_get_mode)
-	size = property(_get_size)
-	has_addr = property(_get_has_addr)
-	fmt_str = property(_get_fmt_str)
-	bytes = property(_get_bytes)
+		mode_info = mode_to_operand_info[mode()]
+		c = self.cmts.get(addr)
+		if c and c[0]:
+			print("".join(["; {}\n".format(cl) for cl in c[0].splitlines()]), end="")
+		if label(self):
+			print(label(self))
+		if c and c[1]:
+			print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
+		print(instruction(self), end="")
+		if c and c[2]:
+			print("".join([" ; {}\n".format(cl) for cl in c[2].splitlines()]).rstrip(), end="")
+		print()
+
+		return addr+size()
 
 def main():
 	sym = symbols.read_symbols()
@@ -391,23 +396,12 @@ def main():
 		f = open("5000-8fff.bin", "rb")
 		m = Memory(f.read(), 0x5000)
 
-	d = Diss(m, sym)
+	d = Diss(m, sym, cmt)
 	a = 0x6b16
 	while a!=0x6b5d:
-		c = cmt.get(a)
-		d.analyse(a)
-		if c and c[0]:
-			print("".join(["; {}\n".format(cl) for cl in c[0].splitlines()]), end="")
-		if d.label:
-			print(d.label)
-		if c and c[1]:
-			print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
-		print(d.instruction, end="")
-		if c and c[2]:
-			print("".join([" ; {}\n".format(cl) for cl in c[2].splitlines()]).rstrip(), end="")
-		print()
-		a += d.size
+		a = d.analyse(a)
 
-	print(memtype.read_memtype())
+	mmap = memtype.MemType("MemType.txt")
+	print(mmap.mem_map)
 
 main()
