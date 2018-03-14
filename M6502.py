@@ -300,7 +300,7 @@ class Diss(object):
 		self.syms = syms
 		self.cmts = cmts
 
-	def analyse(self, addr):
+	def decode(self, addr):
 		opcode = self.mem.r8(addr)
 		op_info = opcode_to_mnemonic_and_mode[opcode]
 
@@ -327,7 +327,7 @@ class Diss(object):
 				else:
 					val = addr+sign_extend(val)+2
 					if has_addr() and val in self.syms:
-						return fmt_str().format(self._syms[val])
+						return fmt_str().format(self.syms[val])
 					else:
 						return fmt_str().format("${:04x}".format(val))
 			elif size()==3:

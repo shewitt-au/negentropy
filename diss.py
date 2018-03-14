@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import M6502
 import memory
 import symbols
 import decoders
@@ -14,13 +13,10 @@ def main():
 		m = memory.Memory(f.read(), 0x5000)
 
 	decoders.init_decoders(m, sym, cmt)
-
-	d = M6502.Diss(m, sym, cmt)
-	a = 0x6b16
-	while a!=0x6b5d:
-		a = d.analyse(a)
-
 	mmap = memory.MemType("MemType.txt")
-	print(mmap.mem_map)
+
+	a = 0x6c80
+	while True:
+		a = mmap.decode(a)
 
 main()

@@ -1,4 +1,6 @@
 import re
+import bisect
+import decoders
 
 class Memory(object):
 	def __init__(self, data, org):
@@ -18,15 +20,31 @@ memtype_re = re.compile(r"^\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*$
 
 class MemType(object):
 	def __init__(self, fname):
-		self.mem_map = []
+		self.ivl = None
+		self.map = []
 		with open(fname, "r") as f:
 			for line in enumerate(f):
 				m = re.match(memtype_re, line[1])
 				if m is None:
 					print("Error in line {} of memtype file".format(line[0]+1))
 					raise ValueError("Error in memtype file")
-				self.mem_map.append(Interval(m[1], m[2], m[3]))
-		self.mem_map.sort()
+				self.map.append(Interval(decoders.decoders[m[1]], m[2], m[3]))
+		self.map.sort()
+
+	def __len__(self):
+		return len(self.map)
+
+	def __getitem__(self, key):
+		return self.map[key]
+
+	def decode(self, addr):
+		if self.ivl is None or self.ivl != addr:
+			index = bisect.bisect_left(self.map, addr)
+			if index==len(self.map) or self.map[index]!=addr:
+				ValueError("Address not in memtype file")
+			self.ivl = self.map[index]
+
+		return self.ivl.decode(addr)
 
 class Interval(object):
 	def __init__(self, decoder, ivl):
@@ -39,6 +57,9 @@ class Interval(object):
 		self.last = int(last, 16)
 		assert self.first<=self.last, "Interval: first > last"
 
+	def decode(self, addr):
+		return self.decoder.decode(addr)
+
 	def _get(self):
 		return (self.first, self.last)
 
@@ -48,17 +69,29 @@ class Interval(object):
 		assert self.first<=self.last, "Interval: first > last"
 
 	def __eq__(self, other):
-		return self.value == other.value
+		if isinstance(other, __class__):
+			return self.value == other.value
+		else:
+			return other>=self.first and other<=self.last
+
 	def __ne__(self, other):
-		return self.value != other.value
+		if isinstance(other, __class__):
+			return self.value != other.value
+		else:
+			return other<self.first or other>self.last
+
 	def __lt__(self, other):
-		return (self.first<other.first) or (self.first==other.first and self.last<other.last)
+		if isinstance(other, __class__):
+			return (self.first<other.first) or (self.first==other.first and self.last<other.last)
+		else:
+			return self.last<other
+
+	# There is no __rlt__
 	def __gt__(self, other):
-		return (self.first>other.first) or (self.first==other.first and self.last>other.last)
-	def __le__(self, other):
-		return (self.first<=other.first) and (self.last<=other.last)
-	def __ge__(self, other):
-		return (self.first>=other.first) and (self.last>=other.last)
+		if isinstance(other, __class__):
+			return (self.first>other.first) or (self.first==other.first and self.last>other.last)
+		else:
+			return self.first>other
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
