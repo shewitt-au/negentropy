@@ -1,6 +1,7 @@
 import re
 import bisect
 import decoders
+import interval
 
 class Memory(object):
 	def __init__(self, data, org):
@@ -28,7 +29,7 @@ class MemType(object):
 				if m is None:
 					print("Error in line {} of memtype file".format(line[0]+1))
 					raise ValueError("Error in memtype file")
-				self.map.append(Interval(decoders.decoders[m[1]], m[2], m[3]))
+				self.map.append(MemRegion(decoders.decoders[m[1]], m[2], m[3]))
 		self.map.sort()
 
 	def __len__(self):
@@ -46,57 +47,16 @@ class MemType(object):
 
 		return self.ivl.decode(addr)
 
-class Interval(object):
-	def __init__(self, decoder, ivl):
+class MemRegion(interval.Interval):
+	def __init__(self, decoder, tuple_or_first, last=None):
 		self.decoder = decoder
-		self.value = ivl
-
-	def __init__(self, decoder, first, last):
-		self.decoder = decoder
-		self.first = int(first, 16)
-		self.last = int(last, 16)
-		assert self.first<=self.last, "Interval: first > last"
+		super().__init__(tuple_or_first, last)
 
 	def decode(self, addr):
 		return self.decoder.decode(addr)
-
-	def _get(self):
-		return (self.first, self.last)
-
-	def _set(self, ivl):
-		self.first = ivl[0]
-		self.last = ivl[1]
-		assert self.first<=self.last, "Interval: first > last"
-
-	def __eq__(self, other):
-		if isinstance(other, __class__):
-			return self.value == other.value
-		else:
-			return other>=self.first and other<=self.last
-
-	def __ne__(self, other):
-		if isinstance(other, __class__):
-			return self.value != other.value
-		else:
-			return other<self.first or other>self.last
-
-	def __lt__(self, other):
-		if isinstance(other, __class__):
-			return (self.first<other.first) or (self.first==other.first and self.last<other.last)
-		else:
-			return self.last<other
-
-	# There is no __rlt__
-	def __gt__(self, other):
-		if isinstance(other, __class__):
-			return (self.first>other.first) or (self.first==other.first and self.last>other.last)
-		else:
-			return self.first>other
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
 
 	def __repr__(self):
-		return "Interval({}: ${:04x}-${:04x})".format(self.decoder, self.first, self.last)
-
-	value = property(_get, _set)
+		return "MemRegion({}: ${:04x}-${:04x})".format(self.decoder, self.first, self.last)
