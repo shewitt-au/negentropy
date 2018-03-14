@@ -7,9 +7,11 @@ class Interval(object):
 		else:
 			if isinstance(tuple_or_first, str):
 				self.first = int(tuple_or_first, 16)
-				self.last = int(last, 16)
 			else:
 				self.first = tuple_or_first
+			if isinstance(last, str):
+				self.last = int(last, 16)
+			else:
 				self.last = last
 		assert self.first<=self.last, "Interval: first > last"
 
