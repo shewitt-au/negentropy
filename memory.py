@@ -1,5 +1,19 @@
 import re
 
+class Memory(object):
+	def __init__(self, data, org):
+		self.data = data
+		self.org = org
+
+	def r(self, addr, sz):
+		return self.data[addr-self.org : addr-self.org+sz]
+
+	def r8(self, addr):
+		return self.data[addr-self.org]
+
+	def r16(self, addr):
+		return self.data[addr-self.org] + self.data[addr-self.org+1]*256
+
 memtype_re = re.compile(r"^\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*$")
 
 class MemType(object):
