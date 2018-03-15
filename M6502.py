@@ -300,71 +300,73 @@ class Diss(object):
 		self.syms = syms
 		self.cmts = cmts
 
-	def decode(self, addr):
-		opcode = self.mem.r8(addr)
-		op_info = opcode_to_mnemonic_and_mode[opcode]
+	def decode(self, ivl):
+		addr = ivl.first
+		while addr<=ivl.last:
+			opcode = self.mem.r8(addr)
+			op_info = opcode_to_mnemonic_and_mode[opcode]
 
-		def label(self):
-			if addr in self.syms:
-				return "{}:".format(self.syms[addr])
+			def label(self):
+				if addr in self.syms:
+					return "{}:".format(self.syms[addr])
 
-		def instruction(self):
-			return "{:04x}\t\t{:8}\t\t{} {}".format(addr, bytes(), mnemonic(), operand(self))
+			def instruction(self):
+				return "{:04x}\t\t{:8}\t\t{} {}".format(addr, bytes(), mnemonic(), operand(self))
 
-		def mnemonic():
-			return op_info[0]
+			def mnemonic():
+				return op_info[0]
 
-		def operand(self):
-			if size()==1:
-				return fmt_str()
-			elif size()==2:
-				val = self.mem.r8(addr+1)
-				if mode() != AddrMode.Relative:
-					if has_addr() and val in self.syms:
-						return fmt_str().format(self.syms[val])
+			def operand(self):
+				if size()==1:
+					return fmt_str()
+				elif size()==2:
+					val = self.mem.r8(addr+1)
+					if mode() != AddrMode.Relative:
+						if has_addr() and val in self.syms:
+							return fmt_str().format(self.syms[val])
+						else:
+							return fmt_str().format("${:02x}".format(val))
 					else:
-						return fmt_str().format("${:02x}".format(val))
-				else:
-					val = addr+sign_extend(val)+2
+						val = addr+sign_extend(val)+2
+						if has_addr() and val in self.syms:
+							return fmt_str().format(self.syms[val])
+						else:
+							return fmt_str().format("${:04x}".format(val))
+				elif size()==3:
+					val = self.mem.r16(addr+1)
 					if has_addr() and val in self.syms:
 						return fmt_str().format(self.syms[val])
 					else:
 						return fmt_str().format("${:04x}".format(val))
-			elif size()==3:
-				val = self.mem.r16(addr+1)
-				if has_addr() and val in self.syms:
-					return fmt_str().format(self.syms[val])
 				else:
-					return fmt_str().format("${:04x}".format(val))
-			else:
-				raise IndexError("Illegal operand size.")
+					raise IndexError("Illegal operand size.")
 
-		def mode():
-			return op_info[1]
+			def mode():
+				return op_info[1]
 
-		def size():
-			return mode_info[0]+1;
+			def size():
+				return mode_info[0]+1;
 
-		def has_addr():
-			return mode_info[1]
+			def has_addr():
+				return mode_info[1]
 
-		def fmt_str():
-			return mode_info[2]
+			def fmt_str():
+				return mode_info[2]
 
-		def bytes():
-			return " ".join(["{:02x}".format(v) for v in self.mem.r(addr, size())])
+			def bytes():
+				return " ".join(["{:02x}".format(v) for v in self.mem.r(addr, size())])
 
-		mode_info = mode_to_operand_info[mode()]
-		c = self.cmts.get(addr)
-		if c and c[0]:
-			print("".join(["; {}\n".format(cl) for cl in c[0].splitlines()]), end="")
-		if label(self):
-			print(label(self))
-		if c and c[1]:
-			print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
-		print(instruction(self), end="")
-		if c and c[2]:
-			print("".join([" ; {}\n".format(cl) for cl in c[2].splitlines()]).rstrip(), end="")
-		print()
+			mode_info = mode_to_operand_info[mode()]
+			c = self.cmts.get(addr)
+			if c and c[0]:
+				print("".join(["; {}\n".format(cl) for cl in c[0].splitlines()]), end="")
+			if label(self):
+				print(label(self))
+			if c and c[1]:
+				print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
+			print(instruction(self), end="")
+			if c and c[2]:
+				print("".join([" ; {}\n".format(cl) for cl in c[2].splitlines()]).rstrip(), end="")
+			print()
 
-		return addr+size()
+			addr = addr+size()

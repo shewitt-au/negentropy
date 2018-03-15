@@ -1,8 +1,12 @@
 import numbers
 
 class Interval(object):
-	def __init__(self, tuple_or_first, last=None):
-		if last is None:
+	def __init__(self, tuple_or_first=None, last=None):
+		if tuple_or_first is None:
+			# an empty interval
+			self.first = 1
+			self.last = 0
+		elif last is None:
 			self.value = tuple_or_first
 		else:
 			if isinstance(tuple_or_first, str):
@@ -13,15 +17,16 @@ class Interval(object):
 				self.last = int(last, 16)
 			else:
 				self.last = last
-		assert self.first<=self.last, "Interval: first > last"
 
 	def _get(self):
 		return (self.first, self.last)
-
 	def _set(self, ivl):
 		self.first = ivl[0]
 		self.last = ivl[1]
-		assert self.first<=self.last, "Interval: first > last"
+	value = property(_get, _set)
+
+	def is_empty(self):
+		return self.first>self.last
 
 	def __eq__(self, other):
 		if isinstance(other, __class__):
@@ -72,9 +77,36 @@ class Interval(object):
 			return NotImplemented
 
 	def __str__(self):
-		return "${:04x}-${:04x}".format(self.first, self.last)
+		if self.is_empty():
+			return "{Empty}"
+		else:
+			return "${:04x}-${:04x}".format(self.first, self.last)
 
 	def __repr__(self):
-		return "Interval(${:04x}-${:04x})".format(self.first, self.last)
+		return "Interval({})".format(str(self))
 
-	value = property(_get, _set)
+	# Intersection
+	def __and__(self, other):
+		if self.is_empty() or other.is_empty():
+			return Interval()
+		else:
+			return Interval(max(self.first, other.first), min(self.last, other.last))
+
+	def chop_left(self, pos):
+		return (Interval(self.first, min(pos-1, self.last)), Interval(max(pos, self.first), self.last))
+
+	def chop_right(self, pos):
+		return (Interval(self.first, min(pos, self.last)), Interval(max(pos+1, self.first), self.last))
+
+if __name__ == '__main__':
+	a = Interval(0, 10)
+	b = Interval(5, 30)
+	c = a & b
+	print(c)
+
+	pos = +7
+	print()
+	print(a)
+	print("Chop @ {}".format(pos))
+	print(a.chop_left(pos))
+	print(a.chop_right(pos))

@@ -21,7 +21,6 @@ memtype_re = re.compile(r"^\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*$
 
 class MemType(object):
 	def __init__(self, fname):
-		self.ivl = None
 		self.map = []
 		with open(fname, "r") as f:
 			for line in enumerate(f):
@@ -38,25 +37,42 @@ class MemType(object):
 	def __getitem__(self, key):
 		return self.map[key]
 
-	def decode(self, addr):
-		if self.ivl is None or self.ivl != addr:
-			index = bisect.bisect_left(self.map, addr)
-			if index==len(self.map) or self.map[index]!=addr:
-				ValueError("Address not in memtype file")
-			self.ivl = self.map[index]
+	def overlapping_indices(self, ivl):
+		b = bisect.bisect_left(self.map, ivl.first)
+		e = bisect.bisect_right(self.map, ivl.last, b)
+		return range(b, e)
 
-		return self.ivl.decode(addr)
+	def decode(self, ivl):
+		for i in self.overlapping_indices(ivl):
+			self.map[i].decode(self[i]&ivl)
 
 class MemRegion(interval.Interval):
 	def __init__(self, decoder, tuple_or_first, last=None):
 		self.decoder = decoder
 		super().__init__(tuple_or_first, last)
 
-	def decode(self, addr):
-		return self.decoder.decode(addr)
+	def decode(self, ivl):
+		self.decoder.decode(ivl)
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
 
 	def __repr__(self):
 		return "MemRegion({}: ${:04x}-${:04x})".format(self.decoder, self.first, self.last)
+
+if __name__ == '__main__':
+	import symbols
+	import memory
+	sym = symbols.read_symbols()
+	cmt = symbols.read_comments()
+	with open("5000-8fff.bin", "rb") as f:
+		f = open("5000-8fff.bin", "rb")
+		m = memory.Memory(f.read(), 0x5000)
+	decoders.init_decoders(m, sym, cmt)
+	mmap = MemType("MemType.txt")
+
+	# code	6c80 6da4
+	# data	6da5 6db3
+	# code	6db4 6e4e
+	ivl = interval.Interval(0x6da5, 0x6db3)
+	mmap.decode(ivl)
