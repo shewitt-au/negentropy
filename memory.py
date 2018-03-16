@@ -44,7 +44,7 @@ class MemType(object):
 
 	def decode(self, ivl):
 		for i in self.overlapping_indices(ivl):
-			self.map[i].decode(self[i]&ivl)
+			self[i].decode(self[i]&ivl)
 
 class MemRegion(interval.Interval):
 	def __init__(self, decoder, tuple_or_first, last=None):
@@ -71,8 +71,10 @@ if __name__ == '__main__':
 	decoders.init_decoders(m, sym, cmt)
 	mmap = MemType("MemType.txt")
 
-	# code	6c80 6da4
-	# data	6da5 6db3
-	# code	6db4 6e4e
-	ivl = interval.Interval(0x6da5, 0x6db3)
-	mmap.decode(ivl)
+	ivl = interval.Interval(0x72e1, 0x7302)
+	for v in sym.keys_in_range(ivl):
+		print(v)
+	for v in sym.values_in_range(ivl):
+		print(v)
+	for v in sym.items_in_range(ivl):
+		print(v)
