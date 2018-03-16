@@ -13,22 +13,16 @@ class DictWithRange(dict):
 		class TupleKey(object):
 			def __init__(self, key):
 				self.key = key
-
 			def __eq__(self, other):
 				return self.key == other[0]
-
 			def __ne__(self, other):
 				return self.key != other[0]
-
 			def __lt__(self, other):
 				return self.key < other[0]
-
 			def __le__(self, other):
 				return self.key <= other[0]
-
 			def __gt__(self, other):
 				return self.key > other[0]
-
 			def __ge__(self, other):
 				return self.key >= other[0]
 
