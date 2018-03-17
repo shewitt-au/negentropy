@@ -15,6 +15,6 @@ def main():
 
 	decoders.init_decoders(m, sym, cmt)
 	mmap = memory.MemType("MemType.txt")
-	mmap.decode(Interval(0x0748c, 0x74cc))
+	mmap.decode(Interval(0x6c6c, 0x6c9a))
 
 main()
