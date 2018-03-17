@@ -6,7 +6,7 @@ import symbols
 import decoders
 
 def main():
-	sym = symbols.read_symbols()
+	sym = symbols.read_symbols("BD.txt", "BD-BM.txt")
 	cmt = symbols.read_comments()
 
 	with open("5000-8fff.bin", "rb") as f:
@@ -15,6 +15,6 @@ def main():
 
 	decoders.init_decoders(m, sym, cmt)
 	mmap = memory.MemType("MemType.txt")
-	mmap.decode(Interval(0x74e0, 0x7ccc))
+	mmap.decode(Interval(0x0748c, 0x74cc))
 
 main()

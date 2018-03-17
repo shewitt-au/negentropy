@@ -92,21 +92,48 @@ class Interval(object):
 		else:
 			return Interval(max(self.first, other.first), min(self.last, other.last))
 
-	def chop_left(self, pos):
+	def cut_left(self, pos):
 		return (Interval(self.first, min(pos-1, self.last)), Interval(max(pos, self.first), self.last))
 
-	def chop_right(self, pos):
+	def cut_left_iter(self, cuts):
+		l = self
+		r = Interval()
+
+		for p in cuts:
+			l , r = l.cut_left(p)
+			if l.is_empty():
+				l = r
+				continue
+			yield l
+			l = r
+		if not r.is_empty():
+			yield r
+
+	def cut_right(self, pos):
 		return (Interval(self.first, min(pos, self.last)), Interval(max(pos+1, self.first), self.last))
 
-if __name__ == '__main__':
-	a = Interval(0, 10)
-	b = Interval(5, 30)
-	c = a & b
-	print(c)
+	def cut_right_iter(self, cuts):
+		l = self
+		r = Interval()
 
-	pos = +7
-	print()
-	print(a)
-	print("Chop @ {}".format(pos))
-	print(a.chop_left(pos))
-	print(a.chop_right(pos))
+		for p in cuts:
+			l , r = l.cut_right(p)
+			if l.is_empty():
+				l = r
+				continue
+			yield l
+			l = r
+		if not r.is_empty():
+			yield r
+
+	def __len__(self):
+		if self.is_empty():
+			return 0
+		return self.last-self.first+1
+
+if __name__ == '__main__':
+	ivl = Interval(0x0003, 0x000a)
+	print("***", ivl, "***")
+	cuts = [3, 7]
+	for i in ivl.cut_right_iter(cuts):
+		print(i)

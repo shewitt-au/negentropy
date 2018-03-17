@@ -39,16 +39,17 @@ class DictWithRange(dict):
 		for v in self.items_in_range(ivl):
 			yield v[1]
 
-def read_symbols():
+def read_symbols(*fns):
 	symbols = DictWithRange()
 
-	with open("BD.txt", "r") as f:
-		for line in f:
-			if line=="":
-				continue
-			m = re.match(symbols_re, line)
-			if m:
-				symbols[int(m[1], 16)] = m[2]
+	for fn in fns:
+		with open(fn, "r") as f:
+			for line in f:
+				if line=="":
+					continue
+				m = re.match(symbols_re, line)
+				if m:
+					symbols[int(m[1], 16)] = m[2]
 
 		symbols.build_index()
 
@@ -116,5 +117,5 @@ def read_comments():
 	return comments
 
 if __name__ == '__main__':
-	sym = read_symbols()
+	sym = read_symbols("BD.txt", "BD-BM.txt")
 	sym.build_index()

@@ -63,7 +63,7 @@ class MemRegion(interval.Interval):
 if __name__ == '__main__':
 	import symbols
 	import memory
-	sym = symbols.read_symbols()
+	sym = symbols.read_symbols("BD.txt", "BD-BM.txt")
 	cmt = symbols.read_comments()
 	with open("5000-8fff.bin", "rb") as f:
 		f = open("5000-8fff.bin", "rb")
@@ -71,10 +71,18 @@ if __name__ == '__main__':
 	decoders.init_decoders(m, sym, cmt)
 	mmap = MemType("MemType.txt")
 
-	ivl = interval.Interval(0x72e1, 0x7302)
-	for v in sym.keys_in_range(ivl):
-		print(v)
-	for v in sym.values_in_range(ivl):
-		print(v)
-	for v in sym.items_in_range(ivl):
-		print(v)
+#	ivl = interval.Interval(0x72e1, 0x7302)
+#	for v in sym.keys_in_range(ivl):
+#		print(v)
+#	for v in sym.values_in_range(ivl):
+#		print(v)
+#	for v in sym.items_in_range(ivl):
+#		print(v)
+
+#	print()
+
+	# code	6c80 6da4
+	# data	6da5 6db3
+	# code	6db4 6e4e
+	ivl2 = interval.Interval(0x6da5, 0x6db3)
+	mmap.decode(ivl2)
