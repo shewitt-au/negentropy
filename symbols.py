@@ -58,7 +58,7 @@ def read_symbols(*fns):
 comments_re = re.compile(r"([0-9A-Fa-f]{4})\s*(.*)")
 
 def read_comments():
-	comments = {}
+	comments = DictWithRange()
 
 	with open("Comments.txt", "r") as f:
 
@@ -97,7 +97,7 @@ def read_comments():
 				if line[0:2] == r"\/":
 					pos = 1 # after
 					line = line[2:]
-				elif line[0] == r">":
+				elif line[0] == r";":
 					pos = 2 # inline
 					line = line[1:]
 			if pos==0:
@@ -113,6 +113,8 @@ def read_comments():
 	comments[addr] = (before, after, inline)
 
 	del comments[-1] # Remove the invalid entry
+
+	comments.build_index()
 
 	return comments
 

@@ -84,5 +84,5 @@ if __name__ == '__main__':
 	# code	6c80 6da4
 	# data	6da5 6db3
 	# code	6db4 6e4e
-	ivl2 = interval.Interval(0x6da5, 0x6db3)
+	ivl2 = interval.Interval(0x8317, 0x838d-1)
 	mmap.decode(ivl2)

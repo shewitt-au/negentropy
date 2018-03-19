@@ -1,3 +1,4 @@
+from heapq import merge
 from interval import Interval
 
 class DataDecoder(object):
@@ -8,12 +9,20 @@ class DataDecoder(object):
 		self.cmts = cmts
 	
 	def decode(self, ivl):
-		addr = ivl.first
+		for i in ivl.cut_left_iter(merge(self.syms.keys_in_range(ivl), self.cmts.keys_in_range(ivl))):
 
-		for i in ivl.cut_left_iter(self.syms.keys_in_range(ivl)):
-			if i.first in self.syms:
-				print(self.syms[i.first], end="")
-			for n in range(0, len(i)):
+			c = self.cmts.get(i.first)
+			if c and c[0]:
+				print("".join(["; {}\n".format(cl) for cl in c[0].splitlines()]), end="")
+			s = self.syms.get(i.first)
+			if s:
+				print(s, end="")
+			if c and c[1]:
+				print()
+				print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]).rstrip(), end="")
+
+
+			for n in range(len(i)):
 				if n%16 == 0:
 					print("\n{:04x}\t".format(i.first+n), end="\t")
 				elif n%4 == 0:
