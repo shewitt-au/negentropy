@@ -1,9 +1,36 @@
 <!doctype html>
+
 <html>
-	<body>
-		<h1>Hello {{name()}}</h1>
-		{% for n in nums -%}
-		{{n}}
-		{%- endfor %}
-	</body>
+<head>
+<style>
+.container {
+	font-family: monospace;
+}
+.pre {
+	white-space: pre;
+}
+</style>
+</head>
+
+<body>
+<div calss="container:interit pre">
+{% for i in items -%}
+
+{% if i.comment_before %}
+<span class="container pre">
+{%- for line in i.comment_before.splitlines() -%}
+; {{line}}
+{% endfor -%}
+</span>
+{% endif %}
+
+{% if i.label %}
+<b>{{i.label}}</b><br/>
+{% endif %}
+
+{{"%04x"|format(i.address)}}<br/>
+
+{%endfor -%}
+</div>
+</body>
 </html>

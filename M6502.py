@@ -294,11 +294,40 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
+# Object passed to Jinja2 tamplates
+class Item(object):
+	def __init__(self, addr, lab, cmts):
+		self.address = addr
+		self.label = lab
+		if cmts:
+			self.comment_before = cmts[0]
+			self.comment_after = cmts[1]
+			self.comment_inline = cmts[2]
+
 class Diss(object):
 	def __init__(self, mem, syms, cmts):
 		self.mem = mem
 		self.syms = syms
 		self.cmts = cmts
+
+	def get_items(self, ivl):
+		addr = ivl.first
+		while addr<=ivl.last:
+			opcode = self.mem.r8(addr)
+			op_info = opcode_to_mnemonic_and_mode[opcode]
+
+			def mode():
+				return op_info[1]
+
+			def size():
+				return mode_info[0]+1
+
+			mode_info = mode_to_operand_info[mode()]
+
+			c = self.cmts.get(addr)
+
+			yield Item(addr, self.syms.get(addr), c)
+			addr += size()
 
 	def decode(self, ivl):
 		addr = ivl.first
@@ -307,8 +336,9 @@ class Diss(object):
 			op_info = opcode_to_mnemonic_and_mode[opcode]
 
 			def label(self):
-				if addr in self.syms:
-					return "{}:".format(self.syms[addr])
+				s = self.syms.get(addr)
+				if s:
+					return "{}:".format(s)
 
 			def instruction(self):
 				return "{:04x}\t\t{:8}\t\t{} {}".format(addr, bytes(), mnemonic(), operand(self))
@@ -345,7 +375,7 @@ class Diss(object):
 				return op_info[1]
 
 			def size():
-				return mode_info[0]+1;
+				return mode_info[0]+1
 
 			def has_addr():
 				return mode_info[1]
