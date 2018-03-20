@@ -20,7 +20,7 @@
 
 <body>
 <div class="container">
-{% for i in items -%}
+{%- for i in items -%}
 
 {% if i.comment_before %}
 <span class="comment">
@@ -28,15 +28,16 @@
 ; {{line}}
 {% endfor -%}
 </span>
-{% endif %}
+{%- endif -%}
 
 {% if i.label %}
 <b>{{i.label}}</b><br/>
-{% endif %}
+{% endif -%}
 
 <span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:02x}",w=8)}}</span><br/>
 
-{%endfor -%}
+{%- endfor -%}
+
 </div>
 </body>
 </html>
