@@ -294,15 +294,16 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-# Object passed to Jinja2 tamplates
+# A collection of these is passed to the Jinja2 tamplates.
 class Item(object):
-	def __init__(self, addr, lab, cmts):
+	def __init__(self, addr, lab, cmts, bytes):
 		self.address = addr
 		self.label = lab
 		if cmts:
 			self.comment_before = cmts[0]
 			self.comment_after = cmts[1]
 			self.comment_inline = cmts[2]
+		self.bytes = bytes
 
 class Diss(object):
 	def __init__(self, mem, syms, cmts):
@@ -325,8 +326,9 @@ class Diss(object):
 			mode_info = mode_to_operand_info[mode()]
 
 			c = self.cmts.get(addr)
+			b = self.mem.r(addr, size())
 
-			yield Item(addr, self.syms.get(addr), c)
+			yield Item(addr, self.syms.get(addr), c, b)
 			addr += size()
 
 	def decode(self, ivl):

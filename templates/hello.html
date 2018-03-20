@@ -6,18 +6,19 @@
 .container {
 	font-family: monospace;
 }
-.pre {
+.comment {
+	font-family: inherit;
 	white-space: pre;
 }
 </style>
 </head>
 
 <body>
-<div calss="container:interit pre">
+<div class="container">
 {% for i in items -%}
 
 {% if i.comment_before %}
-<span class="container pre">
+<span class="comment">
 {%- for line in i.comment_before.splitlines() -%}
 ; {{line}}
 {% endfor -%}
@@ -28,9 +29,11 @@
 <b>{{i.label}}</b><br/>
 {% endif %}
 
-{{"%04x"|format(i.address)}}<br/>
+{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|lst_fmt("{:02x} ", 9)}}
+
+<br/>
 
 {%endfor -%}
-</div>
+</divz
 </body>
 </html>

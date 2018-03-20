@@ -3,6 +3,12 @@ import M6502
 
 _end = None
 
+def list_formatter(it, pat, pad=None):
+	s = "".join([pat.format(i) for i in it])
+	if pad:
+		s = "{:9}".format(s)
+	return s
+
 def setup():
 	import symbols
 	from interval import Interval
@@ -20,6 +26,7 @@ def setup():
 			loader=jinja2.PackageLoader(__name__)
 		)
 	_env.globals['items'] = d.get_items(Interval(0x6c80, 0x6c9a))
+	_env.filters['lst_fmt'] = list_formatter
 
 	s = render('hello.html')
 	print(s)
