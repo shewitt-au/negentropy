@@ -3,11 +3,13 @@ import M6502
 
 _end = None
 
-def list_formatter(it, pat, pad=None):
-	s = "".join([pat.format(i) for i in it])
+def sequence_to_string(it, pat, **kwargs):
+	sep = kwargs.get("s", " ")
+	ret = sep.join([pat.format(i) for i in it])
+	pad = kwargs.get("w")
 	if pad:
-		s = "{:9}".format(s)
-	return s
+		ret = ret.ljust(pad)
+	return ret
 
 def setup():
 	import symbols
@@ -26,7 +28,7 @@ def setup():
 			loader=jinja2.PackageLoader(__name__)
 		)
 	_env.globals['items'] = d.get_items(Interval(0x6c80, 0x6c9a))
-	_env.filters['lst_fmt'] = list_formatter
+	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('hello.html')
 	print(s)
