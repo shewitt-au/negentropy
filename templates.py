@@ -4,11 +4,26 @@ import M6502
 _end = None
 
 def sequence_to_string(it, pat, **kwargs):
-	sep = kwargs.get("s", " ")
-	ret = sep.join([pat.format(i) for i in it])
+	sep = kwargs.get("s")
+	if sep is None or isinstance(sep, str):
+		if sep is None:
+			sep = " "
+		ret = sep.join([pat.format(i) for i in it])
+	else:
+		ret = ""
+		sep.sort(reverse=True)
+		for i in enumerate(it):
+			if i[0]!=0:
+				for s in sep:
+					if i[0]%s[0]==0:
+						ret = ret+s[1]
+						break
+			ret = ret+pat.format(i[1])
+
 	pad = kwargs.get("w")
 	if pad:
 		ret = ret.ljust(pad)
+
 	return ret
 
 def setup():
@@ -27,7 +42,7 @@ def setup():
 	_env = jinja2.Environment(
 			loader=jinja2.PackageLoader(__name__)
 		)
-	_env.globals['items'] = d.get_items(Interval(0x6c80, 0x6c9a))
+	_env.globals['items'] = d.get_items(Interval(0x6d62, 0x6da4))
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('hello.html')
