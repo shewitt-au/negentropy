@@ -17,19 +17,19 @@ class AddrMode(Enum):
 	Relative = auto()
 
 mode_to_operand_info = {
-	AddrMode.Implied		: (0, False, ""),
-	AddrMode.Accumulator	: (0, False, "A"),
-	AddrMode.Immediate		: (1, False, "#{}"),
-	AddrMode.ZeroPage		: (1, True, "{}"),
-	AddrMode.ZeroPageX		: (1, True, "{},X"),
-	AddrMode.ZeroPageY		: (1, True, "{},Y"),
-	AddrMode.Absolute		: (2, True, "{}"),
-	AddrMode.AbsoluteX		: (2, True, "{},X"),
-	AddrMode.AbsoluteY		: (2, True, "{},Y"),
-	AddrMode.AbsIndirect	: (2, True, "({})"),
-	AddrMode.IndirectX		: (1, True, "({},X)"),
-	AddrMode.IndirectY		: (1, True, "({}),Y"),
-	AddrMode.Relative		: (1, True, "{}")
+	AddrMode.Implied		: (0, False, "",  ""    ),
+	AddrMode.Accumulator	: (0, False, "A", ""    ),
+	AddrMode.Immediate		: (1, False, "#", ""    ),
+	AddrMode.ZeroPage		: (1, True,  "",   ""   ),
+	AddrMode.ZeroPageX		: (1, True,  "",   ",X" ),
+	AddrMode.ZeroPageY		: (1, True,  "",   ",Y" ),
+	AddrMode.Absolute		: (2, True,  "",   ""   ),
+	AddrMode.AbsoluteX		: (2, True,  "",   ",X" ),
+	AddrMode.AbsoluteY		: (2, True,  "",   ",Y" ),
+	AddrMode.AbsIndirect	: (2, True,  "()", ""   ),
+	AddrMode.IndirectX		: (1, True,  "(",  ",X)"),
+	AddrMode.IndirectY		: (1, True,  "(",  "),Y"),
+	AddrMode.Relative		: (1, True,  "",   ""   )
 	}
 
 opcode_to_mnemonic_and_mode = [
@@ -350,26 +350,26 @@ class Diss(object):
 
 			def operand(self):
 				if size()==1:
-					return fmt_str()
+					return operand_pre()+operand_post()
 				elif size()==2:
 					val = self.mem.r8(addr+1)
 					if mode() != AddrMode.Relative:
 						if has_addr() and val in self.syms:
-							return fmt_str().format(self.syms[val])
+							return operand_pre()+format(self.syms[val])+operand_post()
 						else:
-							return fmt_str().format("${:02x}".format(val))
+							return operand_pre()+"${:02x}".format(val)+operand_post()
 					else:
 						val = addr+sign_extend(val)+2
 						if has_addr() and val in self.syms:
-							return fmt_str().format(self.syms[val])
+							return operand_pre()+format(self.syms[val])+operand_post()
 						else:
-							return fmt_str().format("${:04x}".format(val))
+							return operand_pre()+"${:04x}".format(val)+operand_post()
 				elif size()==3:
 					val = self.mem.r16(addr+1)
 					if has_addr() and val in self.syms:
-						return fmt_str().format(self.syms[val])
+						return operand_pre()+self.syms[val]+operand_post()
 					else:
-						return fmt_str().format("${:04x}".format(val))
+						return operand_pre()+"${:04x}".format(val)++operand_post()
 				else:
 					raise IndexError("Illegal operand size.")
 
@@ -382,8 +382,11 @@ class Diss(object):
 			def has_addr():
 				return mode_info[1]
 
-			def fmt_str():
+			def operand_pre():
 				return mode_info[2]
+
+			def operand_post():
+				return mode_info[3]
 
 			def bytes():
 				return " ".join(["{:02x}".format(v) for v in self.mem.r(addr, size())])
