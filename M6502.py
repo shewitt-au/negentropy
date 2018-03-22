@@ -294,16 +294,27 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-# A collection of these is passed to the Jinja2 tamplates.
+class Instruction(object):
+	def __init__(self, mnemonic, pre, post, operand):
+		self.mnemonic = mnemonic
+		self.pre = pre
+		self.post = post
+		self.operand = operand
+
+# A collection of these is passed to the Jinja2 templates.
 class Item(object):
-	def __init__(self, addr, lab, cmts, bytes):
+	def __init__(self, addr, lab, cmts, bytes, mnemonic, pre, post, operand):
 		self.address = addr
+
 		self.label = lab
 		if cmts:
 			self.comment_before = cmts[0]
 			self.comment_after = cmts[1]
 			self.comment_inline = cmts[2]
+
 		self.bytes = bytes
+
+		self.instruction = Instruction(mnemonic, pre, post, operand)
 
 class Diss(object):
 	def __init__(self, mem, syms, cmts):
@@ -312,23 +323,59 @@ class Diss(object):
 		self.cmts = cmts
 
 	def get_items(self, ivl):
+		def mode():
+			return op_info[1]
+
+		def size():
+			return mode_info[0]+1
+
+		def has_addr():
+				return mode_info[1]
+
+		def mnemonic():
+			return op_info[0]
+
+		def operand_pre():
+			return mode_info[2]
+
+		def operand_post():
+			return mode_info[3]
+
+		def operand(self):
+			if size()==1:
+				return ""
+			elif size()==2:
+				val = self.mem.r8(addr+1)
+				if mode() != AddrMode.Relative:
+					if has_addr() and val in self.syms:
+						return format(self.syms[val])
+					else:
+						return "${:02x}".format(val)
+				else:
+					val = addr+sign_extend(val)+2
+					if has_addr() and val in self.syms:
+						return format(self.syms[val])
+					else:
+						return "${:04x}".format(val)
+			elif size()==3:
+				val = self.mem.r16(addr+1)
+				if has_addr() and val in self.syms:
+					return self.syms[val]
+				else:
+					return "${:04x}".format(val)
+			else:
+				raise IndexError("Illegal operand size.")
+
 		addr = ivl.first
 		while addr<=ivl.last:
 			opcode = self.mem.r8(addr)
 			op_info = opcode_to_mnemonic_and_mode[opcode]
-
-			def mode():
-				return op_info[1]
-
-			def size():
-				return mode_info[0]+1
-
 			mode_info = mode_to_operand_info[mode()]
 
 			c = self.cmts.get(addr)
 			b = self.mem.r(addr, size())
 
-			yield Item(addr, self.syms.get(addr), c, b)
+			yield Item(addr, self.syms.get(addr), c, b, mnemonic(), operand_pre(), operand_post(), operand(self))
 			addr += size()
 
 	def decode(self, ivl):
@@ -369,7 +416,7 @@ class Diss(object):
 					if has_addr() and val in self.syms:
 						return operand_pre()+self.syms[val]+operand_post()
 					else:
-						return operand_pre()+"${:04x}".format(val)++operand_post()
+						return operand_pre()+"${:04x}".format(val)+operand_post()
 				else:
 					raise IndexError("Illegal operand size.")
 

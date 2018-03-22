@@ -42,7 +42,7 @@ def setup():
 	_env = jinja2.Environment(
 			loader=jinja2.PackageLoader(__name__)
 		)
-	_env.globals['items'] = d.get_items(Interval(0x6d62, 0x6da4))
+	_env.globals['items'] = d.get_items(Interval(0x715e, 0x7189))
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('hello.html')
