@@ -1,8 +1,6 @@
 import jinja2
 import M6502
 
-_end = None
-
 def sequence_to_string(it, pat, **kwargs):
 	sep = kwargs.get("s")
 	if sep is None or isinstance(sep, str):
