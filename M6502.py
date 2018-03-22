@@ -294,28 +294,6 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-class Instruction(object):
-	def __init__(self, mnemonic, pre, post, operand):
-		self.mnemonic = mnemonic
-		self.pre = pre
-		self.post = post
-		self.operand = operand
-
-# A collection of these is passed to the Jinja2 templates.
-class Item(object):
-	def __init__(self, addr, lab, cmts, bytes, mnemonic, pre, post, operand):
-		self.address = addr
-
-		self.label = lab
-		if cmts:
-			self.comment_before = cmts[0]
-			self.comment_after = cmts[1]
-			self.comment_inline = cmts[2]
-
-		self.bytes = bytes
-
-		self.instruction = Instruction(mnemonic, pre, post, operand)
-
 class Diss(object):
 	def __init__(self, mem, syms, cmts):
 		self.mem = mem
@@ -375,7 +353,21 @@ class Diss(object):
 			c = self.cmts.get(addr)
 			b = self.mem.r(addr, size())
 
-			yield Item(addr, self.syms.get(addr), c, b, mnemonic(), operand_pre(), operand_post(), operand(self))
+			yield {
+				"address": addr,
+				"label" : self.syms.get(addr),
+				"comment_before": None if c is None else c[0],
+				"comment_after": None if c is None else c[1],
+				"comment_inline": None if c is None else c[2],
+				"bytes": b,
+				"instruction": {
+					"mnemonic": mnemonic(),
+					"pre": operand_pre(),
+					"post": operand_post(),
+					"operand": operand(self)
+					}
+				}
+
 			addr += size()
 
 	def decode(self, ivl):
