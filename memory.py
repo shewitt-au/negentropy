@@ -2,7 +2,6 @@ import re
 import bisect
 import decoders
 import interval
-import itertools
 
 class Memory(object):
 	def __init__(self, data, org):
@@ -44,11 +43,8 @@ class MemType(object):
 		return range(b, e)
 
 	def decode(self, ctx, ivl):
-		iters = [self[i].decode(ctx, self[i]&ivl) for i in self.overlapping_indices(ivl)]
-		return itertools.chain.from_iterable(iters)
-
-		#for i in self.overlapping_indices(ivl):
-		#	return self[i].decode(ctx, self[i]&ivl)
+		for i in self.overlapping_indices(ivl):
+			yield from self[i].decode(ctx, self[i]&ivl)
 
 class MemRegion(interval.Interval):
 	def __init__(self, decoder, tuple_or_first, last=None):
