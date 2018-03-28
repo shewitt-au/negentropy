@@ -294,153 +294,73 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-class Diss(object):
-	def __init__(self, mem, syms, cmts):
-		self.mem = mem
-		self.syms = syms
-		self.cmts = cmts
+def decode(ctx, ivl):
+	def mode():
+		return op_info[1]
 
-	def get_items(self, ivl):
-		def mode():
-			return op_info[1]
+	def size():
+		return mode_info[0]+1
 
-		def size():
-			return mode_info[0]+1
+	def has_addr():
+			return mode_info[1]
 
-		def has_addr():
-				return mode_info[1]
+	def mnemonic():
+		return op_info[0]
 
-		def mnemonic():
-			return op_info[0]
+	def operand_pre():
+		return mode_info[2]
 
-		def operand_pre():
-			return mode_info[2]
+	def operand_post():
+		return mode_info[3]
 
-		def operand_post():
-			return mode_info[3]
-
-		def operand(self):
-			if size()==1:
-				return ""
-			elif size()==2:
-				val = self.mem.r8(addr+1)
-				if mode() != AddrMode.Relative:
-					if has_addr() and val in self.syms:
-						return format(self.syms[val])
-					else:
-						return "${:02x}".format(val)
+	def operand():
+		if size()==1:
+			return ""
+		elif size()==2:
+			val = ctx.mem.r8(addr+1)
+			if mode() != AddrMode.Relative:
+				if has_addr() and val in ctx.syms:
+					return format(ctx.syms[val])
 				else:
-					val = addr+sign_extend(val)+2
-					if has_addr() and val in self.syms:
-						return format(self.syms[val])
-					else:
-						return "${:04x}".format(val)
-			elif size()==3:
-				val = self.mem.r16(addr+1)
-				if has_addr() and val in self.syms:
-					return self.syms[val]
+					return "${:02x}".format(val)
+			else:
+				val = addr+sign_extend(val)+2
+				if has_addr() and val in ctx.syms:
+					return format(ctx.syms[val])
 				else:
 					return "${:04x}".format(val)
+		elif size()==3:
+			val = ctx.mem.r16(addr+1)
+			if has_addr() and val in ctx.syms:
+				return ctx.syms[val]
 			else:
-				raise IndexError("Illegal operand size.")
+				return "${:04x}".format(val)
+		else:
+			raise IndexError("Illegal operand size.")
 
-		addr = ivl.first
-		while addr<=ivl.last:
-			opcode = self.mem.r8(addr)
-			op_info = opcode_to_mnemonic_and_mode[opcode]
-			mode_info = mode_to_operand_info[mode()]
+	addr = ivl.first
+	while addr<=ivl.last:
+		opcode = ctx.mem.r8(addr)
+		op_info = opcode_to_mnemonic_and_mode[opcode]
+		mode_info = mode_to_operand_info[mode()]
 
-			c = self.cmts.get(addr)
-			b = self.mem.r(addr, size())
+		c = ctx.cmts.get(addr)
+		b = ctx.mem.r(addr, size())
 
-			yield {
-				"address": addr,
-				"label" : self.syms.get(addr),
-				"comment_before": None if c is None else c[0],
-				"comment_after": None if c is None else c[1],
-				"comment_inline": None if c is None else c[2],
-				"bytes": b,
-				"instruction": {
-					"mnemonic": mnemonic(),
-					"pre": operand_pre(),
-					"post": operand_post(),
-					"operand": operand(self)
-					}
+		yield {
+			"type" : "code",
+			"address": addr,
+			"label" : ctx.syms.get(addr),
+			"comment_before": None if c is None else c[0],
+			"comment_after": None if c is None else c[1],
+			"comment_inline": None if c is None else c[2],
+			"bytes": b,
+			"instruction": {
+				"mnemonic": mnemonic(),
+				"pre": operand_pre(),
+				"post": operand_post(),
+				"operand": operand()
 				}
+			}
 
-			addr += size()
-
-	def decode(self, ivl):
-		addr = ivl.first
-		while addr<=ivl.last:
-			opcode = self.mem.r8(addr)
-			op_info = opcode_to_mnemonic_and_mode[opcode]
-
-			def label(self):
-				s = self.syms.get(addr)
-				if s:
-					return "{}:".format(s)
-
-			def instruction(self):
-				return "{:04x}\t\t{:8}\t\t{} {}".format(addr, bytes(), mnemonic(), operand(self))
-
-			def mnemonic():
-				return op_info[0]
-
-			def operand(self):
-				if size()==1:
-					return operand_pre()+operand_post()
-				elif size()==2:
-					val = self.mem.r8(addr+1)
-					if mode() != AddrMode.Relative:
-						if has_addr() and val in self.syms:
-							return operand_pre()+format(self.syms[val])+operand_post()
-						else:
-							return operand_pre()+"${:02x}".format(val)+operand_post()
-					else:
-						val = addr+sign_extend(val)+2
-						if has_addr() and val in self.syms:
-							return operand_pre()+format(self.syms[val])+operand_post()
-						else:
-							return operand_pre()+"${:04x}".format(val)+operand_post()
-				elif size()==3:
-					val = self.mem.r16(addr+1)
-					if has_addr() and val in self.syms:
-						return operand_pre()+self.syms[val]+operand_post()
-					else:
-						return operand_pre()+"${:04x}".format(val)+operand_post()
-				else:
-					raise IndexError("Illegal operand size.")
-
-			def mode():
-				return op_info[1]
-
-			def size():
-				return mode_info[0]+1
-
-			def has_addr():
-				return mode_info[1]
-
-			def operand_pre():
-				return mode_info[2]
-
-			def operand_post():
-				return mode_info[3]
-
-			def bytes():
-				return " ".join(["{:02x}".format(v) for v in self.mem.r(addr, size())])
-
-			mode_info = mode_to_operand_info[mode()]
-			c = self.cmts.get(addr)
-			if c and c[0]:
-				print("".join(["; {}\n".format(cl) for cl in c[0].splitlines()]), end="")
-			if label(self):
-				print(label(self))
-			if c and c[1]:
-				print("".join(["; {}\n".format(cl) for cl in c[1].splitlines()]), end="")
-			print(instruction(self), end="")
-			if c and c[2]:
-				print("".join([" ; {}\n".format(cl) for cl in c[2].splitlines()]).rstrip(), end="")
-			print()
-
-			addr = addr+size()
+		addr += size()

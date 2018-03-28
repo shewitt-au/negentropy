@@ -2,6 +2,7 @@ import re
 import bisect
 import decoders
 import interval
+import itertools
 
 class Memory(object):
 	def __init__(self, data, org):
@@ -42,17 +43,20 @@ class MemType(object):
 		e = bisect.bisect_right(self.map, ivl.last, b)
 		return range(b, e)
 
-	def decode(self, ivl):
-		for i in self.overlapping_indices(ivl):
-			self[i].decode(self[i]&ivl)
+	def decode(self, ctx, ivl):
+		iters = [self[i].decode(ctx, self[i]&ivl) for i in self.overlapping_indices(ivl)]
+		return itertools.chain.from_iterable(iters)
+
+		#for i in self.overlapping_indices(ivl):
+		#	return self[i].decode(ctx, self[i]&ivl)
 
 class MemRegion(interval.Interval):
 	def __init__(self, decoder, tuple_or_first, last=None):
-		self.decoder = decoder
 		super().__init__(tuple_or_first, last)
+		self.decoder = decoder
 
-	def decode(self, ivl):
-		self.decoder.decode(ivl)
+	def decode(self, ctx, ivl):
+		return self.decoder(ctx, ivl)
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)

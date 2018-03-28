@@ -1,5 +1,6 @@
 import jinja2
-import M6502
+import decoders
+import memory
 
 def sequence_to_string(it, pat, **kwargs):
 	sep = kwargs.get("s")
@@ -33,14 +34,15 @@ def setup():
 	with open("5000-8fff.bin", "rb") as f:
 		f = open("5000-8fff.bin", "rb")
 		m = memory.Memory(f.read(), 0x5000)
-
-	d = M6502.Diss(m, sym, cmt)
+	ctx = decoders.Context(m, sym, cmt)
+	decoders.init_decoders(ctx)
+	mmap = memory.MemType("MemType.txt")
 
 	global _env
 	_env = jinja2.Environment(
 			loader=jinja2.PackageLoader(__name__)
 		)
-	_env.globals['items'] = d.get_items(Interval(0x715e, 0x7189))
+	_env.globals['items'] = mmap.decode(ctx, Interval(0x6c6c, 0x6c9a))
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('hello.html')

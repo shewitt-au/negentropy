@@ -28,6 +28,12 @@ class Interval(object):
 	def is_empty(self):
 		return self.first>self.last
 
+	def __len__(self):
+		if self.is_empty():
+			return 0
+		else:
+			return self.last-self.first-1
+
 	def __eq__(self, other):
 		if isinstance(other, __class__):
 			return self.value == other.value

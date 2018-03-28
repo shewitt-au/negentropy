@@ -1,20 +1,19 @@
 import M6502
 import data
 
-class NullDecoder(object):
-	def __init__(self, name):
-		self.name = name
-	
-	def decode(self, addr):
-		print(self.name + ": decoder not implemmented!")
+class Context(object):
+	def __init__(self, mem, syms, cmts):
+		self.mem = mem
+		self.syms = syms
+		self.cmts = cmts
 
 decoders = None
 
-def init_decoders(mem, syms, cmts):
+def init_decoders(ctx):
 	global decoders
 	decoders = {
-		"bitmap" : NullDecoder("bitmap"),
-		"data" : data.DataDecoder(1, mem, syms, cmts),
-		"ptr16" : NullDecoder("ptr16"),
-		"code" : M6502.Diss(mem, syms, cmts)
+		"bitmap" : None,
+		"data" : data.decode,
+		"ptr16" :None,
+		"code" : M6502.decode
 		}
