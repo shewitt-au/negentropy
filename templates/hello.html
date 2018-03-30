@@ -94,6 +94,29 @@
 
 <span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:04x}", s=[(1," "), (4, "  ")])}}</span><br/>
 
+{% elif i.type == "chars" %}
+
+{% if i.comment_before %}
+<span class="comment">
+{%- for line in i.comment_before.splitlines() -%}
+; {{line}}
+{% endfor -%}
+</span>
+{%- endif -%}
+
+{% if i.label %}
+<b>{{i.label}}</b><br/>
+{% endif -%}
+
+{% if i.comment_after %}
+<span class="comment">
+{%- for line in i.comment_after.splitlines() -%}
+; {{line}}
+{% endfor -%}
+</span>
+{% endif %}
+
+{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:08b}")}}<br/>
 {% endif %}
 
 {% endfor -%}

@@ -10,7 +10,6 @@ def main():
 	cmt = symbols.read_comments()
 
 	with open("5000-8fff.bin", "rb") as f:
-		f = open("5000-8fff.bin", "rb")
 		m = memory.Memory(f.read(), 0x5000)
 
 	decoders.init_decoders(m, sym, cmt)

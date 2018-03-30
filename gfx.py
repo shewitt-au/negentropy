@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw
 
 c64Colours = (
 	0x00, 0x00, 0x00, #  0 - Black
@@ -25,12 +25,19 @@ class C64Bitmap(object):
 		self.image.putpalette(c64Colours)
 		self.pixels = self.image.load()
 
-	def setchar(self, x, y, c, d):
-		it = iter(d)
-		for yy in range(y, y+8):
+	def plotpixel(self, pos, c, zoom=8):
+		if zoom==1:
+			self.pixels[pos[0], pos[1]] = c
+		else:
+			draw = ImageDraw.Draw(self.image)
+			draw.rectangle([pos[0], pos[1], pos[0]+zoom, pos[1]+zoom], fill=c, outline=c)
+
+	def setchar(self, data, ch, pos, c, zoom=1):
+		it = iter(data[ch*8:])
+		for yy in range(pos[1], pos[1]+8*zoom, zoom):
 			v = next(it)
-			for xx in range(x, x+8):
-				self.pixels[xx, yy] = c if int(v)&0x80 else 0
+			for xx in range(pos[0], pos[0]+8*zoom, zoom):
+				self.plotpixel((xx, yy), (c if int(v)&0x80 else 0), zoom)
 				v = v<<1
 	#
 	#  MULTI-COLOR CHARACTER MODE (MCM = 1, BMM = ECM = 0 )
@@ -64,25 +71,30 @@ class C64Bitmap(object):
 	#  contain 4 different colors, two as foreground and two as background (see
 	#  MOB priority).
 	#
-	def setcharmcm(self, x, y, c, d):
+	def setcharmcm(self, data, ch, pos, c, zoom=1):
 		if c[3]&8 == 0:
-			self.setchar(x, y, c[3], d)
+			self.setchar(data, ch, pos, c[3], zoom)
 		else:
 			cd = list(c)
 			cd[3] = cd[3]&7 # Clear the MCM bit
-			it = iter(d)
-			for yy in range(y, y+8):
+			it = iter(data[ch*8:])
+			for yy in range(pos[1], pos[1]+8*zoom, zoom):
 				v = next(it)
-				for xx in range(x, x+8, 2):
+				for xx in range(pos[0], pos[0]+8*zoom, 2*zoom):
 					pc = cd[(int(v)&0xc0)>>6]
-					self.pixels[xx, yy] = pc
-					self.pixels[xx+1, yy] = pc
+					self.plotpixel((xx, yy), pc, zoom)
+					if zoom==1:
+						self.plotpixel((xx+1, yy), pc, zoom)
 					v = v<<2
 
 	def save(self, fn):
 		self.image.save(fn)
 
 if __name__=="__main__":
+	with open("chargen", "rb") as f:
+		chars = f.read();
 	bm = C64Bitmap(128, 128)
-	bm.setcharmcm(10, 10, [0, 2, 3, 9], [0xff, 0xff, 0xbf, 0x2f, 0x2f, 0x2f, 0xbf, 0xff])
+	for y in range(0, 16):
+		for x in range(0, 16):
+			bm.setcharmcm(chars, y*16+x, (x*8, y*8), (0,2,3,9))
 	bm.save("out.png")
