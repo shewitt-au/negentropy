@@ -42,7 +42,7 @@ def setup():
 	_env = jinja2.Environment(
 			loader=jinja2.PackageLoader(__name__)
 		)
-	_env.globals['items'] = mmap.decode(ctx, Interval(0x6c6c, 0x6c9a))
+	_env.globals['items'] = mmap.decode(ctx, Interval(0x6c6c, 0x806d))
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('hello.html')
@@ -59,4 +59,3 @@ def render(template_name, **template_vars):
 
 if __name__ == '__main__':
 	setup()
-

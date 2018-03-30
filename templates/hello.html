@@ -23,6 +23,7 @@
 {%- for i in items -%}
 
 {% if i.type == "code" %}
+
 {% if i.comment_before %}
 <span class="comment">
 {%- for line in i.comment_before.splitlines() -%}
@@ -35,10 +36,40 @@
 <b>{{i.label}}</b><br/>
 {% endif -%}
 
+{% if i.comment_after %}
+<span class="comment">
+{%- for line in i.comment_after.splitlines() -%}
+; {{line}}
+{% endfor -%}
+</span>
+{% endif %}
+
 <span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:02x}",w=8)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.instruction.mnemonic}} {{i.instruction.pre}}{{i.instruction.operand}}{{i.instruction.post}}</span><br/>
 
 {% elif i.type == "data" %}
-<span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:02x}")}}</span><br/>
+
+{% if i.comment_before %}
+<span class="comment">
+{%- for line in i.comment_before.splitlines() -%}
+; {{line}}
+{% endfor -%}
+</span>
+{%- endif -%}
+
+{% if i.label %}
+<b>{{i.label}}</b><br/>
+{% endif -%}
+
+{% if i.comment_after %}
+<span class="comment">
+{%- for line in i.comment_after.splitlines() -%}
+; {{line}}
+{% endfor -%}
+</span>
+{% endif %}
+
+<span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}</span><br/>
+
 {% endif %}
 
 {% endfor -%}

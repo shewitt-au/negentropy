@@ -2,9 +2,7 @@ from heapq import merge
 from interval import Interval
 
 def decode(ctx, ivl):
-	print(ivl)
 	for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
-		print(i)
 		c = ctx.cmts.get(i.first)
 		yield {
 			"type" : "data",
@@ -16,7 +14,6 @@ def decode(ctx, ivl):
 			"bytes": ctx.mem.r(ivl.first, min(len(ivl), 16))
 			}
 		for addr in range(i.first+16, i.last+1, 16):
-			print(hex(addr))
 			yield {
 				"type" : "data",
 				"address": addr,

@@ -52,6 +52,7 @@ class MemRegion(interval.Interval):
 		self.decoder = decoder
 
 	def decode(self, ctx, ivl):
+		print(self)
 		return self.decoder(ctx, ivl)
 
 	def __str__(self):
