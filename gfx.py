@@ -98,6 +98,15 @@ class C64Bitmap(object):
 			draw.line((pos[0], pos[1]+i*zoom, pos[0]+off, pos[1]+i*zoom), fill=c)
 			draw.line((pos[0]+i*zoom, pos[1], pos[0]+i*zoom, pos[1]+off), fill=c)
 
+	def ctext(self, rc, text, c, font):
+		draw = ImageDraw.Draw(self.image)
+		sz = draw.textsize(text, font=font)
+
+		x = rc[0]+(rc[2]-rc[0]-sz[0])/2
+		y = rc[1]+(rc[3]-rc[1]-sz[1])/2
+
+		draw.text((x, y), text, font=font, fill=c)
+
 	def charset(self, data, c):
 		zoom = 8
 		char_sz = 8*zoom
@@ -108,9 +117,9 @@ class C64Bitmap(object):
 		font = ImageFont.truetype("arial.ttf", 36)
 
 		for x in range(0, 16):
-			draw.text((char_sz+x*cell_sz, 0), "{:02x}".format(x), fill=1, font=font)
+			self.ctext((char_sz+x*cell_sz, 0, 2*char_sz+x*cell_sz, char_sz), "{:02x}".format(x), 1, font)
 		for y in range(0, 16):
-			draw.text((0, char_sz+y*cell_sz), "{:02x}".format(y<<4), fill=1, font=font)
+			self.ctext((0, char_sz+y*cell_sz, char_sz, 2*char_sz+y*cell_sz), "{:02x}".format(y<<4), 1, font)
 
 		for y in range(0, 16):
 			for x in range(0, 16):
