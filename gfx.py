@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageFont, ImageDraw
 
 c64Colours = (
 	0x00, 0x00, 0x00, #  0 - Black
@@ -90,11 +90,39 @@ class C64Bitmap(object):
 	def save(self, fn):
 		self.image.save(fn)
 
+	def grid(self, pos, c, zoom):
+		off = 8*zoom
+
+		draw = ImageDraw.Draw(self.image)
+		for i in range(0, 9):
+			draw.line((pos[0], pos[1]+i*zoom, pos[0]+off, pos[1]+i*zoom), fill=c)
+			draw.line((pos[0]+i*zoom, pos[1], pos[0]+i*zoom, pos[1]+off), fill=c)
+
+	def charset(self, data, c):
+		zoom = 8
+		char_sz = 8*zoom
+		sep = 8
+		cell_sz = char_sz+sep
+
+		draw = ImageDraw.Draw(self.image)
+		font = ImageFont.truetype("arial.ttf", 36)
+
+		for x in range(0, 16):
+			draw.text((char_sz+x*cell_sz, 0), "{:02x}".format(x), fill=1, font=font)
+		for y in range(0, 16):
+			draw.text((0, char_sz+y*cell_sz), "{:02x}".format(y<<4), fill=1, font=font)
+
+		for y in range(0, 16):
+			for x in range(0, 16):
+				bm.setchar(data, x+y*16, (char_sz+x*cell_sz, char_sz+y*cell_sz), c, zoom)
+				self.grid((char_sz+x*cell_sz, char_sz+y*cell_sz), 11, zoom)
+
 if __name__=="__main__":
 	with open("chargen", "rb") as f:
 		chars = f.read();
-	bm = C64Bitmap(128, 128)
-	for y in range(0, 16):
-		for x in range(0, 16):
-			bm.setcharmcm(chars, y*16+x, (x*8, y*8), (0,2,3,9))
+	bm = C64Bitmap(1280, 1280)
+	#for y in range(0, 16):
+	#	for x in range(0, 16):
+	#		bm.setcharmcm(chars, y*16+x, (x*8, y*8), (0,2,3,9))
+	bm.charset(chars, 1)
 	bm.save("out.png")
