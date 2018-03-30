@@ -42,7 +42,7 @@ def setup():
 	_env = jinja2.Environment(
 			loader=jinja2.PackageLoader(__name__)
 		)
-	_env.globals['items'] = mmap.decode(ctx, Interval(0x6c6c, 0x806d))
+	_env.globals['items'] = mmap.decode(ctx, Interval(0x5000, 0x8fff))
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('hello.html')

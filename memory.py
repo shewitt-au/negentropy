@@ -8,14 +8,17 @@ class Memory(object):
 		self.data = data
 		self.org = org
 
-	def r(self, addr, sz):
-		return self.data[addr-self.org : addr-self.org+sz]
-
 	def r8(self, addr):
 		return self.data[addr-self.org]
 
+	def r8m(self, addr, sz):
+		return self.data[addr-self.org : addr-self.org+sz]
+
 	def r16(self, addr):
 		return self.data[addr-self.org] + self.data[addr-self.org+1]*256
+
+	def r16m(self, addr, sz):
+		return [self.r16(a) for a in range(addr, addr+sz, 2)]
 
 memtype_re = re.compile(r"^\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*$")
 
@@ -52,7 +55,6 @@ class MemRegion(interval.Interval):
 		self.decoder = decoder
 
 	def decode(self, ctx, ivl):
-		print(self)
 		return self.decoder(ctx, ivl)
 
 	def __str__(self):

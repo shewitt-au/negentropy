@@ -12,8 +12,8 @@ decoders = None
 def init_decoders(ctx):
 	global decoders
 	decoders = {
-		"bitmap" : None,
-		"data" : data.decode,
-		"ptr16" :None,
-		"code" : M6502.decode
+		"bitmap" : data.data_decoder("data"),
+		"data" : data.data_decoder("data"),
+		"ptr16" : data.data_decoder("ptr16", 16),
+		"code" : M6502.decode_6502
 		}

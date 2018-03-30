@@ -294,7 +294,7 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-def decode(ctx, ivl):
+def decode_6502(ctx, ivl):
 	def mode():
 		return op_info[1]
 
@@ -345,7 +345,7 @@ def decode(ctx, ivl):
 		mode_info = mode_to_operand_info[mode()]
 
 		c = ctx.cmts.get(addr)
-		b = ctx.mem.r(addr, size())
+		b = ctx.mem.r8m(addr, size())
 
 		yield {
 			"type" : "code",
