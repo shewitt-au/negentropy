@@ -32,21 +32,57 @@ class C64Bitmap(object):
 			for xx in range(x, x+8):
 				self.pixels[xx, yy] = c if int(v)&0x80 else 0
 				v = v<<1
-
+	#
+	#  MULTI-COLOR CHARACTER MODE (MCM = 1, BMM = ECM = 0 )
+	#
+	#    Multi-color mode provides additional color flexibility allowing up to
+	#  four colors within each character but with reduced resolution. The multi-
+	#  color mode is selected by setting the MCM bit in register 22 ($16) to
+	#  "1," which causes the dot data stored in the character base to be
+	#  interpreted in a different manner. If the MSB of the color nybble is a
+	#  "0," the character will be displayed as described in standard character
+	#  mode, allowing the two modes to be inter-mixed (however, only the lower
+	#  order 8 colors are available). When the MSB of the color nybble is a "1"
+	#  (if MCM:MSB(CM) = 1) the character bits are interpreted in the multi-
+	#  color mode:
+	#
+	#                | CHARACTER  |
+	#     FUNCTION   |  BIT PAIR  |               COLOR DISPLAYED
+	#  --------------+------------+---------------------------------------------
+	#    Background  |     00     |  Background #0 Color
+	#                |            |  (register 33 ($21))
+	#    Background  |     01     |  Background #1 Color
+	#                |            |  (register 34 ($22)
+	#    Foreground  |     10     |  Background #2 Color
+	#                |            |  (register 35 ($23)
+	#    Foreground  |     11     |  Color specified by 3 LSB
+	#                |            |  of color nybble
+	#
+	#  Since two bits are required to specify one dot color, the character is
+	#  now displayed as a 4*8 matrix with each dot twice the horizontal size as
+	#  in standard mode. Note, however, that each character region can now
+	#  contain 4 different colors, two as foreground and two as background (see
+	#  MOB priority).
+	#
 	def setcharmcm(self, x, y, c, d):
-		it = iter(d)
-		for yy in range(y, y+8):
-			v = next(it)
-			for xx in range(x, x+8, 2):
-				pc = c[(int(v)&0xc0)>>6]
-				self.pixels[xx, yy] = pc
-				self.pixels[xx+1, yy] = pc
-				v = v<<2
+		if c[3]&8 == 0:
+			self.setchar(x, y, c[3], d)
+		else:
+			cd = list(c)
+			cd[3] = cd[3]&7 # Clear the MCM bit
+			it = iter(d)
+			for yy in range(y, y+8):
+				v = next(it)
+				for xx in range(x, x+8, 2):
+					pc = cd[(int(v)&0xc0)>>6]
+					self.pixels[xx, yy] = pc
+					self.pixels[xx+1, yy] = pc
+					v = v<<2
 
 	def save(self, fn):
 		self.image.save(fn)
 
 if __name__=="__main__":
 	bm = C64Bitmap(128, 128)
-	bm.setcharmcm(10, 10, [0, 1, 2, 3], [0xff, 0xff, 0xbf, 0x2f, 0x2f, 0x2f, 0xbf, 0xff])
+	bm.setcharmcm(10, 10, [0, 2, 3, 9], [0xff, 0xff, 0xbf, 0x2f, 0x2f, 0x2f, 0xbf, 0xff])
 	bm.save("out.png")
