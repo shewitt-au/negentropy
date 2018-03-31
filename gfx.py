@@ -20,10 +20,16 @@ c64Colours = (
 	)
 
 class C64Bitmap(object):
-	def __init__(self, w, h):
-		self.image = Image.new("P", (w, h), 0)
+	def __init__(self, sz):
+		self.image = Image.new("P", sz, 0)
 		self.image.putpalette(c64Colours)
 		self.pixels = self.image.load()
+
+	@classmethod
+	def genset(cls, data):
+		instance = cls(cls.charset_size)
+		instance.charset(chars, 1)
+		return instance
 
 	def plotpixel(self, pos, c, zoom=8):
 		if zoom==1:
@@ -107,31 +113,28 @@ class C64Bitmap(object):
 
 		draw.text((x, y), text, font=font, fill=c)
 
-	def charset(self, data, c):
-		zoom = 8
-		char_sz = 8*zoom
-		sep = 8
-		cell_sz = char_sz+sep
+	zoom = 8
+	sep = 8
+	char_sz = 8*zoom
+	cell_sz = char_sz+sep
+	charset_size = (char_sz+16*cell_sz, char_sz+16*cell_sz)
 
+	def charset(self, data, c):
 		draw = ImageDraw.Draw(self.image)
 		font = ImageFont.truetype("arial.ttf", 36)
 
 		for x in range(0, 16):
-			self.ctext((char_sz+x*cell_sz, 0, 2*char_sz+x*cell_sz, char_sz), "{:02x}".format(x), 1, font)
+			self.ctext((self.char_sz+x*self.cell_sz, 0, 2*self.char_sz+x*self.cell_sz, self.char_sz), "{:02x}".format(x), 1, font)
 		for y in range(0, 16):
-			self.ctext((0, char_sz+y*cell_sz, char_sz, 2*char_sz+y*cell_sz), "{:02x}".format(y<<4), 1, font)
+			self.ctext((0, self.char_sz+y*self.cell_sz, self.char_sz, 2*self.char_sz+y*self.cell_sz), "{:02x}".format(y<<4), 1, font)
 
 		for y in range(0, 16):
 			for x in range(0, 16):
-				bm.setchar(data, x+y*16, (char_sz+x*cell_sz, char_sz+y*cell_sz), c, zoom)
-				self.grid((char_sz+x*cell_sz, char_sz+y*cell_sz), 11, zoom)
+				self.setchar(data, x+y*16, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), c, self.zoom)
+				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), 11, self.zoom)
 
 if __name__=="__main__":
 	with open("chargen", "rb") as f:
 		chars = f.read();
-	bm = C64Bitmap(1280, 1280)
-	#for y in range(0, 16):
-	#	for x in range(0, 16):
-	#		bm.setcharmcm(chars, y*16+x, (x*8, y*8), (0,2,3,9))
-	bm.charset(chars, 1)
+	bm = C64Bitmap.genset(chars)
 	bm.save("out.png")
