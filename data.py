@@ -2,7 +2,7 @@ from heapq import merge
 from interval import Interval
 
 def data_decoder(name, wordlen, linelen):
-	def decode_data(ctx, ivl):
+	def decode_data(ctx, ivl, params):
 		if wordlen==1:
 			b = ctx.mem.r8m
 		elif wordlen==2:

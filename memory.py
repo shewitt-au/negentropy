@@ -20,18 +20,24 @@ class Memory(object):
 	def r16m(self, addr, sz):
 		return [self.r16(a) for a in range(addr, addr+sz, 2)]
 
-memtype_re = re.compile(r"^\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*$")
+memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*({.*})?", re.MULTILINE|re.DOTALL)
 
 class MemType(object):
 	def __init__(self, fname):
 		self.map = []
 		with open(fname, "r") as f:
-			for line in enumerate(f):
-				m = re.match(memtype_re, line[1])
+			txt = f.read()
+			pos, endpos = 0, len(txt)
+			while pos!=endpos:
+				m = memtype_re.match(txt, pos, endpos)
 				if m is None:
 					print("Error in line {} of memtype file".format(line[0]+1))
 					raise ValueError("Error in memtype file")
-				self.map.append(MemRegion(decoders.decoders[m[1]], m[2], m[3]))
+				params = {}
+				if m[4]:
+					params = eval(m[4],{})
+				self.map.append(MemRegion(decoders.decoders[m[1]], m[2], m[3], params))
+				pos = m.end()
 		self.map.sort()
 
 	def __len__(self):
@@ -50,12 +56,13 @@ class MemType(object):
 			yield from self[i].decode(ctx, self[i]&ivl)
 
 class MemRegion(interval.Interval):
-	def __init__(self, decoder, tuple_or_first, last=None):
+	def __init__(self, decoder, tuple_or_first, last=None, params=None):
 		super().__init__(tuple_or_first, last)
 		self.decoder = decoder
+		self.params = params
 
 	def decode(self, ctx, ivl):
-		return self.decoder(ctx, ivl)
+		return self.decoder(ctx, ivl, self.params)
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
@@ -65,27 +72,10 @@ class MemRegion(interval.Interval):
 
 if __name__ == '__main__':
 	import symbols
-	import memory
 	sym = symbols.read_symbols("BD.txt", "BD-BM.txt")
 	cmt = symbols.read_comments()
 	with open("5000-8fff.bin", "rb") as f:
-		f = open("5000-8fff.bin", "rb")
-		m = memory.Memory(f.read(), 0x5000)
-	decoders.init_decoders(m, sym, cmt)
+		m = Memory(f.read(), 0x5000)
+	ctx = decoders.Context(m, sym, cmt)
+	decoders.init_decoders(ctx)
 	mmap = MemType("MemType.txt")
-
-#	ivl = interval.Interval(0x72e1, 0x7302)
-#	for v in sym.keys_in_range(ivl):
-#		print(v)
-#	for v in sym.values_in_range(ivl):
-#		print(v)
-#	for v in sym.items_in_range(ivl):
-#		print(v)
-
-#	print()
-
-	# code	6c80 6da4
-	# data	6da5 6db3
-	# code	6db4 6e4e
-	ivl2 = interval.Interval(0x8317, 0x838d-1)
-	mmap.decode(ivl2)

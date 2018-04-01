@@ -294,7 +294,7 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-def decode_6502(ctx, ivl):
+def decode_6502(ctx, ivl, params):
 	def mode():
 		return op_info[1]
 
