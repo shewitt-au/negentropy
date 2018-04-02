@@ -20,7 +20,7 @@ class Memory(object):
 	def r16m(self, addr, sz):
 		return [self.r16(a) for a in range(addr, addr+sz, 2)]
 
-memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*({.*})?", re.MULTILINE|re.DOTALL)
+memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^({.*?^})?", re.MULTILINE|re.DOTALL)
 
 class MemType(object):
 	def __init__(self, fname):

@@ -4,10 +4,12 @@ def decode_chars(ctx, ivl, params):
 	num_chars = len(ivl)//8
 	cx = num_chars if num_chars<16 else 16
 	cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
+	mcm = params.get("mcm", False)
+	pallet = params.get("pallet", 1)
 
 	def generate():
 		fn = "{:04x}.png".format(ivl.first)
-		bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars);
+		bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet);
 		bm.save(fn)
 		return fn
 
@@ -48,11 +50,11 @@ class C64Bitmap(object):
 		self.pixels = self.image.load()
 
 	@classmethod
-	def genset(cls, data, num_chars=256):
+	def genset(cls, data, num_chars=256, mcm=False, pallet=1):
 		cx = num_chars if num_chars<16 else 16
 		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
 		instance = cls(cls.charset_size(cx, cy))
-		instance.charset(data, 1, num_chars)
+		instance.charset(data, num_chars, mcm, pallet)
 		return instance
 
 	def plotpixel(self, pos, c, zoom=8):
@@ -113,20 +115,25 @@ class C64Bitmap(object):
 				for xx in range(pos[0], pos[0]+8*zoom, 2*zoom):
 					pc = cd[(int(v)&0xc0)>>6]
 					self.plotpixel((xx, yy), pc, zoom)
-					if zoom==1:
-						self.plotpixel((xx+1, yy), pc, zoom)
+					self.plotpixel((xx+zoom, yy), pc, zoom)
 					v = v<<2
 
 	def save(self, fn):
 		self.image.save(fn)
 
-	def grid(self, pos, c, zoom):
+	def grid(self, pos, mcm, c, zoom):
 		off = 8*zoom
 
 		draw = ImageDraw.Draw(self.image)
-		for i in range(0, 9):
-			draw.line((pos[0], pos[1]+i*zoom, pos[0]+off, pos[1]+i*zoom), fill=c)
-			draw.line((pos[0]+i*zoom, pos[1], pos[0]+i*zoom, pos[1]+off), fill=c)
+		if mcm:
+			for i in range(0, 9):
+				draw.line((pos[0], pos[1]+i*zoom, pos[0]+off, pos[1]+i*zoom), fill=c)
+			for i in range(0, 9, 2):
+				draw.line((pos[0]+i*zoom, pos[1], pos[0]+i*zoom, pos[1]+off), fill=c)
+		else:
+			for i in range(0, 9):
+				draw.line((pos[0], pos[1]+i*zoom, pos[0]+off, pos[1]+i*zoom), fill=c)
+				draw.line((pos[0]+i*zoom, pos[1], pos[0]+i*zoom, pos[1]+off), fill=c)
 
 	def ctext(self, rc, text, c, font):
 		draw = ImageDraw.Draw(self.image)
@@ -146,7 +153,7 @@ class C64Bitmap(object):
 	def charset_size(cls, cx, cy):
 		return (cls.char_sz+cx*cls.cell_sz, cls.char_sz+cy*cls.cell_sz)
 
-	def charset(self, data, c, num_chars=256):
+	def charset(self, data, num_chars, mcm, pallet):
 		cx = num_chars if num_chars<16 else 16
 		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
 
@@ -163,8 +170,11 @@ class C64Bitmap(object):
 				if num_chars == 0:
 					break
 				num_chars = num_chars-1
-				self.setchar(data, x+y*16, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), c, self.zoom)
-				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), 11, self.zoom)
+				if mcm:
+					self.setcharmcm(data, x+y*16, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), pallet, self.zoom)
+				else:
+					self.setchar(data, x+y*16, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), pallet, self.zoom)
+				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), mcm, 11, self.zoom)
 
 if __name__=="__main__":
 	with open("chargen", "rb") as f:
