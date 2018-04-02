@@ -116,7 +116,8 @@
 </span>
 {% endif %}
 
-{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:08b}")}}<br/>
+<img src="{{i.generate()}}"/><br/>
+
 {% endif %}
 
 {% endfor -%}

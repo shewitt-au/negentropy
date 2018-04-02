@@ -1,5 +1,27 @@
 from PIL import Image, ImageFont, ImageDraw
 
+def decode_chars(ctx, ivl, params):
+	num_chars = len(ivl)//8
+	cx = num_chars if num_chars<16 else 16
+	cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
+
+	def generate():
+		fn = "{:04x}.png".format(ivl.first)
+		bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars);
+		bm.save(fn)
+		return fn
+
+	c = ctx.cmts.get(ivl.first)
+	yield {
+			"type"   : "chars",
+			"address": ivl.first,
+			"label"  : ctx.syms.get(ivl.first),
+			"comment_before" : None if c is None else c[0],
+			"comment_after"  : None if c is None else c[1],
+			"comment_inline" : None if c is None else c[2],
+			"generate" : generate
+			}
+
 c64Colours = (
 	0x00, 0x00, 0x00, #  0 - Black
 	0xff, 0xff, 0xff, #  1 - White
@@ -26,9 +48,11 @@ class C64Bitmap(object):
 		self.pixels = self.image.load()
 
 	@classmethod
-	def genset(cls, data):
-		instance = cls(cls.charset_size)
-		instance.charset(chars, 1)
+	def genset(cls, data, num_chars=256):
+		cx = num_chars if num_chars<16 else 16
+		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
+		instance = cls(cls.charset_size(cx, cy))
+		instance.charset(data, 1, num_chars)
 		return instance
 
 	def plotpixel(self, pos, c, zoom=8):
@@ -113,28 +137,37 @@ class C64Bitmap(object):
 
 		draw.text((x, y), text, font=font, fill=c)
 
-	zoom = 8
-	sep = 8
+	zoom = 4
+	sep = 4
+	font_sz = 18
 	char_sz = 8*zoom
 	cell_sz = char_sz+sep
-	charset_size = (char_sz+16*cell_sz, char_sz+16*cell_sz)
+	@classmethod
+	def charset_size(cls, cx, cy):
+		return (cls.char_sz+cx*cls.cell_sz, cls.char_sz+cy*cls.cell_sz)
 
-	def charset(self, data, c):
+	def charset(self, data, c, num_chars=256):
+		cx = num_chars if num_chars<16 else 16
+		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
+
 		draw = ImageDraw.Draw(self.image)
-		font = ImageFont.truetype("arial.ttf", 36)
+		font = ImageFont.truetype("arial.ttf", self.font_sz)
 
-		for x in range(0, 16):
+		for x in range(0, cx):
 			self.ctext((self.char_sz+x*self.cell_sz, 0, 2*self.char_sz+x*self.cell_sz, self.char_sz), "{:02x}".format(x), 1, font)
-		for y in range(0, 16):
+		for y in range(0, cy):
 			self.ctext((0, self.char_sz+y*self.cell_sz, self.char_sz, 2*self.char_sz+y*self.cell_sz), "{:02x}".format(y<<4), 1, font)
 
-		for y in range(0, 16):
-			for x in range(0, 16):
+		for y in range(0, cy):
+			for x in range(0, cx):
+				if num_chars == 0:
+					break
+				num_chars = num_chars-1
 				self.setchar(data, x+y*16, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), c, self.zoom)
 				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), 11, self.zoom)
 
 if __name__=="__main__":
 	with open("chargen", "rb") as f:
 		chars = f.read();
-	bm = C64Bitmap.genset(chars)
+	bm = C64Bitmap.genset(chars, 129)
 	bm.save("out.png")
