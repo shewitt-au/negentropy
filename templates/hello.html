@@ -38,6 +38,14 @@
 {%- endif -%}
 {%- endmacro %}
 
+{%- macro tabs() -%}
+&nbsp;&nbsp;&nbsp;&nbsp;
+{%- endmacro -%}
+
+{% macro address(i) -%}
+<b>{{"{:04x}".format(i.address)}}</b>{{tabs()}}
+{%- endmacro -%}
+
 {% macro label(i) -%}
 {% if i.label %}
 <b>{{i.label}}</b><br/>
@@ -54,25 +62,29 @@
 <div class="container">
 {%- for i in items -%}
 
+{# ----------------code---------------- #}
 {% if i.type == "code" %}
 
 {{ prefix(i) }}
-<span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:02x}",w=8)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.instruction.mnemonic}} {{i.instruction.pre}}{{i.instruction.operand}}{{i.instruction.post}}</span><br/>
+<span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{i.instruction.mnemonic}} {{i.instruction.pre}}{{i.instruction.operand}}{{i.instruction.post}}</span><br/>
 
+{# ----------------data---------------- #}
 {% elif i.type == "data" %}
 
 {{ prefix(i) }}
-<span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}</span><br/>
+<span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}</span><br/>
 
+{# ----------------ptr16---------------- #}
 {% elif i.type == "ptr16" %}
 
 {{ prefix(i) }}
-<span class="code">{{"{:04x}".format(i.address)}}&nbsp;&nbsp;&nbsp;&nbsp;{{i.bytes|seq2str("{:04x}", s=[(1," "), (4, "  ")])}}</span><br/>
+<span class="code">{{address(i)}}{{i.bytes|seq2str("{:04x}", s=[(1," "), (4, "  ")])}}</span><br/>
 
+{# ----------------chars---------------- #}
 {% elif i.type == "chars" %}
 
 {{ prefix(i) }}
-{{"{:04x}".format(i.address)}}<br/>
+<b>{{"{:04x}".format(i.address)}}</b><br/>
 <img src="{{i.generate()}}"/><br/>
 
 {% endif %}
