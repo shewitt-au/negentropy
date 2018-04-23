@@ -8,6 +8,15 @@ class Context(object):
 		self.syms = syms
 		self.cmts = cmts
 
+def base_decoder(ctx, ivl):
+	c = ctx.cmts.get(ivl.first)
+	return {
+		"label" : ctx.syms.get(ivl.first),
+		"comment_before": None if c is None else c[0],
+		"comment_after": None if c is None else c[1],
+		"comment_inline": None if c is None else c[2]
+		}
+
 decoders = None
 
 def init_decoders(ctx):

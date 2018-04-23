@@ -18,7 +18,7 @@
 </style>
 </head>
 
-{% macro comment_before(i) -%}
+{%- macro comment_before(i) -%}
 {% if i.comment_before %}
 <span class="comment">
 {%- for line in i.comment_before.splitlines() -%}
@@ -26,9 +26,9 @@
 {% endfor -%}
 </span>
 {%- endif -%}
-{%- endmacro %}
+{%- endmacro -%}
 
-{% macro comment_after(i) -%}
+{%- macro comment_after(i) -%}
 {% if i.comment_before %}
 <span class="comment">
 {%- for line in i.comment_after.splitlines() -%}
@@ -36,58 +36,62 @@
 {% endfor -%}
 </span>
 {%- endif -%}
-{%- endmacro %}
+{%- endmacro -%}
 
 {%- macro tabs() -%}
 &nbsp;&nbsp;&nbsp;&nbsp;
 {%- endmacro -%}
 
-{% macro address(i) -%}
+{%- macro address(i) -%}
 <b>{{"{:04x}".format(i.address)}}</b>{{tabs()}}
 {%- endmacro -%}
 
-{% macro label(i) -%}
+{%- macro label(i) -%}
 {% if i.label %}
 <b>{{i.label}}</b><br/>
 {%- endif %}
-{%- endmacro %}
+{%- endmacro -%}
 
-{% macro prefix(i) -%}
+{%- macro prefix(i) -%}
 {{ comment_before(i) }}
 {{ label(i) }}
 {{ comment_after(i) }}
-{% endmacro -%}
+{%- endmacro -%}
+
+{%- macro instruction(i) -%}
+{{i.instruction.mnemonic}} {{i.instruction.pre}}{{i.instruction.operand}}{{i.instruction.post}}
+{%- endmacro %}
 
 <body>
 <div class="container">
 {%- for i in items -%}
 
-{# ----------------code---------------- #}
-{% if i.type == "code" %}
+{#- ----------------code---------------- -#}
+{%- if i.type == "code" -%}
 
-{{ prefix(i) }}
-<span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{i.instruction.mnemonic}} {{i.instruction.pre}}{{i.instruction.operand}}{{i.instruction.post}}</span><br/>
+{{- prefix(i) -}}
+<span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{instruction(i)}}</span><br/>
 
 {# ----------------data---------------- #}
 {% elif i.type == "data" %}
 
-{{ prefix(i) }}
+{{- prefix(i) -}}
 <span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}</span><br/>
 
 {# ----------------ptr16---------------- #}
 {% elif i.type == "ptr16" %}
 
-{{ prefix(i) }}
+{{- prefix(i) -}}
 <span class="code">{{address(i)}}{{i.bytes|seq2str("{:04x}", s=[(1," "), (4, "  ")])}}</span><br/>
 
 {# ----------------chars---------------- #}
 {% elif i.type == "chars" %}
 
-{{ prefix(i) }}
+{{- prefix(i) -}}
 <b>{{"{:04x}".format(i.address)}}</b><br/>
 <img src="{{i.generate()}}"/><br/>
 
-{% endif %}
+{%- endif -%}
 
 {% endfor -%}
 
