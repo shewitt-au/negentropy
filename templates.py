@@ -38,9 +38,7 @@ def setup():
 	mmap = memory.MemType("MemType.txt")
 
 	global _env
-	_env = jinja2.Environment(
-			loader=jinja2.PackageLoader(__name__)
-		)
+	_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
 	_env.globals['items'] = mmap.decode(ctx, Interval(0x5000, 0x8fff))
 	_env.filters['seq2str'] = sequence_to_string
 
