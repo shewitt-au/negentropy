@@ -1,29 +1,26 @@
+import memory as memmod
+import symbols as symmod
 import M6502
 import data
 import gfx
 
-class Context(object):
-	def __init__(self, mem, syms, cmts):
-		self.mem = mem
-		self.syms = syms
-		self.cmts = cmts
+class BaseDecoder(object):
+	def __init__(self, decoders, address, memory, memtype, symbols, comments):
+		self.decoders = decoders
+		self.memtype = memmod.MemType(memtype, decoders)
+		with open("5000-8fff.bin", "rb") as f:
+			self.mem = memmod.Memory(f.read(), address)
+		self.syms = symmod.read_symbols(*symbols)
+		self.cmts = symmod.read_comments(comments)
 
-def base_decoder(ctx, ivl):
-	c = ctx.cmts.get(ivl.first)
-	return {
-		"label" : ctx.syms.get(ivl.first),
-		"comment_before": None if c is None else c[0],
-		"comment_after": None if c is None else c[1],
-		"comment_inline": None if c is None else c[2]
-		}
+	def prefix(self, ivl):
+		c = self.cmts.get(ivl.first)
+		return {
+			"label" : self.syms.get(ivl.first),
+			"comment_before": None if c is None else c[0],
+			"comment_after": None if c is None else c[1],
+			"comment_inline": None if c is None else c[2]
+			}
 
-decoders = None
-
-def init_decoders(ctx):
-	global decoders
-	decoders = {
-		"bitmap" : gfx.decode_chars,
-		"data" : data.data_decoder("data", 1, 16),
-		"ptr16" : data.data_decoder("ptr16", 2, 8),
-		"code" : M6502.decode_6502
-		}
+	def decode(self, ivl):
+		return self.memtype.decode(self, ivl)

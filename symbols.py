@@ -57,10 +57,10 @@ def read_symbols(*fns):
 
 comments_re = re.compile(r"([0-9A-Fa-f]{4})\s*(.*)")
 
-def read_comments():
+def read_comments(fnname):
 	comments = DictWithRange()
 
-	with open("Comments.txt", "r") as f:
+	with open(fnname, "r") as f:
 
 		before = ""
 		after = ""

@@ -1,6 +1,5 @@
 import re
 import bisect
-import decoders
 import interval
 
 class Memory(object):
@@ -40,7 +39,7 @@ memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^(
 
 # A representation of the MemType.txt file. A collection of 'MemRegion's.
 class MemType(object):
-	def __init__(self, fname):
+	def __init__(self, fname, decoders):
 		self.map = [] # A list of 'MemRegion's
 
 		with open(fname, "r") as f:
@@ -58,7 +57,7 @@ class MemType(object):
 			if m[4]:
 				params = eval(m[4],{})
 
-			self.map.append(MemRegion(decoders.decoders[m[1]], m[2], m[3], params))
+			self.map.append(MemRegion(decoders[m[1]], m[2], m[3], params))
 			pos = m.end()
 
 		# Sort for fast lookup using binary search

@@ -13,7 +13,7 @@ def data_decoder(name, wordlen, linelen):
 		bpl = wordlen*linelen
 
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
-			base_val = decoders.base_decoder(ctx, i)
+			base_val = ctx.prefix(i)
 			yield {
 					**base_val,
 					**{

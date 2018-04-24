@@ -1,6 +1,5 @@
 import jinja2
 import decoders
-import memory
 
 def sequence_to_string(it, pat, **kwargs):
 	sep = kwargs.get("s")
@@ -26,20 +25,28 @@ def sequence_to_string(it, pat, **kwargs):
 	return ret
 
 def setup():
-	import symbols
 	from interval import Interval
-	import memory
-	sym = symbols.read_symbols("BD.txt", "BD-BM.txt")
-	cmt = symbols.read_comments()
-	with open("5000-8fff.bin", "rb") as f:
-		m = memory.Memory(f.read(), 0x5000)
-	ctx = decoders.Context(m, sym, cmt)
-	decoders.init_decoders(ctx)
-	mmap = memory.MemType("MemType.txt")
+	import gfx
+	import data
+	import M6502
+
+	bd = decoders.BaseDecoder(
+				decoders = {
+					"bitmap" : gfx.decode_chars,
+					"data" : data.data_decoder("data", 1, 16),
+					"ptr16" : data.data_decoder("ptr16", 2, 8),
+					"code" : M6502.decode_6502
+					},
+				address = 0x5000,
+				memory = "5000-8fff.bin",
+				memtype = "MemType.txt",
+				symbols = ("BD.txt", "BD-BM.txt"),
+				comments = "Comments.txt"
+		)
 
 	global _env
 	_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
-	_env.globals['items'] = mmap.decode(ctx, Interval(0x5000, 0x8fff))
+	_env.globals['items'] = bd.decode(Interval(0x5000, 0x8fff))
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('hello.html')
