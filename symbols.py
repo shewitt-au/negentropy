@@ -117,7 +117,3 @@ def read_comments(fnname):
 	comments.build_index()
 
 	return comments
-
-if __name__ == '__main__':
-	sym = read_symbols("BD.txt", "BD-BM.txt")
-	sym.build_index()

@@ -175,9 +175,3 @@ class C64Bitmap(object):
 				else:
 					self.setchar(data, x+y*16, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), pallet, self.zoom)
 				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), mcm, 11, self.zoom)
-
-if __name__=="__main__":
-	with open("chargen", "rb") as f:
-		chars = f.read();
-	bm = C64Bitmap.genset(chars, 129)
-	bm.save("out.png")

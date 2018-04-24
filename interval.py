@@ -136,10 +136,3 @@ class Interval(object):
 		if self.is_empty():
 			return 0
 		return self.last-self.first+1
-
-if __name__ == '__main__':
-	ivl = Interval(0x0003, 0x000a)
-	print("***", ivl, "***")
-	cuts = [3, 7]
-	for i in ivl.cut_right_iter(cuts):
-		print(i)
