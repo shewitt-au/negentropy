@@ -32,10 +32,10 @@ def setup():
 
 	bd = decoders.BaseDecoder(
 				decoders = {
-					"bitmap" : gfx.decode_chars,
-					"data" : data.data_decoder("data", 1, 16),
-					"ptr16" : data.data_decoder("ptr16", 2, 8),
-					"code" : M6502.decode_6502
+					"bitmap" : gfx.CharDecoder(),
+					"data" : data.DataDecoder("data", 1, 16),
+					"ptr16" : data.DataDecoder("ptr16", 2, 8),
+					"code" : M6502.M6502Decoder()
 					},
 				address = 0x5000,
 				memory = "5000-8fff.bin",

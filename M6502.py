@@ -297,58 +297,59 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-InstructionInfo = namedtuple("InstructionInfo", "address, opcode, op_info, mode_info")
-def M6502Iterator(ctx, ivl):
-	addr = ivl.first
-	while addr<=ivl.last:
-		opcode = ctx.mem.r8(addr)
-		op_info = opcode_to_mnemonic_and_mode[opcode]
-		mode_info = mode_to_operand_info[op_info.mode]
-		yield InstructionInfo(addr, opcode, op_info, mode_info)
-		addr += mode_info.operand_size+1
+class M6502Decoder(object):
+	InstructionInfo = namedtuple("InstructionInfo", "address, opcode, op_info, mode_info")
+	def M6502Iterator(self, ctx, ivl):
+		addr = ivl.first
+		while addr<=ivl.last:
+			opcode = ctx.mem.r8(addr)
+			op_info = opcode_to_mnemonic_and_mode[opcode]
+			mode_info = mode_to_operand_info[op_info.mode]
+			yield self.InstructionInfo(addr, opcode, op_info, mode_info)
+			addr += mode_info.operand_size+1
 
-def decode_6502(ctx, ivl, params):
-	def operand():
-		if ii.mode_info.operand_size == 0:
-			return ""
-		elif ii.mode_info.operand_size == 1:
-			val = ctx.mem.r8(ii.address+1)
-			if ii.op_info.mode != AddrMode.Relative:
-				if ii.mode_info.has_address and val in ctx.syms:
-					return format(ctx.syms[val])
+	def decode(self, ctx, ivl, params):
+		def operand():
+			if ii.mode_info.operand_size == 0:
+				return ""
+			elif ii.mode_info.operand_size == 1:
+				val = ctx.mem.r8(ii.address+1)
+				if ii.op_info.mode != AddrMode.Relative:
+					if ii.mode_info.has_address and val in ctx.syms:
+						return format(ctx.syms[val])
+					else:
+						return "${:02x}".format(val)
 				else:
-					return "${:02x}".format(val)
-			else:
-				val = ii.address+sign_extend(val)+2
+					val = ii.address+sign_extend(val)+2
+					if ii.mode_info.has_address and val in ctx.syms:
+						return format(ctx.syms[val])
+					else:
+						return "${:04x}".format(val)
+			elif ii.mode_info.operand_size == 2:
+				val = ctx.mem.r16(ii.address+1)
 				if ii.mode_info.has_address and val in ctx.syms:
-					return format(ctx.syms[val])
+					return ctx.syms[val]
 				else:
 					return "${:04x}".format(val)
-		elif ii.mode_info.operand_size == 2:
-			val = ctx.mem.r16(ii.address+1)
-			if ii.mode_info.has_address and val in ctx.syms:
-				return ctx.syms[val]
 			else:
-				return "${:04x}".format(val)
-		else:
-			raise IndexError("Illegal operand size.")
+				raise IndexError("Illegal operand size.")
 
-	for ii in M6502Iterator(ctx, ivl):
-		c = ctx.cmts.get(ii.address)
-		b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
+		for ii in self.M6502Iterator(ctx, ivl):
+			c = ctx.cmts.get(ii.address)
+			b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
 
-		yield {
-			"type" : "code",
-			"address": ii.address,
-			"label" : ctx.syms.get(ii.address),
-			"comment_before": None if c is None else c[0],
-			"comment_after": None if c is None else c[1],
-			"comment_inline": None if c is None else c[2],
-			"bytes": b,
-			"instruction": {
-				"mnemonic": ii.op_info.mnemonic,
-				"pre": ii.mode_info.pre,
-				"post": ii.mode_info.post,
-				"operand": operand()
+			yield {
+				"type" : "code",
+				"address": ii.address,
+				"label" : ctx.syms.get(ii.address),
+				"comment_before": None if c is None else c[0],
+				"comment_after": None if c is None else c[1],
+				"comment_inline": None if c is None else c[2],
+				"bytes": b,
+				"instruction": {
+					"mnemonic": ii.op_info.mnemonic,
+					"pre": ii.mode_info.pre,
+					"post": ii.mode_info.post,
+					"operand": operand()
+					}
 				}
-			}

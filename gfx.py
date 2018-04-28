@@ -1,28 +1,29 @@
 from PIL import Image, ImageFont, ImageDraw
 
-def decode_chars(ctx, ivl, params):
-	num_chars = len(ivl)//8
-	cx = num_chars if num_chars<16 else 16
-	cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
-	mcm = params.get("mcm", False)
-	pallet = params.get("pallet", 1)
+class CharDecoder(object):
+	def decode(self, ctx, ivl, params):
+		num_chars = len(ivl)//8
+		cx = num_chars if num_chars<16 else 16
+		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
+		mcm = params.get("mcm", False)
+		pallet = params.get("pallet", 1)
 
-	def generate():
-		fn = "{:04x}.png".format(ivl.first)
-		bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet);
-		bm.save(fn)
-		return fn
+		def generate():
+			fn = "{:04x}.png".format(ivl.first)
+			bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet);
+			bm.save(fn)
+			return fn
 
-	c = ctx.cmts.get(ivl.first)
-	yield {
-			"type"   : "chars",
-			"address": ivl.first,
-			"label"  : ctx.syms.get(ivl.first),
-			"comment_before" : None if c is None else c[0],
-			"comment_after"  : None if c is None else c[1],
-			"comment_inline" : None if c is None else c[2],
-			"generate" : generate
-			}
+		c = ctx.cmts.get(ivl.first)
+		yield {
+				"type"   : "chars",
+				"address": ivl.first,
+				"label"  : ctx.syms.get(ivl.first),
+				"comment_before" : None if c is None else c[0],
+				"comment_after"  : None if c is None else c[1],
+				"comment_inline" : None if c is None else c[2],
+				"generate" : generate
+				}
 
 c64Colours = (
 	0x00, 0x00, 0x00, #  0 - Black

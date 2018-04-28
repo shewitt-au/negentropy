@@ -27,7 +27,7 @@ class MemRegion(interval.Interval):
 		self.params = params
 
 	def decode(self, ctx, ivl):
-		return self.decoder(ctx, ivl, self.params)
+		return self.decoder.decode(ctx, ivl, self.params)
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
