@@ -298,14 +298,23 @@ def sign_extend(x):
 	return (x^0x80)-0x80;
 
 class M6502Decoder(object):
-	InstructionInfo = namedtuple("InstructionInfo", "address, opcode, op_info, mode_info")
+	InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, op_info, mode_info")
 	def M6502Iterator(self, ctx, ivl):
 		addr = ivl.first
 		while addr<=ivl.last:
 			opcode = ctx.mem.r8(addr)
 			op_info = opcode_to_mnemonic_and_mode[opcode]
 			mode_info = mode_to_operand_info[op_info.mode]
-			yield self.InstructionInfo(addr, opcode, op_info, mode_info)
+
+			if mode_info.operand_size == 0:
+				operand = None
+			elif mode_info.operand_size == 1:
+				operand = ctx.mem.r8(addr+1)
+			elif mode_info.operand_size == 2:
+				operand = ctx.mem.r16(addr+1)
+
+			yield self.InstructionInfo(addr, opcode, operand, op_info, mode_info)
+
 			addr += mode_info.operand_size+1
 
 	def decode(self, ctx, ivl, params):
@@ -313,24 +322,22 @@ class M6502Decoder(object):
 			if ii.mode_info.operand_size == 0:
 				return ""
 			elif ii.mode_info.operand_size == 1:
-				val = ctx.mem.r8(ii.address+1)
 				if ii.op_info.mode != AddrMode.Relative:
-					if ii.mode_info.has_address and val in ctx.syms:
-						return format(ctx.syms[val])
+					if ii.mode_info.has_address and ii.operand in ctx.syms:
+						return format(ctx.syms[ii.operand])
 					else:
-						return "${:02x}".format(val)
+						return "${:02x}".format(ii.operand)
 				else:
-					val = ii.address+sign_extend(val)+2
-					if ii.mode_info.has_address and val in ctx.syms:
-						return format(ctx.syms[val])
+					val = ii.address+sign_extend(ii.operand)+2
+					if ii.mode_info.has_address and ii.operand in ctx.syms:
+						return format(ctx.syms[ii.operand])
 					else:
-						return "${:04x}".format(val)
+						return "${:04x}".format(ii.operand)
 			elif ii.mode_info.operand_size == 2:
-				val = ctx.mem.r16(ii.address+1)
-				if ii.mode_info.has_address and val in ctx.syms:
-					return ctx.syms[val]
+				if ii.mode_info.has_address and ii.operand in ctx.syms:
+					return ctx.syms[ii.operand]
 				else:
-					return "${:04x}".format(val)
+					return "${:04x}".format(ii.operand)
 			else:
 				raise IndexError("Illegal operand size.")
 
