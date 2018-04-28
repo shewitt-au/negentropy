@@ -60,7 +60,7 @@ class MemType(object):
 			self.map.append(MemRegion(decoders[m[1]], m[2], m[3], params))
 			pos = m.end()
 
-		# Sort for fast lookup using binary search
+		# Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
 		self.map.sort()
 
 	def __len__(self):
