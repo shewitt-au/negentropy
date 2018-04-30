@@ -40,7 +40,7 @@ def setup():
 				address = 0x5000,
 				memory = "5000-8fff.bin",
 				memtype = "MemType.txt",
-				symbols = ("BD.txt", "BD-BM.txt"),
+				symbols = ("BD.txt", "BD-BM.txt", "C64.txt"),
 				comments = "Comments.txt"
 		)
 
