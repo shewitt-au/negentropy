@@ -78,6 +78,10 @@ class MemType(object):
 		e = bisect.bisect_right(self.map, ivl.last, b)
 		return range(b, e)
 
+	def contains(self, addr):
+		i = bisect.bisect_left(self.map, addr)
+		return i!=len(self) and self[i]==addr
+
 	def targets(self, ctx, ivl):
 		tgts = set()
 		for i in self.overlapping_indices(ivl):

@@ -298,7 +298,7 @@ def sign_extend(x):
 	return (x^0x80)-0x80;
 
 class M6502Decoder(object):
-	InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, op_info, mode_info")
+	InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, target, op_info, mode_info")
 	def M6502Iterator(self, ctx, ivl):
 		addr = ivl.first
 		while addr<=ivl.last:
@@ -313,17 +313,22 @@ class M6502Decoder(object):
 			elif mode_info.operand_size == 2:
 				operand = ctx.mem.r16(addr+1)
 
-			yield self.InstructionInfo(addr, opcode, operand, op_info, mode_info)
+			if op_info.mode == AddrMode.Relative:
+				target = addr+sign_extend(operand)+2
+			elif mode_info.has_address:
+				target = operand
+			else:
+				target = None
+
+			yield self.InstructionInfo(addr, opcode, operand, target, op_info, mode_info)
 
 			addr += mode_info.operand_size+1
 
 	def targets(self, ctx, ivl):
 		tgts = set()
 		for ii in self.M6502Iterator(ctx, ivl):
-			if ii.op_info.mode == AddrMode.Relative:
-				tgts.add(ii.address+sign_extend(ii.operand)+2)
-			elif ii.mode_info.has_address:
-				tgts.add(ii.operand)
+			if ii.target is not None:
+				tgts.add(ii.target)
 
 		return tgts
 
@@ -359,6 +364,7 @@ class M6502Decoder(object):
 			yield {
 				"type" : "code",
 				"address": ii.address,
+				"is_destination" : ii.address in ctx.targets,
 				"label" : ctx.syms.get(ii.address),
 				"comment_before": None if c is None else c[0],
 				"comment_after": None if c is None else c[1],
@@ -368,6 +374,8 @@ class M6502Decoder(object):
 					"mnemonic": ii.op_info.mnemonic,
 					"pre": ii.mode_info.pre,
 					"post": ii.mode_info.post,
-					"operand": operand()
+					"operand": operand(),
+					"is_source" : ii.mode_info.has_address and ctx.contains(ii.target),
+					"target" : ii.target
 					}
 				}

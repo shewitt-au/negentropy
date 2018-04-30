@@ -22,8 +22,12 @@ class BaseDecoder(object):
 			"comment_inline": None if c is None else c[2]
 			}
 
+	def contains(self, addr):
+		return self.memtype.contains(addr)
+
 	def targets(self, ivl):
-		return self.memtype.targets(self, ivl)
+		self.targets = self.memtype.targets(self, ivl)
 
 	def decode(self, ivl):
+		self.targets(ivl)
 		return self.memtype.decode(self, ivl)

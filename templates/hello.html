@@ -52,14 +52,31 @@
 {%- endif %}
 {%- endmacro -%}
 
+{%- macro anchor(i) -%}
+{% if i.is_destination %}
+<a name="{{"{:04x}".format(i.address)}}"></a>
+{%- endif %}
+{%- endmacro -%}
+
 {%- macro prefix(i) -%}
+{{ anchor(i) }}
 {{ comment_before(i) }}
 {{ label(i) }}
 {{ comment_after(i) }}
 {%- endmacro -%}
 
+{%- macro operand(i) -%}
+{%- if i.instruction.is_source -%}
+<a href="#{{"{:04x}".format(i.instruction.target)}}">
+{%- endif -%}
+{{i.instruction.operand}}
+{%- if i.instruction.is_source -%}
+</a>
+{%- endif -%}
+{%- endmacro -%}
+
 {%- macro instruction(i) -%}
-{{i.instruction.mnemonic}} {{i.instruction.pre}}{{i.instruction.operand}}{{i.instruction.post}}
+{{i.instruction.mnemonic}} {{i.instruction.pre}}{{operand(i)}}{{i.instruction.post}}
 {%- endmacro %}
 
 <body>
