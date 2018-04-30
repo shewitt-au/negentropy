@@ -27,6 +27,7 @@ class DataDecoder(object):
 					**{
 						"type" : self.name,
 						"address": i.first,
+						"is_destination" : i.first in ctx.targets,
 						"bytes": rd(i.first, min(len(i), self.linelen))
 					}
 				}
@@ -34,5 +35,6 @@ class DataDecoder(object):
 				yield {
 					"type" : self.name,
 					"address": addr,
+					"is_destination" : addr in ctx.targets,
 					"bytes": rd(addr, min(i.last-addr+1, self.linelen))
 					}

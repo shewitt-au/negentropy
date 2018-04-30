@@ -21,6 +21,7 @@ class CharDecoder(object):
 		yield {
 				"type"   : "chars",
 				"address": ivl.first,
+				"is_destination" : ivl.first in ctx.targets,
 				"label"  : ctx.syms.get(ivl.first),
 				"comment_before" : None if c is None else c[0],
 				"comment_after"  : None if c is None else c[1],
