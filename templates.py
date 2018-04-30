@@ -49,7 +49,7 @@ def setup():
 	_env.globals['items'] = bd.decode(Interval(0x5000, 0x8fff))
 	_env.filters['seq2str'] = sequence_to_string
 
-	s = render('hello.html')
+	s = render('template.html')
 	print(s)
 
 	with open("out.html", "w") as of:
