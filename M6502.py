@@ -329,10 +329,10 @@ class M6502Decoder(object):
 						return "${:02x}".format(ii.operand)
 				else:
 					val = ii.address+sign_extend(ii.operand)+2
-					if ii.mode_info.has_address and ii.operand in ctx.syms:
+					if ii.operand in ctx.syms:
 						return format(ctx.syms[ii.operand])
 					else:
-						return "${:04x}".format(ii.operand)
+						return "${:04x}".format(val)
 			elif ii.mode_info.operand_size == 2:
 				if ii.mode_info.has_address and ii.operand in ctx.syms:
 					return ctx.syms[ii.operand]
