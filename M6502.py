@@ -317,6 +317,16 @@ class M6502Decoder(object):
 
 			addr += mode_info.operand_size+1
 
+	def targets(self, ctx, ivl):
+		tgts = set()
+		for ii in self.M6502Iterator(ctx, ivl):
+			if ii.op_info.mode == AddrMode.Relative:
+				tgts.add(ii.address+sign_extend(ii.operand)+2)
+			elif ii.mode_info.has_address:
+				tgts.add(ii.operand)
+
+		return tgts
+
 	def decode(self, ctx, ivl, params):
 		def operand():
 			if ii.mode_info.operand_size == 0:

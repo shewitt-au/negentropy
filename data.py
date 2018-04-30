@@ -8,6 +8,9 @@ class DataDecoder(object):
 		self.wordlen = wordlen
 		self.linelen = linelen
 
+	def targets(self, ctx, ivl):
+		return set()
+
 	def decode(self, ctx, ivl, params):
 		if self.wordlen==1:
 			rd = ctx.mem.r8m

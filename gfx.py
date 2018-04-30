@@ -1,6 +1,9 @@
 from PIL import Image, ImageFont, ImageDraw
 
 class CharDecoder(object):
+	def targets(self, ctx, ivl):
+		return set()
+
 	def decode(self, ctx, ivl, params):
 		num_chars = len(ivl)//8
 		cx = num_chars if num_chars<16 else 16

@@ -26,6 +26,9 @@ class MemRegion(interval.Interval):
 		self.decoder = decoder
 		self.params = params
 
+	def targets(self, ctx, ivl):
+		return self.decoder.targets(ctx, ivl)
+
 	def decode(self, ctx, ivl):
 		return self.decoder.decode(ctx, ivl, self.params)
 
@@ -74,6 +77,12 @@ class MemType(object):
 		b = bisect.bisect_left(self.map, ivl.first)
 		e = bisect.bisect_right(self.map, ivl.last, b)
 		return range(b, e)
+
+	def targets(self, ctx, ivl):
+		tgts = set()
+		for i in self.overlapping_indices(ivl):
+			tgts |= self[i].targets(ctx, self[i]&ivl)
+		return tgts
 
 	def decode(self, ctx, ivl):
 		for i in self.overlapping_indices(ivl):
