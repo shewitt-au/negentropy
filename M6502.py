@@ -329,8 +329,9 @@ class M6502Decoder(object):
 						return "${:02x}".format(ii.operand)
 				else:
 					val = ii.address+sign_extend(ii.operand)+2
-					if ii.operand in ctx.syms:
-						return format(ctx.syms[ii.operand])
+					sym = ctx.syms.get(val)
+					if sym:
+						return sym
 					else:
 						return "${:04x}".format(val)
 			elif ii.mode_info.operand_size == 2:
