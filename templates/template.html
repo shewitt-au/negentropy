@@ -59,10 +59,10 @@
 {%- endmacro -%}
 
 {%- macro prefix(i) -%}
-{{ anchor(i) }}
+{{ anchor(i) -}}
 {{ comment_before(i) }}
-{{ label(i) }}
-{{ comment_after(i) }}
+{{- label(i) }}
+{{ comment_after(i) -}}
 {%- endmacro -%}
 
 {%- macro operand(i) -%}
@@ -83,7 +83,7 @@
 {%- for v in i.vals -%}
 {{v.val}}&nbsp;
 {%- endfor -%}
-{%- endmacro -%}
+{%- endmacro %}
 
 <body>
 <div class="container">
