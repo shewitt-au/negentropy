@@ -28,7 +28,7 @@ mode_to_operand_info = {
 	AddrMode.Absolute		: ModeInfo(2, True,  "",   ""   ),
 	AddrMode.AbsoluteX		: ModeInfo(2, True,  "",   ",X" ),
 	AddrMode.AbsoluteY		: ModeInfo(2, True,  "",   ",Y" ),
-	AddrMode.AbsIndirect	: ModeInfo(2, True,  "()", ""   ),
+	AddrMode.AbsIndirect	: ModeInfo(2, True,  "(", ")"   ),
 	AddrMode.IndirectX		: ModeInfo(1, True,  "(",  ",X)"),
 	AddrMode.IndirectY		: ModeInfo(1, True,  "(",  "),Y"),
 	AddrMode.Relative		: ModeInfo(1, True,  "",   ""   )
