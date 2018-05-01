@@ -77,36 +77,62 @@
 
 {%- macro instruction(i) -%}
 {{i.instruction.mnemonic}} {{i.instruction.pre}}{{operand(i)}}{{i.instruction.post}}
-{%- endmacro %}
+{%- endmacro -%}
+
+{%- macro vals(i) -%}
+{%- for v in i.vals -%}
+{{v.val}}&nbsp;
+{%- endfor -%}
+{%- endmacro -%}
 
 <body>
 <div class="container">
-{%- for i in items -%}
+{%- for section in items -%}
 
 {#- ----------------code---------------- -#}
-{%- if i.type == "code" -%}
+{%- if section.name == "code" -%}
 
+{%- for i in section.contents -%}
 {{- prefix(i) -}}
 <span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{instruction(i)}}</span><br/>
+{%- endfor -%}
 
 {# ----------------data---------------- #}
-{% elif i.type == "data" %}
+{% elif section.name == "data" -%}
 
+{%- for i in section.contents -%}
 {{- prefix(i) -}}
-<span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}</span><br/>
+<span class="code">{{address(i)}}{{vals(i)}}</span><br/>
+{%- endfor -%}
 
 {# ----------------ptr16---------------- #}
-{% elif i.type == "ptr16" %}
-
+{% elif section.name == "ptr16" -%}
+<table>
+{%- for i in section.contents -%}
 {{- prefix(i) -}}
-<span class="code">{{address(i)}}{{i.bytes|seq2str("{:04x}", s=[(1," "), (4, "  ")])}}</span><br/>
+<tr><td>{{address(i)}}</td>
+{%- for v in i.vals -%}
+<td>
+{%- if v.is_source -%}
+<a href="#{{"{:04x}".format(v.target)}}">
+{%- endif -%}
+{{v.val}}
+{%- if v.is_source -%}
+</a>
+{%- endif -%}
+&nbsp;&nbsp;&nbsp;</td>
+{%- endfor -%}</tr>
+{% endfor -%}
+</table>
 
 {# ----------------chars---------------- #}
-{% elif i.type == "chars" %}
+{% elif section.name == "chars" -%}
 
+{%- for i in section.contents -%}
 {{- prefix(i) -}}
 <b>{{"{:04x}".format(i.address)}}</b><br/>
 <img src="{{i.generate()}}"/><br/>
+{%- endfor -%}
 
 {%- endif -%}
 

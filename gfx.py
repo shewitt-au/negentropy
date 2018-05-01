@@ -1,6 +1,9 @@
 from PIL import Image, ImageFont, ImageDraw
 
 class CharDecoder(object):
+	def __init__(self, name):
+		self.name = name
+
 	def targets(self, ctx, ivl):
 		return set()
 

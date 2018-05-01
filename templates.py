@@ -32,15 +32,15 @@ def setup():
 
 	bd = decoders.BaseDecoder(
 				decoders = {
-					"bitmap" : gfx.CharDecoder(),
+					"bitmap" : gfx.CharDecoder("chars"),
 					"data" : data.DataDecoder("data", 1, 16),
 					"ptr16" : data.DataDecoder("ptr16", 2, 8),
-					"code" : M6502.M6502Decoder()
+					"code" : M6502.M6502Decoder("code")
 					},
 				address = 0x5000,
 				memory = "5000-8fff.bin",
 				memtype = "MemType.txt",
-				symbols = ("BD.txt", "BD-BM.txt", "C64.txt"),
+				symbols = ("BD.txt", "BD-BM.txt"),
 				comments = "Comments.txt"
 		)
 

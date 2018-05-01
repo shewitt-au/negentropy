@@ -9,15 +9,30 @@ class DataDecoder(object):
 		self.linelen = linelen
 
 	def targets(self, ctx, ivl):
-		return set()
+		tgts = set()
+
+		if self.wordlen == 1:
+			rd = ctx.mem.r8
+		else:
+			rd = ctx.mem.r16
+
+		addr = ivl.first
+		while addr<=ivl.last:
+			tgts.add(rd(addr))
+			addr += self.wordlen
+
+		return tgts
 
 	def decode(self, ctx, ivl, params):
-		if self.wordlen==1:
-			rd = ctx.mem.r8m
-		elif self.wordlen==2:
-			rd = ctx.mem.r16m
-		else:
-			raise IndexError("Illegal operand size.")
+		def value(addr):
+			if self.wordlen==1:
+				v = ctx.mem.r8(addr)
+				return {"val": "{:02x}".format(v), "is_source": ctx.contains(v), "target": v}
+			else:
+				v = ctx.mem.r16(addr)
+				return {"val": ctx.syms.get(v, "{:04x}".format(v)), "is_source": ctx.contains(v), "target": v}
+
+
 		bpl = self.wordlen*self.linelen
 
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
@@ -28,7 +43,7 @@ class DataDecoder(object):
 						"type" : self.name,
 						"address": i.first,
 						"is_destination" : i.first in ctx.targets,
-						"bytes": rd(i.first, min(len(i), self.linelen))
+						"vals": [value(a) for a in range(i.first, i.first+min(len(i), self.linelen), self.wordlen)]
 					}
 				}
 			for addr in range(i.first+bpl, i.last+1, bpl):
@@ -36,5 +51,5 @@ class DataDecoder(object):
 					"type" : self.name,
 					"address": addr,
 					"is_destination" : addr in ctx.targets,
-					"bytes": rd(addr, min(i.last-addr+1, self.linelen))
+					"vals": [value(a) for a in range(addr, addr+min(i.last-addr+1, self.linelen), self.wordlen)]
 					}

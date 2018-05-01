@@ -298,6 +298,9 @@ def sign_extend(x):
 	return (x^0x80)-0x80;
 
 class M6502Decoder(object):
+	def __init__(self, name):
+		self.name = name
+
 	InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, target, op_info, mode_info")
 	def M6502Iterator(self, ctx, ivl):
 		addr = ivl.first
