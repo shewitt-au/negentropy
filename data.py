@@ -2,6 +2,33 @@ from heapq import merge
 from interval import Interval
 import decoders
 
+class BytesDecoder(object):
+	def __init__(self, name, linelen):
+		self.name = name
+		self.linelen = linelen
+
+	def targets(self, ctx, ivl):
+		return set()
+
+	def decode(self, ctx, ivl, params):
+		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
+			base_val = ctx.prefix(i)
+			yield {
+					**base_val,
+					**{
+						"type" : self.name,
+						"address": i.first,
+						"bytes": ctx.mem.r8m(i.first, min(len(i), self.linelen))
+					}
+				}
+			for addr in range(i.first+self.linelen, i.last+1, self.linelen):
+				yield {
+					"type" : self.name,
+					"address": addr,
+					"bytes": ctx.mem.r8m(addr, min(i.last-addr+1, self.linelen))
+					}
+
+
 class DataDecoder(object):
 	def __init__(self, name, wordlen, linelen):
 		self.name = name

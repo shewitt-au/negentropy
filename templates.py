@@ -33,7 +33,7 @@ def setup():
 	bd = decoders.BaseDecoder(
 				decoders = {
 					"bitmap" : gfx.CharDecoder("chars"),
-					"data" : data.DataDecoder("data", 1, 16),
+					"data" : data.BytesDecoder("data", 16),
 					"ptr16" : data.DataDecoder("ptr16", 2, 8),
 					"code" : M6502.M6502Decoder("code")
 					},

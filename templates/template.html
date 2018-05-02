@@ -79,12 +79,6 @@
 {{i.instruction.mnemonic}} {{i.instruction.pre}}{{operand(i)}}{{i.instruction.post}}
 {%- endmacro -%}
 
-{%- macro vals(i) -%}
-{%- for v in i.vals -%}
-{{v.val}}&nbsp;
-{%- endfor -%}
-{%- endmacro %}
-
 <body>
 <div class="container">
 {%- for section in items -%}
@@ -102,7 +96,7 @@
 
 {%- for i in section.contents -%}
 {{- prefix(i) -}}
-<span class="code">{{address(i)}}{{vals(i)}}</span><br/>
+<span class="code">{{address(i)}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}</span><br/>
 {%- endfor -%}
 
 {# ----------------ptr16---------------- #}
