@@ -29,7 +29,7 @@
 {%- endmacro -%}
 
 {%- macro comment_after(i) -%}
-{% if i.comment_before %}
+{% if i.comment_after %}
 <span class="comment">
 {%- for line in i.comment_after.splitlines() -%}
 ; {{line}}
