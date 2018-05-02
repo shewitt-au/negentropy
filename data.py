@@ -18,6 +18,7 @@ class BytesDecoder(object):
 					**{
 						"type" : self.name,
 						"address": i.first,
+						"is_destination" : i.first in ctx.targets,
 						"bytes": ctx.mem.r8m(i.first, min(len(i), self.linelen))
 					}
 				}
@@ -25,6 +26,7 @@ class BytesDecoder(object):
 				yield {
 					"type" : self.name,
 					"address": addr,
+					"is_destination" : addr in ctx.targets,
 					"bytes": ctx.mem.r8m(addr, min(i.last-addr+1, self.linelen))
 					}
 
