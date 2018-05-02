@@ -59,7 +59,7 @@ class PointerDecoder(object):
 						"type" : self.name,
 						"address": i.first,
 						"is_destination" : i.first in ctx.targets,
-						"vals": [value(a) for a in range(i.first, i.first+min(len(i), self.linelen), 2)]
+						"vals": [value(a) for a in range(i.first, i.first+min(len(i), self.linelen*2), 2)]
 					}
 				}
 			for addr in range(i.first+bpl, i.last+1, bpl):
@@ -67,5 +67,5 @@ class PointerDecoder(object):
 					"type" : self.name,
 					"address": addr,
 					"is_destination" : addr in ctx.targets,
-					"vals": [value(a) for a in range(addr, addr+min(i.last-addr+1, self.linelen), 2)]
+					"vals": [value(a) for a in range(addr, addr+min(i.last-addr+1, self.linelen*2), 2)]
 					}

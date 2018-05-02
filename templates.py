@@ -34,7 +34,7 @@ def setup():
 				decoders = {
 					"bitmap" : gfx.CharDecoder("chars"),
 					"data" : data.BytesDecoder("data", 16),
-					"ptr16" : data.PointerDecoder("ptr16", 8),
+					"ptr16" : data.PointerDecoder("ptr16", 4),
 					"code" : M6502.M6502Decoder("code")
 					},
 				address = 0x5000,
