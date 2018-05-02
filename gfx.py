@@ -13,10 +13,11 @@ class CharDecoder(object):
 		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
 		mcm = params.get("mcm", False)
 		pallet = params.get("pallet", 1)
+		base_char = params.get("base_char", 0)
 
 		def generate():
 			fn = "{:04x}.png".format(ivl.first)
-			bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet);
+			bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet, base_char);
 			bm.save(fn)
 			return fn
 
@@ -58,11 +59,11 @@ class C64Bitmap(object):
 		self.pixels = self.image.load()
 
 	@classmethod
-	def genset(cls, data, num_chars=256, mcm=False, pallet=1):
+	def genset(cls, data, num_chars=256, mcm=False, pallet=1, base_char=0):
 		cx = num_chars if num_chars<16 else 16
 		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
 		instance = cls(cls.charset_size(cx, cy))
-		instance.charset(data, num_chars, mcm, pallet)
+		instance.charset(data, num_chars, mcm, pallet, base_char)
 		return instance
 
 	def plotpixel(self, pos, c, zoom=8):
@@ -161,17 +162,19 @@ class C64Bitmap(object):
 	def charset_size(cls, cx, cy):
 		return (cls.char_sz+cx*cls.cell_sz, cls.char_sz+cy*cls.cell_sz)
 
-	def charset(self, data, num_chars, mcm, pallet):
+	def charset(self, data, num_chars, mcm, pallet, base_char=0):
 		cx = num_chars if num_chars<16 else 16
 		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
 
 		draw = ImageDraw.Draw(self.image)
 		font = ImageFont.truetype("arial.ttf", self.font_sz)
 
+		xbase = base_char%16
 		for x in range(0, cx):
-			self.ctext((self.char_sz+x*self.cell_sz, 0, 2*self.char_sz+x*self.cell_sz, self.char_sz), "{:02x}".format(x), 1, font)
+			self.ctext((self.char_sz+x*self.cell_sz, 0, 2*self.char_sz+x*self.cell_sz, self.char_sz), "{:02x}".format(xbase+x), 1, font)
+		ybase = base_char-xbase
 		for y in range(0, cy):
-			self.ctext((0, self.char_sz+y*self.cell_sz, self.char_sz, 2*self.char_sz+y*self.cell_sz), "{:02x}".format(y<<4), 1, font)
+			self.ctext((0, self.char_sz+y*self.cell_sz, self.char_sz, 2*self.char_sz+y*self.cell_sz), "{:02x}".format(ybase+(y<<4)), 1, font)
 
 		for y in range(0, cy):
 			for x in range(0, cx):
