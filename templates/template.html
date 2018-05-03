@@ -121,7 +121,8 @@
 
 {# ----------------chars---------------- #}
 {% elif section.type == "chars" -%}
-<b>{{"{:04x}".format(section.address)}}</b><br/>
+
+<br/><b>{{"{:04x}".format(section.address)}}</b><br/>
 <img src="{{section.generate()}}"/><br/>
 
 {% endif -%}
