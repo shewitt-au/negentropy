@@ -1,6 +1,7 @@
 from PIL import Image, ImageFont, ImageDraw
+import decoders
 
-class CharDecoder(object):
+class CharDecoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
 
@@ -22,8 +23,8 @@ class CharDecoder(object):
 			return fn
 
 		c = ctx.cmts.get(ivl.first)
-		yield {
-				"type"   : "chars",
+		return {
+				"type"   : self.name,
 				"address": ivl.first,
 				"is_destination" : ivl.first in ctx.targets,
 				"label"  : ctx.syms.get(ivl.first),

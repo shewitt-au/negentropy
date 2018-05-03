@@ -1,5 +1,6 @@
 from enum import Enum, unique, auto
 from collections import namedtuple
+import decoders
 
 @unique
 class AddrMode(Enum):
@@ -297,7 +298,7 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-class M6502Decoder(object):
+class M6502Decoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
 
@@ -336,49 +337,50 @@ class M6502Decoder(object):
 		return tgts
 
 	def decode(self, ctx, ivl, params):
-		def operand():
-			if ii.mode_info.operand_size == 0:
-				return ""
-			elif ii.mode_info.operand_size == 1:
-				if ii.op_info.mode != AddrMode.Relative:
+		def lines(self):
+			def operand():
+				if ii.mode_info.operand_size == 0:
+					return ""
+				elif ii.mode_info.operand_size == 1:
+					if ii.op_info.mode != AddrMode.Relative:
+						if ii.mode_info.has_address and ii.operand in ctx.syms:
+							return format(ctx.syms[ii.operand])
+						else:
+							return "${:02x}".format(ii.operand)
+					else:
+						val = ii.address+sign_extend(ii.operand)+2
+						sym = ctx.syms.get(val)
+						if sym:
+							return sym
+						else:
+							return "${:04x}".format(val)
+				elif ii.mode_info.operand_size == 2:
 					if ii.mode_info.has_address and ii.operand in ctx.syms:
-						return format(ctx.syms[ii.operand])
+						return ctx.syms[ii.operand]
 					else:
-						return "${:02x}".format(ii.operand)
+						return "${:04x}".format(ii.operand)
 				else:
-					val = ii.address+sign_extend(ii.operand)+2
-					sym = ctx.syms.get(val)
-					if sym:
-						return sym
-					else:
-						return "${:04x}".format(val)
-			elif ii.mode_info.operand_size == 2:
-				if ii.mode_info.has_address and ii.operand in ctx.syms:
-					return ctx.syms[ii.operand]
-				else:
-					return "${:04x}".format(ii.operand)
-			else:
-				raise IndexError("Illegal operand size.")
+					raise IndexError("Illegal operand size.")
 
-		for ii in self.M6502Iterator(ctx, ivl):
-			c = ctx.cmts.get(ii.address)
-			b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
+			for ii in self.M6502Iterator(ctx, ivl):
+				c = ctx.cmts.get(ii.address)
+				b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
 
-			yield {
-				"type" : "code",
-				"address": ii.address,
-				"is_destination" : ii.address in ctx.targets,
-				"label" : ctx.syms.get(ii.address),
-				"comment_before": None if c is None else c[0],
-				"comment_after": None if c is None else c[1],
-				"comment_inline": None if c is None else c[2],
-				"bytes": b,
-				"instruction": {
-					"mnemonic": ii.op_info.mnemonic,
-					"pre": ii.mode_info.pre,
-					"post": ii.mode_info.post,
-					"operand": operand(),
-					"is_source" : ii.mode_info.has_address and ctx.contains(ii.target),
-					"target" : ii.target
+				yield {
+					"address": ii.address,
+					"is_destination" : ii.address in ctx.targets,
+					"bytes": b,
+					"instruction": {
+						"mnemonic": ii.op_info.mnemonic,
+						"pre": ii.mode_info.pre,
+						"post": ii.mode_info.post,
+						"operand": operand(),
+						"is_source" : ii.mode_info.has_address and ctx.contains(ii.target),
+						"target" : ii.target
+						}
 					}
+
+		return {
+				"type": self.name,
+				"lines": lines(self)
 				}

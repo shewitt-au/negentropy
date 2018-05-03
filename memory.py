@@ -1,5 +1,6 @@
 import re
 import bisect
+from heapq import merge
 import interval
 
 class Memory(object):
@@ -30,10 +31,9 @@ class MemRegion(interval.Interval):
 		return self.decoder.targets(ctx, ivl)
 
 	def decode(self, ctx, ivl):
-		return {
-			"name": self.decoder.name,
-			"contents": self.decoder.decode(ctx, ivl, self.params)
-			}
+		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
+			yield self.decoder.prefix(ctx, i)
+			yield self.decoder.decode(ctx, i, self.params)
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
@@ -93,4 +93,4 @@ class MemType(object):
 
 	def decode(self, ctx, ivl):
 		for i in self.overlapping_indices(ivl):
-			yield self[i].decode(ctx, self[i]&ivl)
+			yield from self[i].decode(ctx, self[i]&ivl)

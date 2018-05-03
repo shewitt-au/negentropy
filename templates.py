@@ -30,7 +30,7 @@ def setup():
 	import data
 	import M6502
 
-	bd = decoders.BaseDecoder(
+	bd = decoders.Context(
 				decoders = {
 					"bitmap" : gfx.CharDecoder("chars"),
 					"data" : data.BytesDecoder("data", 16),
@@ -50,9 +50,9 @@ def setup():
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('template.html')
-	print(s)
-
 	with open("out.html", "w") as of:
+		of.write(s)
+	with open("out.txt", "w") as of:
 		of.write(s)
 	import webbrowser
 	webbrowser.open("out.html")
