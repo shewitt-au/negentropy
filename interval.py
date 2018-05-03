@@ -28,6 +28,10 @@ class Interval(object):
 	def is_empty(self):
 		return self.first>self.last
 
+	def __iter__(self):
+		for v in range(self.first, self.last):
+			yield v
+
 	def __len__(self):
 		if self.is_empty():
 			return 0

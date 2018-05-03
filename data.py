@@ -38,11 +38,8 @@ class PointerDecoder(object):
 
 	def targets(self, ctx, ivl):
 		tgts = set()
-
-		addr = ivl.first
-		while addr<=ivl.last:
+		for addr in ivl:
 			tgts.add(ctx.mem.r16(addr))
-			addr += 2
 
 		return tgts
 
