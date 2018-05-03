@@ -91,6 +91,6 @@ class MemType(object):
 			tgts |= self[i].targets(ctx, self[i]&ivl)
 		return tgts
 
-	def decode(self, ctx, ivl):
+	def items(self, ctx, ivl):
 		for i in self.overlapping_indices(ivl):
 			yield from self[i].decode(ctx, self[i]&ivl)

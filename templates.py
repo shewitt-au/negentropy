@@ -46,7 +46,7 @@ def setup():
 
 	global _env
 	_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
-	_env.globals['items'] = bd.decode(Interval(0x5000, 0x8fff))
+	_env.globals['items'] = bd.items(Interval(0x5000, 0x8fff))
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('template.html')

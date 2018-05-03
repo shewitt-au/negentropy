@@ -16,9 +16,9 @@ class Context(object):
 	def targets(self, ivl):
 		self.targets = self.memtype.targets(self, ivl)
 
-	def decode(self, ivl):
+	def items(self, ivl):
 		self.targets(ivl)
-		return self.memtype.decode(self, ivl)
+		return self.memtype.items(self, ivl)
 
 class Prefix(object):
 	def prefix(self, ctx, ivl):
