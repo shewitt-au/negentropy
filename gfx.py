@@ -170,12 +170,21 @@ class C64Bitmap(object):
 		draw = ImageDraw.Draw(self.image)
 		font = ImageFont.truetype("arial.ttf", self.font_sz)
 
+		# For some reason the vertical position seems out by the size of the font's descent.
+		# Compensating for the horizontal numbers makes them look worse, so we just do the
+		# vertical ones. I'm not sure if all PILLOW's font classes provide 'getmetrics' so
+		# fail gracefully if this one doesn't.
+		try:
+			ascent, descent = font.getmetrics()
+		except AttributeError:
+			descent = 0
+
 		xbase = base_char%16
 		for x in range(0, cx):
-			self.ctext((self.char_sz+x*self.cell_sz, 0, 2*self.char_sz+x*self.cell_sz, self.char_sz), "{:02x}".format(xbase+x), 1, font)
+			self.ctext((self.char_sz+x*self.cell_sz, 0, self.char_sz+(x+1)*self.cell_sz, self.char_sz), "{:02x}".format(xbase+x), 1, font)
 		ybase = base_char-xbase
 		for y in range(0, cy):
-			self.ctext((0, self.char_sz+y*self.cell_sz, self.char_sz, 2*self.char_sz+y*self.cell_sz), "{:02x}".format(ybase+(y<<4)), 1, font)
+			self.ctext((0, self.char_sz+y*self.cell_sz-descent, self.char_sz, self.char_sz+(y+1)*self.cell_sz-descent), "{:02x}".format(ybase+(y<<4)), 1, font)
 
 		for y in range(0, cy):
 			for x in range(0, cx):
