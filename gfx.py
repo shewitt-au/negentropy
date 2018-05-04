@@ -170,10 +170,10 @@ class C64Bitmap(object):
 		draw = ImageDraw.Draw(self.image)
 		font = ImageFont.truetype("arial.ttf", self.font_sz)
 
-		# For some reason the vertical position seems out by the size of the font's descent.
-		# Compensating for the horizontal numbers makes them look worse, so we just do the
-		# vertical ones. I'm not sure if all PILLOW's font classes provide 'getmetrics' so
-		# fail gracefully if this one doesn't.
+		# We don't and to count the descenders when centering. Compensating
+		# for the horizontal numbers makes them look worse, so we just do
+		# the vertical ones. I'm not sure if all PILLOW's font classes provide
+		# 'getmetrics' so fail gracefully if this one doesn't.
 		try:
 			ascent, descent = font.getmetrics()
 		except AttributeError:
