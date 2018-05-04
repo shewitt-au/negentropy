@@ -145,12 +145,12 @@ class C64Bitmap(object):
 				draw.line((pos[0], pos[1]+i*zoom, pos[0]+off, pos[1]+i*zoom), fill=c)
 				draw.line((pos[0]+i*zoom, pos[1], pos[0]+i*zoom, pos[1]+off), fill=c)
 
-	def ctext(self, rc, text, c, font):
+	def ctext(self, rc, text, c, font, yoff=0):
 		draw = ImageDraw.Draw(self.image)
 		sz = draw.textsize(text, font=font)
 
 		x = rc[0]+(rc[2]-rc[0]-sz[0])/2
-		y = rc[1]+(rc[3]-rc[1]-sz[1])/2
+		y = rc[1]+(rc[3]-rc[1]-sz[1]-yoff)/2
 
 		draw.text((x, y), text, font=font, fill=c)
 
@@ -169,22 +169,22 @@ class C64Bitmap(object):
 
 		draw = ImageDraw.Draw(self.image)
 		font = ImageFont.truetype("arial.ttf", self.font_sz)
+		yoff = font.getoffset("M")[1] # yoff is the gap between the top the 'M' and the cell.
 
-		# We don't and to count the descenders when centering. Compensating
-		# for the horizontal numbers makes them look worse, so we just do
-		# the vertical ones. I'm not sure if all PILLOW's font classes provide
-		# 'getmetrics' so fail gracefully if this one doesn't.
 		try:
+			
 			ascent, descent = font.getmetrics()
 		except AttributeError:
 			descent = 0
 
 		xbase = base_char%16
 		for x in range(0, cx):
-			self.ctext((self.char_sz+x*self.cell_sz, 0, self.char_sz+(x+1)*self.cell_sz, self.char_sz), "{:02x}".format(xbase+x), 1, font)
+			x1 = self.char_sz+x*self.cell_sz
+			self.ctext((x1, 0, x1+self.char_sz, self.char_sz), "{:02x}".format(xbase+x), 1, font, yoff)
 		ybase = base_char-xbase
 		for y in range(0, cy):
-			self.ctext((0, self.char_sz+y*self.cell_sz-descent, self.char_sz, self.char_sz+(y+1)*self.cell_sz-descent), "{:02x}".format(ybase+(y<<4)), 1, font)
+			y1 = self.char_sz+y*self.cell_sz
+			self.ctext((0, y1, self.char_sz, y1+self.char_sz), "{:02x}".format(ybase+(y<<4)), 1, font, yoff)
 
 		for y in range(0, cy):
 			for x in range(0, cx):
