@@ -30,7 +30,7 @@ class MemRegion(interval.Interval):
 	def targets(self, ctx, ivl):
 		return self.decoder.targets(ctx, ivl)
 
-	def decode(self, ctx, ivl):
+	def items(self, ctx, ivl):
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
 			yield self.decoder.prefix(ctx, i)
 			yield self.decoder.decode(ctx, i, self.params)
@@ -93,4 +93,4 @@ class MemType(object):
 
 	def items(self, ctx, ivl):
 		for i in self.overlapping_indices(ivl):
-			yield from self[i].decode(ctx, self[i]&ivl)
+			yield from self[i].items(ctx, self[i]&ivl)
