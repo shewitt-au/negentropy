@@ -171,12 +171,6 @@ class C64Bitmap(object):
 		font = ImageFont.truetype("arial.ttf", self.font_sz)
 		yoff = font.getoffset("M")[1] # yoff is the gap between the top the 'M' and the cell.
 
-		try:
-			
-			ascent, descent = font.getmetrics()
-		except AttributeError:
-			descent = 0
-
 		xbase = base_char%16
 		for x in range(0, cx):
 			x1 = self.char_sz+x*self.cell_sz
