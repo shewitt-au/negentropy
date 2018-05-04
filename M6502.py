@@ -336,7 +336,7 @@ class M6502Decoder(decoders.Prefix):
 
 		return tgts
 
-	def decode(self, ctx, ivl, params):
+	def decode(self, ctx, ivl, first_target, params):
 		def lines(self):
 			def operand():
 				if ii.mode_info.operand_size == 0:
@@ -363,12 +363,13 @@ class M6502Decoder(decoders.Prefix):
 					raise IndexError("Illegal operand size.")
 
 			for ii in self.M6502Iterator(ctx, ivl):
+				ft = first_target
 				c = ctx.cmts.get(ii.address)
 				b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
 
 				yield {
 					"address": ii.address,
-					"is_destination" : ii.address in ctx.targets,
+					"is_destination" : ft and ii.address in ctx.targets,
 					"bytes": b,
 					"instruction": {
 						"mnemonic": ii.op_info.mnemonic,
@@ -379,6 +380,7 @@ class M6502Decoder(decoders.Prefix):
 						"target" : ii.target
 						}
 					}
+				ft = True
 
 		return {
 				"type": self.name,

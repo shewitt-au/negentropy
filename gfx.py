@@ -8,7 +8,7 @@ class CharDecoder(decoders.Prefix):
 	def targets(self, ctx, ivl):
 		return set()
 
-	def decode(self, ctx, ivl, params):
+	def decode(self, ctx, ivl, first_target, params):
 		num_chars = len(ivl)//8
 		cx = num_chars if num_chars<16 else 16
 		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
@@ -26,7 +26,7 @@ class CharDecoder(decoders.Prefix):
 		return {
 				"type"   : self.name,
 				"address": ivl.first,
-				"is_destination" : ivl.first in ctx.targets,
+				"is_destination" : first_target and ivl.first in ctx.targets,
 				"label"  : ctx.syms.get(ivl.first),
 				"comment_before" : None if c is None else c[0],
 				"comment_after"  : None if c is None else c[1],

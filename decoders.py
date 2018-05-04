@@ -23,10 +23,11 @@ class Context(object):
 class Prefix(object):
 	def prefix(self, ctx, ivl):
 		c = ctx.cmts.get(ivl.first)
+		is_destination = ivl.first in ctx.targets
 		return {
 			"type": "prefix",
 			"address": ivl.first,
-			"is_destination" : ivl.first in ctx.targets,
+			"is_destination" : is_destination,
 			"label": ctx.syms.get(ivl.first),
 			"comment_before": None if c is None else c[0],
 			"comment_after": None if c is None else c[1],

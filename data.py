@@ -9,14 +9,16 @@ class BytesDecoder(decoders.Prefix):
 	def targets(self, ctx, ivl):
 		return set()
 
-	def decode(self, ctx, ivl, params):
+	def decode(self, ctx, ivl, first_target, params):
 		def lines(self):
+			ft = first_target
 			for addr in range(ivl.first, ivl.last+1, self.linelen):
 				yield {
 					"address": addr,
-					"is_destination" : addr in ctx.targets,
+					"is_destination" : ft and addr in ctx.targets,
 					"bytes": ctx.mem.r8m(addr, min(ivl.last-addr+1, self.linelen))
 					}
+				ft = True
 
 		return {
 			"type": self.name,
@@ -35,7 +37,7 @@ class PointerDecoder(decoders.Prefix):
 
 		return tgts
 
-	def decode(self, ctx, ivl, params):
+	def decode(self, ctx, ivl, first_target, params):
 		def value(addr):
 			v = ctx.mem.r16(addr)
 			return {"val": ctx.syms.get(v, "{:04x}".format(v)), "is_source": ctx.contains(v), "target": v}
@@ -43,11 +45,13 @@ class PointerDecoder(decoders.Prefix):
 		def lines(self):
 			bpl = 2*self.linelen
 			for addr in range(ivl.first, ivl.last+1, bpl):
+				ft = first_target
 				yield {
 					"address": addr,
-					"is_destination" : addr in ctx.targets,
+					"is_destination" : ft and addr in ctx.targets,
 					"vals": [value(a) for a in range(addr, addr+min(ivl.last-addr+1, self.linelen*2), 2)]
 					}
+				ft = True
 
 		return {
 			"type": self.name,

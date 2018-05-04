@@ -33,8 +33,9 @@ class MemRegion(interval.Interval):
 	def items(self, ctx, ivl):
 		params = self.params.copy()
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
-			yield self.decoder.prefix(ctx, i)
-			yield self.decoder.decode(ctx, i, params)
+			prefix = self.decoder.prefix(ctx, i)
+			yield prefix
+			yield self.decoder.decode(ctx, i, not prefix["is_destination"], params)
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
