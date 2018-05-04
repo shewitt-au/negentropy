@@ -44,8 +44,8 @@ class PointerDecoder(decoders.Prefix):
 
 		def lines(self):
 			bpl = 2*self.linelen
+			ft = first_target
 			for addr in range(ivl.first, ivl.last+1, bpl):
-				ft = first_target
 				yield {
 					"address": addr,
 					"is_destination" : ft and addr in ctx.targets,

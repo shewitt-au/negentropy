@@ -362,8 +362,8 @@ class M6502Decoder(decoders.Prefix):
 				else:
 					raise IndexError("Illegal operand size.")
 
+			ft = first_target
 			for ii in self.M6502Iterator(ctx, ivl):
-				ft = first_target
 				c = ctx.cmts.get(ii.address)
 				b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
 
