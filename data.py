@@ -7,22 +7,21 @@ class BytesDecoder(decoders.Prefix):
 		self.linelen = linelen
 
 	def targets(self, ctx, ivl):
-		return set()
+		pass
 
-	def decode(self, ctx, ivl, first_target, params):
+	def decode(self, ctx, ivl, params):
 		def lines(self):
-			ft = first_target
+			target_already_exits = params['target_already_exits']
 			for addr in range(ivl.first, ivl.last+1, self.linelen):
 				yield {
-					"address": addr,
-					"is_destination" : ft and addr in ctx.targets,
-					"bytes": ctx.mem.r8m(addr, min(ivl.last-addr+1, self.linelen))
+					'address': addr,
+					'is_destination' : not target_already_exits and addr in ctx.targets,
+					'bytes': ctx.mem.r8m(addr, min(ivl.last-addr+1, self.linelen))
 					}
-				ft = True
 
 		return {
-			"type": self.name,
-			"lines": lines(self)
+			'type': self.name,
+			'lines': lines(self)
 			}
 
 class PointerDecoder(decoders.Prefix):
@@ -31,29 +30,26 @@ class PointerDecoder(decoders.Prefix):
 		self.linelen = linelen
 
 	def targets(self, ctx, ivl):
-		tgts = set()
 		for addr in ivl:
-			tgts.add(ctx.mem.r16(addr))
+			ctx.targets.add(ctx.mem.r16(addr))
 
-		return tgts
-
-	def decode(self, ctx, ivl, first_target, params):
+	def decode(self, ctx, ivl, params):
 		def value(addr):
 			v = ctx.mem.r16(addr)
 			return {"val": ctx.syms.get(v, "{:04x}".format(v)), "is_source": ctx.contains(v), "target": v}
 
 		def lines(self):
 			bpl = 2*self.linelen
-			ft = first_target
+			target_already_exits = params['target_already_exits']
+			params['target_already_exits'] = False
 			for addr in range(ivl.first, ivl.last+1, bpl):
 				yield {
-					"address": addr,
-					"is_destination" : ft and addr in ctx.targets,
-					"vals": [value(a) for a in range(addr, addr+min(ivl.last-addr+1, self.linelen*2), 2)]
+					'address': addr,
+					'is_destination' : not target_already_exits and addr in ctx.targets,
+					'vals': [value(a) for a in range(addr, addr+min(ivl.last-addr+1, self.linelen*2), 2)]
 					}
-				ft = True
 
 		return {
-			"type": self.name,
-			"lines": lines(self)
+			'type': self.name,
+			'lines': lines(self)
 			}

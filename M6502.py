@@ -332,11 +332,9 @@ class M6502Decoder(decoders.Prefix):
 		tgts = set()
 		for ii in self.M6502Iterator(ctx, ivl):
 			if ii.target is not None:
-				tgts.add(ii.target)
+				ctx.targets.add(ii.target)
 
-		return tgts
-
-	def decode(self, ctx, ivl, first_target, params):
+	def decode(self, ctx, ivl, params):
 		def lines(self):
 			def operand():
 				if ii.mode_info.operand_size == 0:
@@ -362,27 +360,27 @@ class M6502Decoder(decoders.Prefix):
 				else:
 					raise IndexError("Illegal operand size.")
 
-			ft = first_target
+			target_already_exits = params['target_already_exits']
+			params['target_already_exits'] = False
 			for ii in self.M6502Iterator(ctx, ivl):
 				c = ctx.cmts.get(ii.address)
 				b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
 
 				yield {
-					"address": ii.address,
-					"is_destination" : ft and ii.address in ctx.targets,
-					"bytes": b,
-					"instruction": {
-						"mnemonic": ii.op_info.mnemonic,
-						"pre": ii.mode_info.pre,
-						"post": ii.mode_info.post,
-						"operand": operand(),
-						"is_source" : ii.mode_info.has_address and ctx.contains(ii.target),
-						"target" : ii.target
+					'address': ii.address,
+					'is_destination' : not target_already_exits and (ii.address in ctx.targets),
+					'bytes': b,
+					'instruction': {
+						'mnemonic': ii.op_info.mnemonic,
+						'pre': ii.mode_info.pre,
+						'post': ii.mode_info.post,
+						'operand': operand(),
+						'is_source' : ii.mode_info.has_address and ctx.contains(ii.target),
+						'target' : ii.target
 						}
 					}
-				ft = True
 
 		return {
-				"type": self.name,
-				"lines": lines(self)
+				'type': self.name,
+				'lines': lines(self)
 				}

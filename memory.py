@@ -28,20 +28,19 @@ class MemRegion(interval.Interval):
 		self.params = params
 
 	def targets(self, ctx, ivl):
-		return self.decoder.targets(ctx, ivl)
+		self.decoder.targets(ctx, ivl)
 
 	def items(self, ctx, ivl):
 		params = self.params.copy()
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
-			prefix = self.decoder.prefix(ctx, i)
-			yield prefix
-			yield self.decoder.decode(ctx, i, not prefix["is_destination"], params)
+			yield self.decoder.prefix(ctx, i, params)
+			yield self.decoder.decode(ctx, i, params)
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
 
 	def __repr__(self):
-		return "MemRegion({}: ${:04x}-${:04x})".format(self.decoder, self.first, self.last)
+		return "MemRegion({}: {:04x}-${:04x})".format(self.decoder, self.first, self.last)
 
 memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^({.*?^})?", re.MULTILINE|re.DOTALL)
 
@@ -87,12 +86,11 @@ class MemType(object):
 		i = bisect.bisect_left(self.map, addr)
 		return i!=len(self) and self[i]==addr
 
-	def targets(self, ctx, ivl):
-		tgts = set()
+	def _targets(self, ctx, ivl):
 		for i in self.overlapping_indices(ivl):
-			tgts |= self[i].targets(ctx, self[i]&ivl)
-		return tgts
+			self[i].targets(ctx, self[i]&ivl)
 
 	def items(self, ctx, ivl):
+		self._targets(ctx, ivl)
 		for i in self.overlapping_indices(ivl):
 			yield from self[i].items(ctx, self[i]&ivl)
