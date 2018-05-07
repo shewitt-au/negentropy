@@ -2,8 +2,6 @@ import re
 import bisect
 from interval import Interval
 
-symbols_re = re.compile(r"ali?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
-
 class DictWithRange(dict):
 	def build_index(self):
 		self.inorder = sorted(self.items(), key=(lambda t: t[0]))
@@ -38,6 +36,8 @@ class DictWithRange(dict):
 	def values_in_range(self, ivl):
 		for v in self.items_in_range(ivl):
 			yield v[1]
+
+symbols_re = re.compile(r"ali?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
 
 def read_symbols(*fns):
 	symbols = DictWithRange()
