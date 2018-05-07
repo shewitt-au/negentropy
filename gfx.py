@@ -25,7 +25,6 @@ class CharDecoder(decoders.Prefix):
 
 		c = ctx.cmts.get(ivl.first)
 		target_already_exits = params['target_already_exits']
-		params['target_already_exits'] = False
 		params['first_number'] = first_number+num_chars
 		params['first_char'] = first_char+num_chars
 		return {

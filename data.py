@@ -18,6 +18,7 @@ class BytesDecoder(decoders.Prefix):
 					'is_destination' : not target_already_exits and addr in ctx.targets,
 					'bytes': ctx.mem.r8m(addr, min(ivl.last-addr+1, self.linelen))
 					}
+				target_already_exits = False
 
 		return {
 			'type': self.name,
@@ -41,13 +42,13 @@ class PointerDecoder(decoders.Prefix):
 		def lines(self):
 			bpl = 2*self.linelen
 			target_already_exits = params['target_already_exits']
-			params['target_already_exits'] = False
 			for addr in range(ivl.first, ivl.last+1, bpl):
 				yield {
 					'address': addr,
 					'is_destination' : not target_already_exits and addr in ctx.targets,
 					'vals': [value(a) for a in range(addr, addr+min(ivl.last-addr+1, self.linelen*2), 2)]
 					}
+				target_already_exits = False
 
 		return {
 			'type': self.name,

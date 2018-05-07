@@ -361,14 +361,13 @@ class M6502Decoder(decoders.Prefix):
 					raise IndexError("Illegal operand size.")
 
 			target_already_exits = params['target_already_exits']
-			params['target_already_exits'] = False
 			for ii in self.M6502Iterator(ctx, ivl):
 				c = ctx.cmts.get(ii.address)
 				b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
 
 				yield {
 					'address': ii.address,
-					'is_destination' : not target_already_exits and (ii.address in ctx.targets),
+					'is_destination' : (not target_already_exits) and (ii.address in ctx.targets),
 					'bytes': b,
 					'instruction': {
 						'mnemonic': ii.op_info.mnemonic,
@@ -379,6 +378,8 @@ class M6502Decoder(decoders.Prefix):
 						'target' : ii.target
 						}
 					}
+
+				target_already_exits = False
 
 		return {
 				'type': self.name,
