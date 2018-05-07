@@ -72,6 +72,13 @@
 
 <body>
 <div class="container">
+
+{#- ----------------index---------------- -#}
+{%- for ii in index -%}
+<a href="#{{"{:04x}".format(ii.address)}}">{{ii.name}}</a><br/>
+{% endfor -%}
+<br/>
+
 {%- for section in items -%}
 
 {#- ----------------prefix---------------- -#}

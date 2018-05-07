@@ -29,6 +29,7 @@ def setup():
 	import gfx
 	import data
 	import M6502
+	import index
 
 	bd = decoders.Context(
 				decoders = {
@@ -47,6 +48,7 @@ def setup():
 	global _env
 	_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
 	_env.globals['items'] = bd.items(Interval(0x5000, 0x8fff))
+	_env.globals['index'] = index.get_index(bd.syms)
 	_env.filters['seq2str'] = sequence_to_string
 
 	s = render('template.html')

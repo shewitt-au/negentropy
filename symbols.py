@@ -37,10 +37,22 @@ class DictWithRange(dict):
 		for v in self.items_in_range(ivl):
 			yield v[1]
 
-symbols_re = re.compile(r"ali?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
+class SymbolsTable(DictWithRange):
+	def get(self, key, default=None):
+		v = super().get(key, default)
+		if v:
+			return v[0]
+
+	def __getitem__(self, key):
+		return super().__getitem__(key)[0]
+
+	def get_full(self, key, default=None):
+		return super().get(key, default)
+
+symbols_re = re.compile(r"al(i)?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
 
 def read_symbols(*fns):
-	symbols = DictWithRange()
+	symbols = SymbolsTable()
 
 	for fn in fns:
 		with open(fn, "r") as f:
@@ -49,7 +61,7 @@ def read_symbols(*fns):
 					continue
 				m = re.match(symbols_re, line)
 				if m:
-					symbols[int(m[1], 16)] = m[2]
+					symbols[int(m[2], 16)] = (m[3], m[1]=='i')
 
 		symbols.build_index()
 
