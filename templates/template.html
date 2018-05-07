@@ -73,6 +73,8 @@
 <body>
 <div class="container">
 
+<h1>{{title}}</h1><br/>
+
 {#- ----------------index---------------- -#}
 {%- for ii in index -%}
 <a href="#{{"{:04x}".format(ii.address)}}">{{ii.name}}</a><br/>
