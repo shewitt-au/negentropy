@@ -135,8 +135,3 @@ class Interval(object):
 			l = r
 		if not r.is_empty():
 			yield r
-
-	def __len__(self):
-		if self.is_empty():
-			return 0
-		return self.last-self.first+1
