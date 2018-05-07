@@ -47,7 +47,7 @@ def setup():
 
 	global _env
 	_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
-	_env.globals['title'] ="BoulderDash Disassembly"
+	_env.globals['title'] ="Boulder Dash Disassembly"
 	_env.globals['items'] = bd.items(Interval(0x5000, 0x8fff))
 	_env.globals['index'] = index.get_index(bd.syms)
 	_env.filters['seq2str'] = sequence_to_string
