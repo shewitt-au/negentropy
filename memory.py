@@ -28,7 +28,8 @@ class MemRegion(interval.Interval):
 		self.params = params
 
 	def links(self, ctx, ivl):
-		self.decoder.links(ctx, ivl)
+		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
+			self.decoder.links(ctx, i)
 
 	def items(self, ctx, ivl):
 		params = self.params.copy()

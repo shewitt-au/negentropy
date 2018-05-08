@@ -7,7 +7,6 @@ class BytesDecoder(decoders.Prefix):
 		self.linelen = linelen
 
 	def links(self, ctx, ivl):
-		bpl = 2*self.linelen
 		for addr in range(ivl.first, ivl.last+1, self.linelen):
 			ctx.link_destinations.add(addr)
 
