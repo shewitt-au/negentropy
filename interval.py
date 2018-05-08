@@ -36,7 +36,7 @@ class Interval(object):
 		if self.is_empty():
 			return 0
 		else:
-			return self.last-self.first-1
+			return self.last-self.first+1
 
 	def __eq__(self, other):
 		if isinstance(other, __class__):
