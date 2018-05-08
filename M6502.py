@@ -342,7 +342,7 @@ class M6502Decoder(decoders.Prefix):
 				elif ii.mode_info.operand_size == 1:
 					if ii.op_info.mode != AddrMode.Relative:
 						if ii.mode_info.has_address and ii.operand in ctx.syms.get_index():
-							return format(ctx.syms.get_index()[ii.operand][1])
+							return ctx.syms.get_index()[ii.operand][1]
 						else:
 							return "${:02x}".format(ii.operand)
 					else:
