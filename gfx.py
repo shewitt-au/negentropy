@@ -11,12 +11,11 @@ class CharDecoder(decoders.Prefix):
 
 	def decode(self, ctx, ivl, params):
 		num_chars = len(ivl)//8
-		cx = num_chars if num_chars<16 else 16
-		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
 		mcm = params.get('mcm', False)
 		pallet = params.get('pallet', 1)
 		first_number = params.get('first_number', 0)
 		first_char = params.get('first_char', 0)
+		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char)
 
 		def generate():
 			fn = "{:04x}.png".format(ivl.first)
@@ -26,12 +25,13 @@ class CharDecoder(decoders.Prefix):
 
 		c = ctx.cmts.get(ivl.first)
 		target_already_exits = params['target_already_exits']
-		params['first_number'] = first_number+num_chars
+		params['first_number'] = (first_char+num_chars)&~0xf
 		params['first_char'] = first_char+num_chars
+
 		return {
 				'type'   : self.name,
 				'address': ivl.first,
-				'is_destination' : not target_already_exits and ivl.first in ctx.targets,
+				'is_destination' : not target_already_exits and ivl.first in ctx.link_sources,
 				'label'  : ctx.syms.get(ivl.first),
 				'comment_before' : None if c is None else c[0],
 				'comment_after'  : None if c is None else c[1],
@@ -64,10 +64,17 @@ class C64Bitmap(object):
 		self.image.putpalette(c64Colours)
 		self.pixels = self.image.load()
 
+	@staticmethod
+	def calcgridsize(num_chars=256, first_number=0, first_char=0):
+		num_cells = num_chars+first_char-first_number
+		cx = num_cells if num_cells<16 else 16
+		cy = num_cells//16 + (1 if num_cells%16!=0 else 0)
+		return (cx, cy)
+
 	@classmethod
 	def genset(cls, data, num_chars=256, mcm=False, pallet=1, first_number=0, first_char=0):
-		cx = num_chars if num_chars<16 else 16
-		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
+		assert (first_char>=first_number), "first_char too small!"
+		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char)
 		instance = cls(cls.charset_size(cx, cy))
 		instance.charset(data, num_chars, mcm, pallet, first_number, first_char)
 		return instance
@@ -169,8 +176,7 @@ class C64Bitmap(object):
 		return (cls.char_sz+cx*cls.cell_sz, cls.char_sz+cy*cls.cell_sz)
 
 	def charset(self, data, num_chars, mcm, pallet, first_number=0, first_char=0):
-		cx = num_chars if num_chars<16 else 16
-		cy = num_chars//16 + (1 if num_chars%16!=0 else 0)
+		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char)
 
 		draw = ImageDraw.Draw(self.image)
 		font = ImageFont.truetype("arial.ttf", self.font_sz)
@@ -187,9 +193,9 @@ class C64Bitmap(object):
 
 		for y in range(0, cy):
 			for x in range(0, cx):
-				char = x+y*16
-				if char+first_number<first_char:
-					break
+				char = x+y*16+first_number-first_char
+				if char<0:
+					continue
 				if num_chars == 0:
 					break
 				num_chars = num_chars-1
