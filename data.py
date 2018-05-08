@@ -6,8 +6,10 @@ class BytesDecoder(decoders.Prefix):
 		self.name = name
 		self.linelen = linelen
 
-	def targets(self, ctx, ivl):
-		pass
+	def links(self, ctx, ivl):
+		bpl = 2*self.linelen
+		for addr in range(ivl.first, ivl.last+1, self.linelen):
+			ctx.link_destinations.add(addr)
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):
@@ -15,7 +17,7 @@ class BytesDecoder(decoders.Prefix):
 			for addr in range(ivl.first, ivl.last+1, self.linelen):
 				yield {
 					'address': addr,
-					'is_destination' : not target_already_exits and addr in ctx.targets,
+					'is_destination' : not target_already_exits and addr in ctx.link_sources,
 					'bytes': ctx.mem.r8m(addr, min(ivl.last-addr+1, self.linelen))
 					}
 				target_already_exits = False
@@ -30,14 +32,19 @@ class PointerDecoder(decoders.Prefix):
 		self.name = name
 		self.linelen = linelen
 
-	def targets(self, ctx, ivl):
-		for addr in ivl:
-			ctx.targets.add(ctx.mem.r16(addr))
+	def links(self, ctx, ivl):
+		bpl = 2*self.linelen
+		for addr in range(ivl.first, ivl.last+1, bpl):
+			ctx.link_destinations.add(addr)
+		for addr in range(ivl.first, ivl.last+1, 2):
+			ctx.link_sources.add(ctx.mem.r16(addr))
 
 	def decode(self, ctx, ivl, params):
 		def value(addr):
 			v = ctx.mem.r16(addr)
-			return {"val": ctx.syms.get(v, "{:04x}".format(v)), "is_source": ctx.contains(v), "target": v}
+			s = ctx.syms.get(v)
+			val = "{:04x}".format(v) if s is None else s[1]
+			return {"val": val, "is_source": v in ctx.link_destinations, "target": v}
 
 		def lines(self):
 			bpl = 2*self.linelen
@@ -45,7 +52,7 @@ class PointerDecoder(decoders.Prefix):
 			for addr in range(ivl.first, ivl.last+1, bpl):
 				yield {
 					'address': addr,
-					'is_destination' : not target_already_exits and addr in ctx.targets,
+					'is_destination' : not target_already_exits and addr in ctx.link_sources,
 					'vals': [value(a) for a in range(addr, addr+min(ivl.last-addr+1, self.linelen*2), 2)]
 					}
 				target_already_exits = False

@@ -328,11 +328,11 @@ class M6502Decoder(decoders.Prefix):
 
 			addr += mode_info.operand_size+1
 
-	def targets(self, ctx, ivl):
-		tgts = set()
+	def links(self, ctx, ivl):
 		for ii in self.M6502Iterator(ctx, ivl):
+			ctx.link_destinations.add(ii.address)
 			if ii.target is not None:
-				ctx.targets.add(ii.target)
+				ctx.link_sources.add(ii.target)
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):
@@ -341,20 +341,20 @@ class M6502Decoder(decoders.Prefix):
 					return ""
 				elif ii.mode_info.operand_size == 1:
 					if ii.op_info.mode != AddrMode.Relative:
-						if ii.mode_info.has_address and ii.operand in ctx.syms:
-							return format(ctx.syms[ii.operand])
+						if ii.mode_info.has_address and ii.operand in ctx.syms.get_index():
+							return format(ctx.syms.get_index()[ii.operand][1])
 						else:
 							return "${:02x}".format(ii.operand)
 					else:
 						val = ii.address+sign_extend(ii.operand)+2
-						sym = ctx.syms.get(val)
+						sym = ctx.syms.get_index().get(val)
 						if sym:
-							return sym
+							return sym[1]
 						else:
 							return "${:04x}".format(val)
 				elif ii.mode_info.operand_size == 2:
-					if ii.mode_info.has_address and ii.operand in ctx.syms:
-						return ctx.syms[ii.operand]
+					if ii.mode_info.has_address and ii.operand in ctx.syms.get_index():
+						return ctx.syms.get_index()[ii.operand][1]
 					else:
 						return "${:04x}".format(ii.operand)
 				else:
@@ -367,14 +367,14 @@ class M6502Decoder(decoders.Prefix):
 
 				yield {
 					'address': ii.address,
-					'is_destination' : (not target_already_exits) and (ii.address in ctx.targets),
+					'is_destination' : (not target_already_exits) and (ii.address in ctx.link_sources),
 					'bytes': b,
 					'instruction': {
 						'mnemonic': ii.op_info.mnemonic,
 						'pre': ii.mode_info.pre,
 						'post': ii.mode_info.post,
 						'operand': operand(),
-						'is_source' : ii.mode_info.has_address and ctx.contains(ii.target),
+						'is_source' : ii.mode_info.has_address and ii.target in ctx.link_destinations,
 						'target' : ii.target
 						}
 					}

@@ -1,33 +1,19 @@
 import re
 import bisect
+import multiindex
 from interval import Interval
 
-class DictWithRange(dict):
-	def build_index(self):
-		self.inorder = sorted(self.items(), key=(lambda t: t[0]))
+class DictWithRange(multiindex.MultiIndex):
+	def __init__(self):
+		super().__init__()
+		self.add_index(dict, multiindex.dict_indexer, (lambda k: k[0]))
+		self.add_index(list, multiindex.sorted_list_indexer, (lambda k: k[0]))
 
 	def items_in_range(self, ivl):
-		# Class needed because bisect doesn't support key extractors
-		class TupleKey(object):
-			def __init__(self, key):
-				self.key = key
-			def __eq__(self, other):
-				return self.key == other[0]
-			def __ne__(self, other):
-				return self.key != other[0]
-			def __lt__(self, other):
-				return self.key < other[0]
-			def __le__(self, other):
-				return self.key <= other[0]
-			def __gt__(self, other):
-				return self.key > other[0]
-			def __ge__(self, other):
-				return self.key >= other[0]
-
-		b = bisect.bisect_left(self.inorder, TupleKey(ivl.first))
-		e = bisect.bisect_right(self.inorder, TupleKey(ivl.last), b)
+		b = bisect.bisect_left(self.get_index(1), self.get_key_compare(ivl.first, 1))
+		e = bisect.bisect_right(self.get_index(1), self.get_key_compare(ivl.last, 1), b)
 		for i in range(b, e):
-			yield self.inorder[i]
+			yield self.get_index(1)[i]
 
 	def keys_in_range(self, ivl):
 		for v in self.items_in_range(ivl):
@@ -37,22 +23,31 @@ class DictWithRange(dict):
 		for v in self.items_in_range(ivl):
 			yield v[1]
 
-class SymbolsTable(DictWithRange):
-	def get(self, key, default=None):
-		v = super().get(key, default)
-		if v:
-			return v[0]
+class SymbolTable(multiindex.MultiIndex):
+	def __init__(self):
+		super().__init__()
+		self.add_index(dict, multiindex.dict_indexer, (lambda k: k[0])) # dict keyed on address
+		self.add_index(list, multiindex.sorted_list_indexer, (lambda k: k[0])) # list sorted by address
+		self.add_index(list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
 
-	def __getitem__(self, key):
-		return super().__getitem__(key)[0]
+	def items_in_range(self, ivl):
+		b = bisect.bisect_left(self.get_index(1), self.get_key_compare(ivl.first, 1))
+		e = bisect.bisect_right(self.get_index(1), self.get_key_compare(ivl.last, 1), b)
+		for i in range(b, e):
+			yield self.get_index(1)[i]
 
-	def get_full(self, key, default=None):
-		return super().get(key, default)
+	def keys_in_range(self, ivl):
+		for v in self.items_in_range(ivl):
+			yield v[0]
+
+	def values_in_range(self, ivl):
+		for v in self.items_in_range(ivl):
+			yield v[1]
 
 symbols_re = re.compile(r"al(i)?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
 
 def read_symbols(*fns):
-	symbols = SymbolsTable()
+	symbols = SymbolTable()
 
 	for fn in fns:
 		with open(fn, "r") as f:
@@ -61,9 +56,7 @@ def read_symbols(*fns):
 					continue
 				m = re.match(symbols_re, line)
 				if m:
-					symbols[int(m[2], 16)] = (m[3], m[1]=='i')
-
-		symbols.build_index()
+					symbols.add((int(m[2], 16), m[3], m[1]=='i'))
 
 	return symbols
 
@@ -101,7 +94,7 @@ def read_comments(fnname):
 			newaddr = int(m[1], 16)
 
 			if addr!=newaddr:
-				comments[addr] = (before, after, inline)
+				comments.add((addr, before, after, inline))
 				pos = 0 # before
 				before = after = inline = ""
 
@@ -122,10 +115,9 @@ def read_comments(fnname):
 			addr = newaddr
 
 	# Add the last one
-	comments[addr] = (before, after, inline)
+	comments.add((addr, before, after, inline))
 
-	del comments[-1] # Remove the invalid entry
-
-	comments.build_index()
+	#TODO: REVISIT THIS - WE CAN'R REMOVE NOW!
+	#del comments[-1] # Remove the invalid entry
 
 	return comments

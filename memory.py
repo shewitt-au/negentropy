@@ -27,8 +27,8 @@ class MemRegion(interval.Interval):
 		self.decoder = decoder
 		self.params = params
 
-	def targets(self, ctx, ivl):
-		self.decoder.targets(ctx, ivl)
+	def links(self, ctx, ivl):
+		self.decoder.links(ctx, ivl)
 
 	def items(self, ctx, ivl):
 		params = self.params.copy()
@@ -86,11 +86,11 @@ class MemType(object):
 		i = bisect.bisect_left(self.map, addr)
 		return i!=len(self) and self[i]==addr
 
-	def _targets(self, ctx, ivl):
+	def _links(self, ctx, ivl):
 		for i in self.overlapping_indices(ivl):
-			self[i].targets(ctx, self[i]&ivl)
+			self[i].links(ctx, self[i]&ivl)
 
 	def items(self, ctx, ivl):
-		self._targets(ctx, ivl)
+		self._links(ctx, ivl)
 		for i in self.overlapping_indices(ivl):
 			yield from self[i].items(ctx, self[i]&ivl)

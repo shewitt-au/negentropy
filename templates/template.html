@@ -113,7 +113,7 @@
 {% elif section.type == "ptr16" -%}
 <table>
 {%- for i in section.lines -%}
-<tr><td>{{address(i)}}</td>
+<tr><td>{{address(i)}}&nbsp;&nbsp;&nbsp;</td>
 {%- for v in i.vals -%}
 <td>
 {%- if v.is_source -%}
@@ -123,7 +123,7 @@
 {%- if v.is_source -%}
 </a>
 {%- endif -%}
-&nbsp;&nbsp;&nbsp;</td>
+</td>
 {%- endfor -%}</tr>
 {% endfor -%}
 </table>
