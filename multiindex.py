@@ -39,14 +39,19 @@ class MultiIndex(object):
 	def __init__(self):
 		self.indices = []
 
-	def add_index(self, mathod_name, collection, inserter, key_extractor=None):
+	# Add an index. When 'add' is called all indices added here are updated.
+	# Supplements the instance with two attributes:
+	#  1. index_name: a property which returns the index.
+	#  2. index_name+'_compare': a method which returns a KeyWrapper instance
+	#     for the index initialised with the argument it's called with.
+	def add_index(self, index_name, collection, inserter, key_extractor=None):
 		coll = collection()
 		self.indices.append((coll, inserter, key_extractor))
 
-		setattr(self, mathod_name, coll)
+		setattr(self, index_name, coll)
 		def get_comp(value):
 			return KeyWrapper(key_extractor, value)
-		setattr(self, mathod_name+"_compare", get_comp)
+		setattr(self, index_name+'_compare', get_comp)
 
 	def add(self, value):
 		for i in self.indices:
