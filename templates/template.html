@@ -114,7 +114,7 @@
 {% elif section.type == "ptr16" -%}
 <table>
 {%- for i in section.lines -%}
-<tr><td>{{address(i)}}{{tabs()}}</td>
+<tr><td>{{address(i)}}&nbsp;&nbsp;&nbsp;</td>
 {%- for v in i.vals -%}
 <td>
 {%- if v.is_source -%}
