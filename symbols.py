@@ -117,7 +117,7 @@ def read_comments(fnname):
 	# Add the last one
 	comments.add((addr, before, after, inline))
 
-	#TODO: REVISIT THIS - WE CAN'R REMOVE NOW!
+	#TODO: REVISIT THIS - WE CAN'T REMOVE NOW!
 	#del comments[-1] # Remove the invalid entry
 
 	return comments
