@@ -41,9 +41,12 @@ class MultiIndex(object):
 
 	def add_index(self, mathod_name, collection, inserter, key_extractor=None):
 		coll = collection()
-		setattr(self, mathod_name, coll)
 		self.indices.append((coll, inserter, key_extractor))
-		return len(self.indices)-1
+
+		setattr(self, mathod_name, coll)
+		def get_comp(value):
+			return KeyWrapper(key_extractor, value)
+		setattr(self, mathod_name+"_compare", get_comp)
 
 	def add(self, value):
 		for i in self.indices:
@@ -52,14 +55,3 @@ class MultiIndex(object):
 	def add_iter(self, iterable):
 		for v in iterable:
 			self.add(v)
-
-	# Do not change and keys in the returned collection
-	def get_index(self, idx=0):
-		return self.indices[idx][0]
-
-	# Get an instance of the key comparison type for an index for value
-	def get_key_compare(self, value, idx=0):
-		return KeyWrapper(self.indices[idx][2], value)
-
-	def get(self, key, default=None, idx=0):
-		return self.indices[idx][0].get(key, default)

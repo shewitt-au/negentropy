@@ -23,7 +23,7 @@ class CharDecoder(decoders.Prefix):
 			bm.save(fn)
 			return fn
 
-		c = ctx.cmts.get(ivl.first)
+		c = ctx.cmts.by_address.get(ivl.first)
 		target_already_exits = params['target_already_exits']
 		params['first_number'] = (first_char+num_chars)&~0xf
 		params['first_char'] = first_char+num_chars
@@ -32,7 +32,7 @@ class CharDecoder(decoders.Prefix):
 				'type'   : self.name,
 				'address': ivl.first,
 				'is_destination' : not target_already_exits and ivl.first in ctx.link_sources,
-				'label'  : ctx.syms.get(ivl.first),
+				'label'  : ctx.syms.by_address.get(ivl.first),
 				'comment_before' : None if c is None else c[0],
 				'comment_after'  : None if c is None else c[1],
 				'comment_inline' : None if c is None else c[2],

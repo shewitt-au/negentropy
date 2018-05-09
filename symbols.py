@@ -10,10 +10,10 @@ class DictWithRange(multiindex.MultiIndex):
 		self.add_index("sorted_address", list, multiindex.sorted_list_indexer, (lambda k: k[0]))
 
 	def items_in_range(self, ivl):
-		b = bisect.bisect_left(self.get_index(1), self.get_key_compare(ivl.first, 1))
-		e = bisect.bisect_right(self.get_index(1), self.get_key_compare(ivl.last, 1), b)
+		b = bisect.bisect_left(self.sorted_address, self.sorted_address_compare(ivl.first))
+		e = bisect.bisect_right(self.sorted_address, self.sorted_address_compare(ivl.last), b)
 		for i in range(b, e):
-			yield self.get_index(1)[i]
+			yield self.sorted_address[i]
 
 	def keys_in_range(self, ivl):
 		for v in self.items_in_range(ivl):
@@ -31,10 +31,10 @@ class SymbolTable(multiindex.MultiIndex):
 		self.add_index("sorted_name", list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
 
 	def items_in_range(self, ivl):
-		b = bisect.bisect_left(self.get_index(1), self.get_key_compare(ivl.first, 1))
-		e = bisect.bisect_right(self.get_index(1), self.get_key_compare(ivl.last, 1), b)
+		b = bisect.bisect_left(self.sorted_address, self.sorted_address_compare(ivl.first))
+		e = bisect.bisect_right(self.sorted_address, self.sorted_address_compare(ivl.last), b)
 		for i in range(b, e):
-			yield self.get_index(1)[i]
+			yield self.sorted_address[i]
 
 	def keys_in_range(self, ivl):
 		for v in self.items_in_range(ivl):

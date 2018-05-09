@@ -362,7 +362,7 @@ class M6502Decoder(decoders.Prefix):
 
 			target_already_exits = params['target_already_exits']
 			for ii in self.M6502Iterator(ctx, ivl):
-				c = ctx.cmts.get(ii.address)
+				c = ctx.cmts.by_address.get(ii.address)
 				b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
 
 				yield {

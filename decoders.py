@@ -17,10 +17,10 @@ class Context(object):
 
 class Prefix(object):
 	def prefix(self, ctx, ivl, params):
-		c = ctx.cmts.get(ivl.first)
+		c = ctx.cmts.by_address.get(ivl.first)
 		is_destination = ivl.first in ctx.link_sources
 		params['target_already_exits'] = is_destination
-		s = ctx.syms.get(ivl.first)
+		s = ctx.syms.by_address.get(ivl.first)
 		return {
 			'type': "prefix",
 			'address': ivl.first,

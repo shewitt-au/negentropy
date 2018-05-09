@@ -41,7 +41,7 @@ class PointerDecoder(decoders.Prefix):
 	def decode(self, ctx, ivl, params):
 		def value(addr):
 			v = ctx.mem.r16(addr)
-			s = ctx.syms.get(v)
+			s = ctx.syms.by_address.get(v)
 			val = "{:04x}".format(v) if s is None else s[1]
 			return {"val": val, "is_source": v in ctx.link_destinations, "target": v}
 
