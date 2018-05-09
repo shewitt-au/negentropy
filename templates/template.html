@@ -64,6 +64,7 @@
 {%- if i.instruction.is_source -%}
 </a>
 {%- endif -%}
+{{i.instruction.op_adjust}}
 {%- endmacro -%}
 
 {%- macro instruction(i) -%}

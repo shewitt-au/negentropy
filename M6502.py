@@ -336,45 +336,49 @@ class M6502Decoder(decoders.Prefix):
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):
-			def operand():
-				if ii.mode_info.operand_size == 0:
-					return ""
-				elif ii.mode_info.operand_size == 1:
-					if ii.op_info.mode != AddrMode.Relative:
-						if ii.mode_info.has_address and ii.operand in ctx.syms.by_address:
-							return ctx.syms.by_address[ii.operand][1]
-						else:
-							return "${:02x}".format(ii.operand)
-					else:
-						val = ii.address+sign_extend(ii.operand)+2
-						sym = ctx.syms.by_address.get(val)
-						if sym:
-							return sym[1]
-						else:
-							return "${:04x}".format(val)
-				elif ii.mode_info.operand_size == 2:
-					if ii.mode_info.has_address and ii.operand in ctx.syms.by_address:
-						return ctx.syms.by_address[ii.operand][1]
-					else:
-						return "${:04x}".format(ii.operand)
-				else:
-					raise IndexError("Illegal operand size.")
-
 			target_already_exits = params['target_already_exits']
 			for ii in self.M6502Iterator(ctx, ivl):
-				b = ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1)
+				def format_numerical_operand(v):
+					if ii.mode_info.operand_size == 0:
+						return ""
+					elif ii.mode_info.operand_size == 1:
+						return "${:02x}".format(v)
+					elif ii.mode_info.operand_size == 2:
+						return "${:04x}".format(v)
+
+				target = None
+				if ii.target:
+					# If we have a target look it up. If we don't find it try the address
+					# before (we'll tack on a '+1').
+					s = ctx.syms.by_address.get(ii.target)
+					if s:
+						one_before = False
+						target = ii.target
+					else:
+						s = ctx.syms.by_address.get(ii.target-1)
+						one_before = s is not None
+						target = ii.target-1
+
+					if s:
+						operand_body = s[1]
+					else:
+						operand_body = format_numerical_operand(ii.target)
+				else:
+					one_before = False
+					operand_body = format_numerical_operand(ii.operand)
 
 				yield {
 					'address': ii.address,
 					'is_destination' : (not target_already_exits) and (ii.address in ctx.link_sources),
-					'bytes': b,
+					'bytes': ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1),
 					'instruction': {
 						'mnemonic': ii.op_info.mnemonic,
 						'pre': ii.mode_info.pre,
 						'post': ii.mode_info.post,
-						'operand': operand(),
-						'is_source' : ii.mode_info.has_address and ii.target in ctx.link_destinations,
-						'target' : ii.target
+						'operand': operand_body,
+						'op_adjust': '+1' if one_before else '',
+						'is_source' : target in ctx.link_destinations,
+						'target' : target
 						}
 					}
 
