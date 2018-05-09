@@ -337,6 +337,7 @@ class M6502Decoder(decoders.Prefix):
 	def decode(self, ctx, ivl, params):
 		def lines(self):
 			target_already_exits = params['target_already_exits']
+
 			for ii in self.M6502Iterator(ctx, ivl):
 				def format_numerical_operand(v):
 					if ii.mode_info.operand_size == 0:
