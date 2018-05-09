@@ -341,20 +341,20 @@ class M6502Decoder(decoders.Prefix):
 					return ""
 				elif ii.mode_info.operand_size == 1:
 					if ii.op_info.mode != AddrMode.Relative:
-						if ii.mode_info.has_address and ii.operand in ctx.syms.get_index():
-							return ctx.syms.get_index()[ii.operand][1]
+						if ii.mode_info.has_address and ii.operand in ctx.syms.by_address:
+							return ctx.syms.by_address[ii.operand][1]
 						else:
 							return "${:02x}".format(ii.operand)
 					else:
 						val = ii.address+sign_extend(ii.operand)+2
-						sym = ctx.syms.get_index().get(val)
+						sym = ctx.syms.by_address.get(val)
 						if sym:
 							return sym[1]
 						else:
 							return "${:04x}".format(val)
 				elif ii.mode_info.operand_size == 2:
-					if ii.mode_info.has_address and ii.operand in ctx.syms.get_index():
-						return ctx.syms.get_index()[ii.operand][1]
+					if ii.mode_info.has_address and ii.operand in ctx.syms.by_address:
+						return ctx.syms.by_address[ii.operand][1]
 					else:
 						return "${:04x}".format(ii.operand)
 				else:

@@ -39,8 +39,10 @@ class MultiIndex(object):
 	def __init__(self):
 		self.indices = []
 
-	def add_index(self, collection, inserter, key_extractor=None):
-		self.indices.append((collection(), inserter, key_extractor))
+	def add_index(self, mathod_name, collection, inserter, key_extractor=None):
+		coll = collection()
+		setattr(self, mathod_name, coll)
+		self.indices.append((coll, inserter, key_extractor))
 		return len(self.indices)-1
 
 	def add(self, value):
@@ -61,20 +63,3 @@ class MultiIndex(object):
 
 	def get(self, key, default=None, idx=0):
 		return self.indices[idx][0].get(key, default)
-
-if __name__=='__main__':
-	s = MultiIndex()
-	s.add_index(list, list_indexer)
-	s.add_index(dict, dict_indexer, (lambda k: k[0]))
-	s.add_index(list, sorted_list_indexer, (lambda k: k[0]))
-	s.add_index(list, sorted_list_indexer, (lambda k: k[1]))
-	s.add_iter([(5, "Five"), (4, "Four"), (3, "Three"), (2, "Two"), (1, "One"), (0, "Zero")])
-
-	print(s.indices[0])
-	print()
-	print(s.indices[1])
-	print()
-	print(s.indices[2])
-	print()
-	print(s.indices[3])
-	print()

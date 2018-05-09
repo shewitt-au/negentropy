@@ -6,8 +6,8 @@ from interval import Interval
 class DictWithRange(multiindex.MultiIndex):
 	def __init__(self):
 		super().__init__()
-		self.add_index(dict, multiindex.dict_indexer, (lambda k: k[0]))
-		self.add_index(list, multiindex.sorted_list_indexer, (lambda k: k[0]))
+		self.add_index("by_address", dict, multiindex.dict_indexer, (lambda k: k[0]))
+		self.add_index("sorted_address", list, multiindex.sorted_list_indexer, (lambda k: k[0]))
 
 	def items_in_range(self, ivl):
 		b = bisect.bisect_left(self.get_index(1), self.get_key_compare(ivl.first, 1))
@@ -26,9 +26,9 @@ class DictWithRange(multiindex.MultiIndex):
 class SymbolTable(multiindex.MultiIndex):
 	def __init__(self):
 		super().__init__()
-		self.add_index(dict, multiindex.dict_indexer, (lambda k: k[0])) # dict keyed on address
-		self.add_index(list, multiindex.sorted_list_indexer, (lambda k: k[0])) # list sorted by address
-		self.add_index(list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
+		self.add_index("by_address", dict, multiindex.dict_indexer, (lambda k: k[0])) # dict keyed on address
+		self.add_index("sorted_address", list, multiindex.sorted_list_indexer, (lambda k: k[0])) # list sorted by address
+		self.add_index("sorted_name", list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
 
 	def items_in_range(self, ivl):
 		b = bisect.bisect_left(self.get_index(1), self.get_key_compare(ivl.first, 1))
