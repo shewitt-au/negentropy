@@ -71,47 +71,36 @@
 {{i.instruction.mnemonic}} {{i.instruction.pre}}{{operand(i)}}{{i.instruction.post}}
 {%- endmacro %}
 
-<body>
-<div class="container">
-
-<h1>{{title}}</h1><br/>
-
-{#- ----------------index---------------- -#}
-{%- for ii in index -%}
-<a href="#{{"{:04x}".format(ii.address)}}">{{ii.name}}</a><br/>
-{% endfor -%}
-<br/>
-
-{%- for section in items -%}
+{#- ----------------section handlers---------------- -#}
 
 {#- ----------------prefix---------------- -#}
-{%- if section.type == "prefix" -%}
-
+{%- macro prefix_handler(section) -%}
 {{ anchor(section) }}
 {{ comment_before(section) }}
 {{ label(section) }}
 {{ comment_after(section) }}
+{%- endmacro -%}
 
 {#- ----------------code---------------- -#}
-{%- elif section.type == "code" -%}
-
+{%- macro code_handler(section) -%}
 <div class="code">
 {%- for i in section.lines -%}
 {{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{instruction(i)}}
 {% endfor -%}
 </div>
+{%- endmacro -%}
 
 {# ----------------data---------------- #}
-{% elif section.type == "data" -%}
-
+{%- macro data_handler(section) -%}
 <div class="code">
 {%- for i in section.lines -%}
 {{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}
 {% endfor -%}
 </div>
+{%- endmacro -%}
 
 {# ----------------ptr16---------------- #}
-{% elif section.type == "ptr16" -%}
+{%- macro ptr16_handler(section) -%}
 <table>
 {%- for i in section.lines -%}
 <tr><td>{{address(i)}}&nbsp;&nbsp;&nbsp;</td>
@@ -128,15 +117,27 @@
 {%- endfor -%}</tr>
 {% endfor -%}
 </table>
+{%- endmacro -%}
 
 {# ----------------chars---------------- #}
-{% elif section.type == "chars" -%}
-
+{%- macro chars_handler(section) -%}
 <br/><b>{{"{:04x}".format(section.address)}}</b><br/>
 <img src="{{section.generate()}}"/><br/>
+{%- endmacro -%}
 
-{% endif -%}
+<body>
+<div class="container">
+<h1>{{title}}</h1><br/>
 
+{#- ----------------index---------------- -#}
+{%- for ii in index -%}
+<a href="#{{"{:04x}".format(ii.address)}}">{{ii.name}}</a><br/>
+{% endfor -%}
+<br/>
+
+{#- ----------------sections---------------- -#}
+{%- for section in items -%}
+{{ section.type|dispatch(section) }}
 {% endfor -%}
 
 </div>

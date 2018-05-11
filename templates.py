@@ -11,6 +11,10 @@ def render(env, template_name, **template_vars):
 	template = env.get_template(template_name)
 	return template.render(**template_vars)
 
+@jinja2.contextfilter
+def dispatch(context, macro_name, *args, **kwargs):
+	return context.vars[macro_name+'_handler'](*args, **kwargs)
+
 def sequence_to_string(it, pat, **kwargs):
 	sep = kwargs.get("s")
 	if sep is None or isinstance(sep, str):
@@ -56,6 +60,7 @@ def run(args):
 	env.globals['items'] = bd.items()
 	env.globals['index'] = index.get_index(bd.syms)
 	env.filters['seq2str'] = sequence_to_string
+	env.filters['dispatch'] = dispatch
 
 	s = render(env, 'template.html')
 	with open(args.output, "w") as of:
