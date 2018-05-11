@@ -90,7 +90,7 @@
 </div>
 {%- endmacro -%}
 
-{# ----------------data---------------- #}
+{#- ----------------data---------------- -#}
 {%- macro data_handler(section) -%}
 <div class="code">
 {%- for i in section.lines -%}
@@ -99,7 +99,7 @@
 </div>
 {%- endmacro -%}
 
-{# ----------------ptr16---------------- #}
+{#- ----------------ptr16---------------- -#}
 {%- macro ptr16_handler(section) -%}
 <table>
 {%- for i in section.lines -%}
@@ -119,11 +119,13 @@
 </table>
 {%- endmacro -%}
 
-{# ----------------chars---------------- #}
+{#- ----------------chars---------------- -#}
 {%- macro chars_handler(section) -%}
 <br/><b>{{"{:04x}".format(section.address)}}</b><br/>
 <img src="{{section.generate()}}"/><br/>
 {%- endmacro -%}
+
+{#- ********************************BODY******************************** -#}
 
 <body>
 <div class="container">
