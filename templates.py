@@ -1,7 +1,6 @@
 import jinja2
 import webbrowser
 import decoders
-from interval import Interval
 import gfx
 import data
 import M6502

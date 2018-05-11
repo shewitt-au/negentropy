@@ -1,4 +1,3 @@
-from interval import Interval
 import decoders
 
 class BytesDecoder(decoders.Prefix):

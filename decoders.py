@@ -1,4 +1,4 @@
-#import memory as memmod
+import memory as memmod
 import symbols as symmod
 from interval import Interval
 
@@ -35,5 +35,3 @@ class Prefix(object):
 			'comment_after': None if c is None else c[2],
 			'comment_inline': None if c is None else c[3]
 			}
-
-import memory as memmod

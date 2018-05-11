@@ -4,8 +4,6 @@ from heapq import merge
 import copy
 from interval import Interval, with_holes
 
-import data
-
 class Memory(object):
 	def __init__(self, data, org):
 		self.data = data

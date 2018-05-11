@@ -1,7 +1,6 @@
 import re
 import bisect
 import multiindex
-from interval import Interval
 
 class DictWithRange(multiindex.MultiIndex):
 	def __init__(self):
