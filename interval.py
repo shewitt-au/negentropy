@@ -1,4 +1,5 @@
 import numbers
+import copy
 
 class Interval(object):
 	def __init__(self, tuple_or_first=None, last=None):
@@ -135,25 +136,29 @@ class Interval(object):
 		if not r.is_empty():
 			yield r
 
-# Generator that iterates over a collection containing Interval instances
-# (classes derived for Interval are permitted); intervals in the collection
-# are returned, but for gaps between entries (holes) an Interval is returned.
-# NOTE: the actual class in the collection is returned for entries in the
-#  collection but for holes the returned class is always an Interval.
-def with_holes(coll):
+
+def nop_hole_decorator(ivl, is_hole):
+	return ivl
+
+def hole_decorator(ivl, is_hole):
+	cpy = copy.copy(ivl)
+	cpy.is_hole = is_hole
+	return cpy
+
+def with_holes(coll, decorator=nop_hole_decorator):
 	last = None
 	it = iter(coll)
 	try:
 		last = next(it)
 		while True:
 			n = next(it)
-			yield last
+			yield decorator(last, False)
 
 			hole = Interval(last.last+1, n.first-1)
 			if not hole.is_empty():
-				yield hole
+				yield decorator(hole, True)
 
 			last = n
 	except StopIteration:
 		if last:
-			yield last
+			yield decorator(last, False)
