@@ -1,5 +1,15 @@
 import jinja2
+import webbrowser
 import decoders
+from interval import Interval
+import gfx
+import data
+import M6502
+import index
+
+def render(env, template_name, **template_vars):
+	template = env.get_template(template_name)
+	return template.render(**template_vars)
 
 def sequence_to_string(it, pat, **kwargs):
 	sep = kwargs.get("s")
@@ -24,13 +34,7 @@ def sequence_to_string(it, pat, **kwargs):
 
 	return ret
 
-def setup():
-	from interval import Interval
-	import gfx
-	import data
-	import M6502
-	import index
-
+def run(args):
 	bd = decoders.Context(
 				decoders = {
 					"bitmap" : gfx.CharDecoder("chars"),
@@ -38,31 +42,24 @@ def setup():
 					"ptr16" : data.PointerDecoder("ptr16", 4),
 					"code" : M6502.M6502Decoder("code")
 					},
+				default_decoder = args.defaultdecoder,
 				address = 0x5000,
-				memory = "5000-8fff.bin",
-				memtype = "MemType.txt",
+				memory = args.input,
+				memtype = args.memtype,
 				symbols = ("BD.txt", "BD-BM.txt"),
 				comments = "Comments.txt"
 		)
 
-	global _env
-	_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
-	_env.globals['title'] ="Boulder Dash Disassembly"
-	_env.globals['items'] = bd.items(Interval(0x5000, 0x8fff))
-	_env.globals['index'] = index.get_index(bd.syms)
-	_env.filters['seq2str'] = sequence_to_string
 
-	s = render('template.html')
-	with open("out.html", "w") as of:
+	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
+	env.globals['title'] ="Boulder Dash Disassembly"
+	env.globals['items'] = bd.items()
+	env.globals['index'] = index.get_index(bd.syms)
+	env.filters['seq2str'] = sequence_to_string
+
+	s = render(env, 'template.html')
+	with open(args.output, "w") as of:
 		of.write(s)
-	with open("out.txt", "w") as of:
-		of.write(s)
-	import webbrowser
-	webbrowser.open("out.html")
 
-def render(template_name, **template_vars):
-	template = _env.get_template(template_name)
-	return template.render(**template_vars)
-
-if __name__ == '__main__':
-	setup()
+	if args.webbrowser:
+		webbrowser.open(args.output)

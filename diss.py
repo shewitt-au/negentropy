@@ -1,19 +1,46 @@
 #!/usr/bin/env python3
 
-from interval import Interval
-import memory
-import symbols
-import decoders
+from argparse import ArgumentParser
+import templates
 
 def main():
-	sym = symbols.read_symbols("BD.txt", "BD-BM.txt")
-	cmt = symbols.read_comments()
+	parser = ArgumentParser(
+					description="Disassemble a C64 image."
+					)
+	parser.add_argument(
+					"input",
+					metavar="IN",
+					help="the binary file to disassemble"
+					)
+	parser.add_argument(
+					"output",
+					metavar="OUT",
+					help="file to write the disassembly to"
+					)
+	parser.add_argument(
+					"-m", "--memtype",
+					help="file that describes what kind of data address ranges contain"
+					)
+	parser.add_argument(
+					"-d", "--defaultdecoder",
+					help="default decoder if address is not in MEMTYPE file"
+					)
+	parser.add_argument(
+					"-o", "--origin",
+					help="address IN expects to be loaded at (if absent the first two bytes are used)")
+	parser.add_argument(
+					"-l", "--labels",
+					help="file for mapping addresses to symbolic names (labels)")
+	parser.add_argument(
+					"-c", "--comments",
+					help="file used to inject comments into the disassembly")
+	parser.add_argument(
+					"-w", "--webbrowser",
+					action="store_true",
+					help="open OUT in webbrowser when done")
 
-	with open("5000-8fff.bin", "rb") as f:
-		m = memory.Memory(f.read(), 0x5000)
-
-	decoders.init_decoders(m, sym, cmt)
-	mmap = memory.MemType("MemType.txt")
-	mmap.decode(Interval(0x6c6c, 0x6c9a))
+	args = parser.parse_args()
+	
+	templates.run(args)
 
 main()

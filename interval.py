@@ -95,7 +95,6 @@ class Interval(object):
 	def __repr__(self):
 		return "Interval({})".format(str(self))
 
-	# Intersection
 	def __and__(self, other):
 		if self.is_empty() or other.is_empty():
 			return Interval()
@@ -135,3 +134,28 @@ class Interval(object):
 			l = r
 		if not r.is_empty():
 			yield r
+
+# Generator that iterates over a collection containing Interval instances
+# (classes derived for Interval are permitted); intervals in the collection
+# are returned, but for gaps between entries (holes) an Interval is returned.
+# NOTE: the actual class in the collection is returned for entries in the
+#  collection but for holes the returned class is always an Interval.
+def with_holes(coll):
+	last = None
+	it = iter(coll)
+	try:
+		last = next(it)
+		while True:
+			n = next(it)
+			yield last
+
+			hole = Interval(last.last+1, n.first-1)
+			if not hole.is_empty():
+				yield hole
+
+			last = n
+	except StopIteration:
+		if last:
+			yield last
+
+

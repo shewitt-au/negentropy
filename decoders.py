@@ -1,18 +1,23 @@
-import memory as memmod
+#import memory as memmod
 import symbols as symmod
+from interval import Interval
 
 class Context(object):
-	def __init__(self, decoders, address, memory, memtype, symbols, comments):
+	def __init__(self, decoders, address, memory, memtype, default_decoder, symbols, comments):
 		self.decoders = decoders
-		self.memtype = memmod.MemType(memtype, decoders)
-		with open("5000-8fff.bin", "rb") as f:
-			self.mem = memmod.Memory(f.read(), address)
+		self.memtype = memmod.MemType(self, memtype, decoders, default_decoder)
+		with open(memory, "rb") as f:
+			contents = f.read()
+			self.mem = memmod.Memory(contents, address)
+		self.mem_range = Interval(address, address+len(contents)-1)
 		self.syms = symmod.read_symbols(*symbols)
 		self.cmts = symmod.read_comments(comments)
 		self.link_sources = set()
 		self.link_destinations = set()
 
-	def items(self, ivl):
+	def items(self, ivl=None):
+		if not ivl:
+			ivl = self.mem_range
 		return self.memtype.items(self, ivl)
 
 class Prefix(object):
@@ -30,3 +35,5 @@ class Prefix(object):
 			'comment_after': None if c is None else c[2],
 			'comment_inline': None if c is None else c[3]
 			}
+
+import memory as memmod
