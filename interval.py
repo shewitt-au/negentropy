@@ -157,5 +157,3 @@ def with_holes(coll):
 	except StopIteration:
 		if last:
 			yield last
-
-
