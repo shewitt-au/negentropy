@@ -125,10 +125,15 @@ class MemType(object):
 
 	def items(self, ctx, ivl):
 		self._links(ctx, ivl)
-		for region in self._region_iterator(ivl):
+		gen = self._region_iterator(ivl)
+		for region in gen:
 			try:
 				yield from region.items(ctx)
 			except AttributeError:
 				# we found a hole and we've got a default decoder
+				yield {
+					'type': "hole",
+					'contents': gen
+					}
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
 				yield from dr.items(ctx)

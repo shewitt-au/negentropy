@@ -37,6 +37,10 @@ def sequence_to_string(it, pat, **kwargs):
 
 	return ret
 
+def next_item(coll):
+	i = iter(coll)
+	return next(i)
+
 def run(args):
 	bd = decoders.Context(
 				decoders = {
@@ -53,10 +57,10 @@ def run(args):
 				comments = "Comments.txt"
 		)
 
-
 	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
 	env.globals['title'] ="Boulder Dash Disassembly"
 	env.globals['items'] = bd.items()
+	env.globals['next_item'] = next_item
 	env.globals['index'] = index.get_index(bd.syms)
 	env.filters['seq2str'] = sequence_to_string
 	env.filters['dispatch'] = dispatch

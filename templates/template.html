@@ -15,6 +15,9 @@
 	font-family: inherit;
 	white-space: pre;
 }
+.hole {
+	border: 2px solid red;
+}
 </style>
 </head>
 
@@ -123,6 +126,16 @@
 {%- macro chars_handler(section) -%}
 <br/><b>{{"{:04x}".format(section.address)}}</b><br/>
 <img src="{{section.generate()}}"/><br/>
+{%- endmacro -%}
+
+{#- ----------------hole---------------- -#}
+{%- macro hole_handler(section) -%}
+<div class="hole">
+{% set ns = next_item(items) %}
+{{ ns.type|dispatch(ns) }}
+{% set ns = next_item(items) %}
+{{ ns.type|dispatch(ns) }}
+</div>
 {%- endmacro -%}
 
 {#- ********************************BODY******************************** -#}
