@@ -1,5 +1,6 @@
 import numbers
 import copy
+import itertools
 
 class Interval(object):
 	def __init__(self, tuple_or_first=None, last=None):
@@ -108,16 +109,22 @@ class Interval(object):
 	def cut_left_iter(self, cuts):
 		l = self
 		r = Interval()
+		it = iter(cuts)
 
-		for p in cuts:
-			l , r = l.cut_left(p)
-			if l.is_empty():
+		try:
+			first = next(it)
+		except StopIteration:
+			yield self
+		else:
+			for p in itertools.chain([first], it):
+				l , r = l.cut_left(p)
+				if l.is_empty():
+					l = r
+					continue
+				yield l
 				l = r
-				continue
-			yield l
-			l = r
-		if not r.is_empty():
-			yield r
+			if not r.is_empty():
+				yield r
 
 	def cut_right(self, pos):
 		return (Interval(self.first, min(pos, self.last)), Interval(max(pos+1, self.first), self.last))
@@ -125,16 +132,22 @@ class Interval(object):
 	def cut_right_iter(self, cuts):
 		l = self
 		r = Interval()
+		it = iter(cuts)
 
-		for p in cuts:
-			l , r = l.cut_right(p)
-			if l.is_empty():
+		try:
+			first = next(it)
+		except StopIteration:
+			yield self
+		else:
+			for p in itertools.chain([first], it):
+				l , r = l.cut_right(p)
+				if l.is_empty():
+					l = r
+					continue
+				yield l
 				l = r
-				continue
-			yield l
-			l = r
-		if not r.is_empty():
-			yield r
+			if not r.is_empty():
+				yield r
 
 
 def nop_hole_decorator(ivl, is_hole):
