@@ -54,7 +54,7 @@ def run(args):
 				memory = args.input,
 				memtype = args.memtype,
 				symbols = args.labels,
-				comments = "Comments.txt"
+				comments = args.comments
 		)
 
 	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
