@@ -40,6 +40,9 @@ def main():
 					"-w", "--webbrowser",
 					action="store_true",
 					help="open OUT in webbrowser when done")
+	parser.add_argument(
+					"-t", "--title",
+					help="title of the generated HTML page")	
 
 	args = parser.parse_args()
 	

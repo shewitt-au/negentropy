@@ -58,7 +58,7 @@ def run(args):
 		)
 
 	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
-	env.globals['title'] ="Boulder Dash Disassembly"
+	env.globals['title'] = args.title
 	env.globals['items'] = bd.items()
 	env.globals['next_item'] = next_item
 	env.globals['index'] = index.get_index(bd)
