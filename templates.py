@@ -61,7 +61,7 @@ def run(args):
 	env.globals['title'] ="Boulder Dash Disassembly"
 	env.globals['items'] = bd.items()
 	env.globals['next_item'] = next_item
-	env.globals['index'] = index.get_index(bd.syms)
+	env.globals['index'] = index.get_index(bd)
 	env.filters['seq2str'] = sequence_to_string
 	env.filters['dispatch'] = dispatch
 

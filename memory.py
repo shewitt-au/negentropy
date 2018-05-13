@@ -63,7 +63,7 @@ class MemType(object):
 			self.default_decoder = ctx.decoders[default_decoder]
 		else:
 			self.default_decoder = None
-
+		
 		txt = None
 		if fname:
 			with open(fname, "r") as f:
@@ -85,7 +85,9 @@ class MemType(object):
 				self.map.append(MemRegion(decoders[m[1]], m[2], m[3], params))
 				pos = m.end()
 		else:
-			self.map.append(MemRegion(decoders[default_decoder], 0x0000, 0xffff, {}))
+			if self.default_decoder is None:
+				self.default_decoder = 'data'
+			self.map.append(MemRegion(decoders[self.default_decoder], 0x0000, 0xffff, {}))
 
 		# Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
 		self.map.sort()
