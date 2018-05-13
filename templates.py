@@ -50,7 +50,7 @@ def run(args):
 					"code" : M6502.M6502Decoder("code")
 					},
 				default_decoder = args.defaultdecoder,
-				address = 0x5000,
+				address = args.origin,
 				memory = args.input,
 				memtype = args.memtype,
 				symbols = ("BD.txt", "BD-BM.txt"),

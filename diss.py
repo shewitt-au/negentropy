@@ -27,6 +27,7 @@ def main():
 					)
 	parser.add_argument(
 					"-o", "--origin",
+					type=(lambda v: int(v, 16)),
 					help="address IN expects to be loaded at (if absent the first two bytes are used)")
 	parser.add_argument(
 					"-l", "--labels",

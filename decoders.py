@@ -8,7 +8,10 @@ class Context(object):
 		self.memtype = memmod.MemType(self, memtype, decoders, default_decoder)
 		with open(memory, "rb") as f:
 			contents = f.read()
-			self.mem = memmod.Memory(contents, address)
+			self.mem = memmod.Memory(contents, 0 if address is None else address)
+			if address is None:
+				address = self.mem.r16(0)
+				self.mem.org = address
 		self.mem_range = Interval(address, address+len(contents)-1)
 		self.syms = symmod.read_symbols(*symbols)
 		self.cmts = symmod.read_comments(comments)
