@@ -31,6 +31,7 @@ def main():
 					help="address IN expects to be loaded at (if absent the first two bytes are used)")
 	parser.add_argument(
 					"-l", "--labels",
+					action="append",
 					help="file for mapping addresses to symbolic names (labels)")
 	parser.add_argument(
 					"-c", "--comments",

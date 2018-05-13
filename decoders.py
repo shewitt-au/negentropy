@@ -13,7 +13,7 @@ class Context(object):
 				address = self.mem.r16(0)
 				self.mem.org = address
 		self.mem_range = Interval(address, address+len(contents)-1)
-		self.syms = symmod.read_symbols(*symbols)
+		self.syms = symmod.read_symbols(symbols)
 		self.cmts = symmod.read_comments(comments)
 		self.link_sources = set()
 		self.link_destinations = set()

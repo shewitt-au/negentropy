@@ -45,17 +45,18 @@ class SymbolTable(multiindex.MultiIndex):
 
 symbols_re = re.compile(r"al(i)?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
 
-def read_symbols(*fns):
+def read_symbols(fns):
 	symbols = SymbolTable()
 
-	for fn in fns:
-		with open(fn, "r") as f:
-			for line in f:
-				if line=="":
-					continue
-				m = re.match(symbols_re, line)
-				if m:
-					symbols.add((int(m[2], 16), m[3], m[1]=='i'))
+	if not fns is None:
+		for fn in fns:
+			with open(fn, "r") as f:
+				for line in f:
+					if line=="":
+						continue
+					m = re.match(symbols_re, line)
+					if m:
+						symbols.add((int(m[2], 16), m[3], m[1]=='i'))
 
 	return symbols
 
@@ -65,7 +66,6 @@ def read_comments(fnname):
 	comments = DictWithRange()
 
 	with open(fnname, "r") as f:
-
 		before = ""
 		after = ""
 		inline = ""

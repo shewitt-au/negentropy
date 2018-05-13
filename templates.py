@@ -53,7 +53,7 @@ def run(args):
 				address = args.origin,
 				memory = args.input,
 				memtype = args.memtype,
-				symbols = ("BD.txt", "BD-BM.txt"),
+				symbols = args.labels,
 				comments = "Comments.txt"
 		)
 
