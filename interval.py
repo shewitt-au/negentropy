@@ -103,6 +103,9 @@ class Interval(object):
 		else:
 			return Interval(max(self.first, other.first), min(self.last, other.last))
 
+	def contains(self, other):
+		return other.first>=self.first and other.last<=self.last
+
 	def cut_left(self, pos):
 		return (Interval(self.first, min(pos-1, self.last)), Interval(max(pos, self.first), self.last))
 
@@ -158,13 +161,21 @@ def hole_decorator(ivl, is_hole):
 	cpy.is_hole = is_hole
 	return cpy
 
-def with_holes(coll, decorator=nop_hole_decorator):
-	last = None
+def with_holes(envelope, coll, decorator=nop_hole_decorator):
 	it = iter(coll)
 	try:
-		last = next(it)
-		while True:
-			n = next(it)
+		first = next(coll)
+	except StopIteration:
+		# if the interval collection is empty return the envelope as a hole
+		yield decorator(envelope, True)
+	else:
+		assert envelope.contains(first), "'envelope' must contains all items in 'coll'"
+		if first.first > envelope.first:
+			# we have a hole at before the contents of 'coll'
+			yield decorator(Interval(envelope.first, first.first-1), True)
+
+		last = first
+		for n in it:
 			yield decorator(last, False)
 
 			hole = Interval(last.last+1, n.first-1)
@@ -172,6 +183,9 @@ def with_holes(coll, decorator=nop_hole_decorator):
 				yield decorator(hole, True)
 
 			last = n
-	except StopIteration:
-		if last:
-			yield decorator(last, False)
+	
+		yield decorator(last, False)
+
+		if last.last < envelope.last:
+			# we have a hole at after the contents of 'coll'
+			yield decorator(Interval(last.last+1, envelope.last), True)

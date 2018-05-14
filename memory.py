@@ -112,7 +112,7 @@ class MemType(object):
 
 	def _region_iterator(self, ivl):
 		if self.default_decoder:
-			return with_holes(self.overlapping(ivl))
+			return with_holes(ivl, self.overlapping(ivl))
 		else:
 			return self.overlapping(ivl)
 
@@ -126,7 +126,7 @@ class MemType(object):
 				dr.links(ctx)
 
 	def items(self, ctx, ivl):
-		self._links(ctx, ivl)
+		#self._links(ctx, ivl)
 		gen = self._region_iterator(ivl)
 		for region in gen:
 			try:
