@@ -171,7 +171,7 @@ def with_holes(envelope, coll, decorator=nop_hole_decorator):
 	else:
 		assert envelope.contains(first), "'envelope' must contains all items in 'coll'"
 		if first.first > envelope.first:
-			# we have a hole at before the contents of 'coll'
+			# we have a hole before the contents of 'coll'
 			yield decorator(Interval(envelope.first, first.first-1), True)
 
 		last = first
@@ -188,5 +188,5 @@ def with_holes(envelope, coll, decorator=nop_hole_decorator):
 		yield decorator(last, False)
 
 		if last.last < envelope.last:
-			# we have a hole at after the contents of 'coll'
+			# we have a hole after the contents of 'coll'
 			yield decorator(Interval(last.last+1, envelope.last), True)
