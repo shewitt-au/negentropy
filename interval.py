@@ -176,6 +176,7 @@ def with_holes(envelope, coll, decorator=nop_hole_decorator):
 
 		last = first
 		for n in it:
+			assert envelope.contains(n), "'envelope' must contains all items in 'coll'"
 			yield decorator(last, False)
 
 			hole = Interval(last.last+1, n.first-1)
