@@ -3,22 +3,29 @@ import copy
 import itertools
 
 class Interval(object):
-	def __init__(self, tuple_or_first=None, last=None):
-		if tuple_or_first is None:
+	# Interval(): an empty Interval
+	# Interval((f, l)): an Interval from f to l (inclusive)
+	# Interval(f, l): an Interval from f to l (inclusive)
+	def __init__(self, first=None, last=None):
+		if isinstance(first, str):
+			first = int(first, 16)
+		if isinstance(last, str):
+			last = int(last, 16)
+
+		if first is None and last is None:
 			# an empty interval
 			self.first = 1
 			self.last = 0
 		elif last is None:
-			self.value = tuple_or_first
+			if isinstance(first, tuple):
+				self.first = first[0]
+				self.last = first[1]
+			else:
+				self.first = first
+				self.last = first
 		else:
-			if isinstance(tuple_or_first, str):
-				self.first = int(tuple_or_first, 16)
-			else:
-				self.first = tuple_or_first
-			if isinstance(last, str):
-				self.last = int(last, 16)
-			else:
-				self.last = last
+			self.first = first
+			self.last = last
 
 	def _get(self):
 		return (self.first, self.last)
