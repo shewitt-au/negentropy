@@ -28,10 +28,10 @@ class MemRegion(Interval):
 		self.decoder = decoder
 		self.params = params
 
-	def links(self, ctx, ivl=None):
+	def preprocess(self, ctx, ivl=None):
 		ptn = self if (ivl is None) else ivl
 		for i in ptn.cut_left_iter(merge(ctx.syms.keys_in_range(ptn), ctx.cmts.keys_in_range(ptn))):
-			self.decoder.links(ctx, i)
+			self.decoder.preprocess(ctx, i)
 
 	def items(self, ctx, ivl=None):
 		ptn = self if (ivl is None) else ivl
@@ -116,19 +116,20 @@ class MemType(object):
 		else:
 			return self.overlapping(ivl)
 
-	def _links(self, ctx, ivl):
+	def preprocess(self, ctx, ivl):
 		for region in self._region_iterator(ivl):
 			try:
-				lnks = region.links
+				pp = region.preprocess
 			except AttributeError:
 				# we found a hole and we've got a default decoder
+				ctx.holes += 1
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
-				dr.links(ctx)
+				dr.preprocess(ctx)
 			else:
-				lnks(ctx)
+				pp(ctx)
 
 	def items(self, ctx, ivl):
-		self._links(ctx, ivl)
+		hole_idx = 0
 		gen = self._region_iterator(ivl)
 		for region in gen:
 			try:
@@ -137,8 +138,11 @@ class MemType(object):
 				# we found a hole and we've got a default decoder
 				yield {
 					'type': "hole",
-					'contents': gen
+					'contents': gen,
+					'name': "hole_"+str(hole_idx),
+					'next': "hole_"+str(hole_idx+1) if (hole_idx+1<ctx.holes) else None
 					}
+				hole_idx += 1
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
 				yield from dr.items(ctx)
 			else:

@@ -17,6 +17,12 @@ class Context(object):
 		self.cmts = symmod.read_comments(comments)
 		self.link_sources = set()
 		self.link_destinations = set()
+		self.holes = 0
+
+	def preprocess(self, ivl=None):
+		if not ivl:
+			ivl = self.mem_range
+		self.memtype.preprocess(self, ivl)
 
 	def items(self, ivl=None):
 		if not ivl:

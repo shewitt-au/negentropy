@@ -5,7 +5,7 @@ class CharDecoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
 
-	def links(self, ctx, ivl):
+	def preprocess(self, ctx, ivl):
 		ctx.link_destinations.add(ivl.first)
 		pass
 

@@ -130,7 +130,9 @@
 
 {#- ----------------hole---------------- -#}
 {%- macro hole_handler(section) -%}
+<a name="{{section.name}}"></a>
 <div class="hole">
+{% if section.next %}<a href="#{{section.next}}">Next hole</a><br/><br/>{% endif %}
 {% set ns = next_item(items) %}
 {{ ns.type|dispatch(ns) }}
 {% set ns = next_item(items) %}
@@ -143,6 +145,11 @@
 <body>
 <div class="container">
 {% if title %}<h1>{{title}}</h1><br/>{% endif %}
+
+{#- ----------------first hole link---------------- -#}
+{% if have_holes %}
+<a href="#hole_0">First hole</a><br/><br/>
+{% endif %}
 
 {#- ----------------index---------------- -#}
 {%- for ii in index -%}

@@ -328,7 +328,7 @@ class M6502Decoder(decoders.Prefix):
 
 			addr += mode_info.operand_size+1
 
-	def links(self, ctx, ivl):
+	def preprocess(self, ctx, ivl):
 		for ii in self.M6502Iterator(ctx, ivl):
 			ctx.link_destinations.add(ii.address)
 			if ii.target is not None:

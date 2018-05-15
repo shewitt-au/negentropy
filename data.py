@@ -5,7 +5,7 @@ class BytesDecoder(decoders.Prefix):
 		self.name = name
 		self.linelen = linelen
 
-	def links(self, ctx, ivl):
+	def preprocess(self, ctx, ivl):
 		for addr in range(ivl.first, ivl.last+1, self.linelen):
 			ctx.link_destinations.add(addr)
 
@@ -30,7 +30,7 @@ class PointerDecoder(decoders.Prefix):
 		self.name = name
 		self.linelen = linelen
 
-	def links(self, ctx, ivl):
+	def preprocess(self, ctx, ivl):
 		bpl = 2*self.linelen
 		for addr in range(ivl.first, ivl.last+1, bpl):
 			ctx.link_destinations.add(addr)
