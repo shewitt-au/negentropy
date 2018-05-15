@@ -5,21 +5,34 @@ import copy
 from interval import Interval, with_holes
 
 class Memory(object):
-	def __init__(self, data, org):
+	def __init__(self, data, org=None):
 		self.data = data
-		self.org = org
+		if org is None:
+			self.org = 0
+			self.off = 0
+			self.org = self.r16(0)
+			self.off = 2
+		else:
+			self.org = org
+			self.off = 0
 
 	def r8(self, addr):
-		return self.data[addr-self.org]
+		return self.data[addr-self.org+self.off]
 
 	def r8m(self, addr, sz):
-		return self.data[addr-self.org : addr-self.org+sz]
+		return self.data[addr-self.org+self.off : addr-self.org+self.off+sz]
 
 	def r16(self, addr):
-		return self.data[addr-self.org] + self.data[addr-self.org+1]*256
+		return self.data[addr-self.org+self.off] + self.data[addr-self.org+self.off+1]*256
 
 	def r16m(self, addr, sz):
 		return [self.r16(a) for a in range(addr, addr+sz, 2)]
+
+	def __len__(self):
+		return len(self.data)-self.off
+
+	def range(self):
+		return Interval(self.org, self.org+len(self)-1)
 
 # Represents a region of memory (C64's) and associates it with a specific decoder.
 class MemRegion(Interval):
