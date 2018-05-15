@@ -1,20 +1,24 @@
 import decoders
 
-# $80 - $a2
+# $80 - $ca
 _commands = (
 	"END",    "FOR",   "NEXT", "DATA", "INPUT#",  "INPUT",  "DIM",   "READ",
 	"LET",    "GOTO",  "RUN",  "IF",   "RESTORE", "GOSUB",  "RETURN", "REM",
 	"STOP",   "ON",    "WAIT", "LOAD", "SAVE",    "VERIFY", "DEF",    "POKE",
 	"PRINT#", "PRINT", "CONT", "LIST", "CLR",     "CMD",    "SYS",    "OPEN",
-	"CLOSE",  "GET",   "NEW")
+	"CLOSE",  "GET",   "NEW",  "TAB(", "TO",      "FN",     "SPC(",   "THEN",
+	"NOT",    "STEP",  "+",    "-",    "*",       "/",      "↑",      "AND", 
+	"ON",     ">",     "=",    "<",    "SGN",     "INT",    "ABS",    "USR",
+	"FRE",   "POS",    "SQR",  "RND",  "LOG",     "EXP",    "COS",    "SIN",
+	"TAN",   "ATN",    "PEEK", "LEN",  "STR$",    "VAL",    "ASC",    "CHR$",
+	"LEFT$", "RIGHT$", "MID$"
+)
 
 def command(token):
-	if token==0xb2:
-		return "="
-	elif token-0x80>=len(_commands):
-		return "?"
-	else:
+	if token>=0x80 and token<=0xca:
 		return _commands[token-0x80]
+	else:
+		return "?"
 
 # https://en.wikipedia.org/wiki/PETSCII
 _substitute = {
