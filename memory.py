@@ -9,14 +9,12 @@ class Memory(object):
 		self.data = data
 		if org is None:
 			self.ivl = Interval(0x0000, 0x0001)
-			self.off = 0
 			org = self.r16(0)
-			self.off = 2
+			off = 2
 		else:
-			self.off = org
-			self.off = 0
+			off = 0
 
-		self.data = self.data[self.off:]
+		self.data = self.data[off:]
 		self.ivl = Interval(org, org+len(data)-1)
 
 	def view(self, ivl):
@@ -29,7 +27,7 @@ class Memory(object):
 	def _map(self, addr, sz=1):
 		if not self.ivl.contains(Interval(addr, addr+sz-1)):
 			raise IndexError
-		return addr-self.ivl.first+self.off
+		return addr-self.ivl.first
 
 	def r8(self, addr):
 		return self.data[self._map(addr)]
