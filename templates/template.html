@@ -140,6 +140,12 @@
 </div>
 {%- endmacro -%}
 
+{%- macro basic_handler(section) -%}
+{%- for i in section.lines -%}
+{{ i.line }}<br/>
+{% endfor -%}
+{%- endmacro -%}
+
 {#- ********************************BODY******************************** -#}
 
 <body>

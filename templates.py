@@ -5,6 +5,7 @@ import gfx
 import data
 import M6502
 import index
+import cbmbasic
 
 def render(env, template_name, **template_vars):
 	template = env.get_template(template_name)
@@ -47,7 +48,8 @@ def run(args):
 					"bitmap" : gfx.CharDecoder("chars"),
 					"data" : data.BytesDecoder("data", 16),
 					"ptr16" : data.PointerDecoder("ptr16", 4),
-					"code" : M6502.M6502Decoder("code")
+					"code" : M6502.M6502Decoder("code"),
+					"basic" : cbmbasic.BasicDecoder()
 					},
 				default_decoder = args.defaultdecoder,
 				address = args.origin,
@@ -68,7 +70,7 @@ def run(args):
 	env.filters['dispatch'] = dispatch
 
 	s = render(env, 'template.html')
-	with open(args.output, "w") as of:
+	with open(args.output, "w", encoding='utf-8') as of:
 		of.write(s)
 
 	if args.webbrowser:

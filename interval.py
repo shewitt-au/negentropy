@@ -111,7 +111,10 @@ class Interval(object):
 			return Interval(max(self.first, other.first), min(self.last, other.last))
 
 	def contains(self, other):
-		return other.first>=self.first and other.last<=self.last
+		if isinstance(other, __class__):
+			return other.first>=self.first and other.last<=self.last
+		else:
+			return other>=self.first and other<=self.last
 
 	def cut_left(self, pos):
 		return (Interval(self.first, min(pos-1, self.last)), Interval(max(pos, self.first), self.last))

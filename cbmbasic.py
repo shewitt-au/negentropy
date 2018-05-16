@@ -7,7 +7,7 @@ _commands = (
 	"STOP",   "ON",    "WAIT", "LOAD", "SAVE",    "VERIFY", "DEF",    "POKE",
 	"PRINT#", "PRINT", "CONT", "LIST", "CLR",     "CMD",    "SYS",    "OPEN",
 	"CLOSE",  "GET",   "NEW",  "TAB(", "TO",      "FN",     "SPC(",   "THEN",
-	"NOT",    "STEP",  "+",    "-",    "*",       "/",      "↑",      "AND", 
+	"NOT",    "STEP",  "+",    "-",    "*",       "/",      "↑",      "AND",
 	"OR",     ">",     "=",    "<",    "SGN",     "INT",    "ABS",    "USR",
 	"FRE",   "POS",    "SQR",  "RND",  "LOG",     "EXP",    "COS",    "SIN",
 	"TAN",   "ATN",    "PEEK", "LEN",  "STR$",    "VAL",    "ASC",    "CHR$",
@@ -284,65 +284,68 @@ def pettoascii(c):
 	return decoding_table[c]
 
 class BasicDecoder(decoders.Prefix):
-	def decode(self, ctx, ivl):
-		addr = ivl.first
-		while True:
-			# link to next line
-			link = ctx.mem.r16(addr)
-			if link==0:
-				break # a line link of 0 end the program
-			addr += 2
+	def preprocess(self, ctx, ivl):
+		pass
 
-			# line number
-			# line numbers from 0-65535
-			# largest enter-able is 63999 (not sure why), but larger runs and list fine
-			line_num = ctx.mem.r16(addr)
-			#if line_num == 311:
-			#	print(hex(addr-2))
-			#	break
-			print(line_num, end=' ') # line numbers separated by a space
-			addr += 2
-
+	def decode(self, ctx, ivl, params=None):
+		def lines():
+			addr = ivl.first
 			while True:
-				token = ctx.mem.r8(addr)
-				addr += 1
+				# link to next line
+				link = ctx.mem.r16(addr)
+				if link==0 or not ivl.contains(link): # second check needed sometimes (what does BASIC ROM DO>)
+					break # a line link of 0 ends the program
+				addr += 2 
 
-				if token==0x22: # quotes
-					print('"', end='')
-					while True:
-						token = ctx.mem.r8(addr)
-						addr += 1
+				# line number
+				# line numbers from 0-65535
+				# largest enter-able is 63999 (not sure why), but larger runs and list fine
+				line_num = ctx.mem.r16(addr)
+				line_string = "{} ".format(line_num)
+				addr += 2
+
+				in_quotes = False
+				while True:
+					token = ctx.mem.r8(addr)
+					addr += 1
+					if token==0:
+						break
+
+					if in_quotes:
 						if token==0x22: # quotes
-							print('"', end='')
-							break
-						elif token==0x00:
-							break
-						else:
-							print(pettoascii(token), end='')
-					if token==0x00: #H!!!ACK!!!
-						break
-				else:
-					if token == 0: # end of line
-						break
-					elif token&0x80:
-						print(command(token), end='')
+							in_quotes = False
+							line_string += '"'
+						elif token!=0:
+							line_string += pettoascii(token)
 					else:
-						print(pettoascii(token), end='')
+						if token!=0:
+							if token==0x22: # quotes
+								in_quotes = True
+								line_string += '"'
+							elif token&0x80:
+								line_string += command(token)
+							else:
+								line_string += pettoascii(token)
 
-			print()
+				yield {'line': line_string}
 
-if __name__=='__main__':
-	import memory
-	from interval import Interval
+		return {
+				'type': 'basic',
+				'lines': lines()
+				}
 
-	class Context(object):
-		def __init__(self, mem):
-			self.mem = mem
-
-	with open("monopoly.prg", "rb") as f:
-		contents = f.read()
-		mem = memory.Memory(contents)
-
-	ctx = Context(mem)
-	bd = BasicDecoder()
-	bd.decode(ctx, mem.range())
+#if __name__=='__main__':
+#	import memory
+#	from interval import Interval
+#
+#	class Context(object):
+#		def __init__(self, mem):
+#			self.mem = mem
+#
+#	with open("monopoly.prg", "rb") as f:
+#		contents = f.read()
+#		mem = memory.Memory(contents)
+#
+#	ctx = Context(mem)
+#	bd = BasicDecoder()
+#	bd.decode(ctx, mem.range())
