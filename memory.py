@@ -15,7 +15,9 @@ class Memory(object):
 			off = 0
 
 		self.data = self.data[off:]
-		self.ivl = Interval(org, org+len(data)-1)
+		self.ivl = Interval(org, org+len(self.data)-1)
+
+		print("Loaded: {}".format(self.ivl))
 
 	def view(self, ivl):
 		if not self.ivl.contains(ivl):
@@ -103,7 +105,6 @@ class MemType(object):
 			while pos!=endpos:
 				m = memtype_re.match(txt, pos, endpos)
 				if m is None:
-					print("Error in line {} of memtype file".format(line[0]+1))
 					raise ValueError("Error in memtype file")
 
 				# Poor man's configuration parser
