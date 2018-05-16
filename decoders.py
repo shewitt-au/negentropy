@@ -5,19 +5,16 @@ from interval import Interval
 class Context(object):
 	def __init__(self, decoders, address, memory, memtype, default_decoder, symbols, comments):
 		self.decoders = decoders
-		self.memtype = memmod.MemType(self, memtype, decoders, default_decoder)
 		with open(memory, "rb") as f:
 			contents = f.read()
-			self.mem = memmod.Memory(contents, 0 if address is None else address)
-			if address is None:
-				address = self.mem.r16(0)
-				self.mem.org = address
-		self.mem_range = Interval(address, address+len(contents)-1)
+			self.mem = memmod.Memory(contents, address)
+		self.mem_range = self.mem.range()
 		self.syms = symmod.read_symbols(symbols)
 		self.cmts = symmod.read_comments(comments)
 		self.link_sources = set()
 		self.link_destinations = set()
 		self.holes = 0
+		self.memtype = memmod.MemType(self, memtype, decoders, default_decoder)
 
 	def preprocess(self, ivl=None):
 		if not ivl:
