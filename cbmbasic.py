@@ -344,6 +344,5 @@ if __name__=='__main__':
 		mem = memory.Memory(contents)
 
 	ctx = Context(mem)
-
 	bd = BasicDecoder()
 	bd.decode(ctx, mem.range())
