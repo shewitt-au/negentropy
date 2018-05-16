@@ -2,6 +2,7 @@
 
 <html>
 <head>
+<meta charset="utf-8"/>
 <style>
 .container {
 	font-family: monospace;
@@ -140,6 +141,7 @@
 </div>
 {%- endmacro -%}
 
+{#- ----------------basic---------------- -#}
 {%- macro basic_handler(section) -%}
 {%- for i in section.lines -%}
 {{ i.line }}<br/>

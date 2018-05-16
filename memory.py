@@ -8,31 +8,49 @@ class Memory(object):
 	def __init__(self, data, org=None):
 		self.data = data
 		if org is None:
-			self.org = 0
+			self.ivl = Interval(0x0000, 0x0001)
 			self.off = 0
-			self.org = self.r16(0)
+			org = self.r16(0)
 			self.off = 2
 		else:
-			self.org = org
+			self.off = org
 			self.off = 0
 
+		self.data = self.data[self.off:]
+		self.ivl = Interval(org, org+len(data)-1)
+
+	def view(self, ivl):
+		if not self.ivl.contains(ivl):
+			raise IndexError
+		cpy = copy.copy(self)
+		cpy.ivl = ivl
+		return cpy
+
+	def _map(self, addr, sz=1):
+		if not self.ivl.contains(Interval(addr, addr+sz-1)):
+			raise IndexError
+		return addr-self.ivl.first+self.off
+
 	def r8(self, addr):
-		return self.data[addr-self.org+self.off]
+		return self.data[self._map(addr)]
 
 	def r8m(self, addr, sz):
-		return self.data[addr-self.org+self.off : addr-self.org+self.off+sz]
+		ma = self._map(addr, sz)
+		return self.data[ma : ma+sz]
 
 	def r16(self, addr):
-		return self.data[addr-self.org+self.off] + self.data[addr-self.org+self.off+1]*256
+		ma = self._map(addr, 2)
+		return self.data[ma] + self.data[ma+1]*256
 
 	def r16m(self, addr, sz):
-		return [self.r16(a) for a in range(addr, addr+sz, 2)]
+		ma = self._map(addr, sz*2)
+		return [self.r16(a) for a in range(ma, ma+sz, 2)]
 
 	def __len__(self):
-		return len(self.data)-self.off
+		return len(self.ivl)
 
 	def range(self):
-		return Interval(self.org, self.org+len(self)-1)
+		return self.ivl
 
 # Represents a region of memory (C64's) and associates it with a specific decoder.
 class MemRegion(Interval):
