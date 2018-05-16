@@ -295,7 +295,7 @@ class BasicDecoder(decoders.Prefix):
 				link = ctx.mem.r16(addr)
 				if link==0 or not ivl.contains(link): # second check needed sometimes (what does BASIC ROM DO>)
 					break # a line link of 0 ends the program
-				addr += 2 
+				addr += 2
 
 				# line number
 				# line numbers from 0-65535
