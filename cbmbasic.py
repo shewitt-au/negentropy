@@ -8,7 +8,7 @@ _commands = (
 	"PRINT#", "PRINT", "CONT", "LIST", "CLR",     "CMD",    "SYS",    "OPEN",
 	"CLOSE",  "GET",   "NEW",  "TAB(", "TO",      "FN",     "SPC(",   "THEN",
 	"NOT",    "STEP",  "+",    "-",    "*",       "/",      "↑",      "AND", 
-	"ON",     ">",     "=",    "<",    "SGN",     "INT",    "ABS",    "USR",
+	"OR",     ">",     "=",    "<",    "SGN",     "INT",    "ABS",    "USR",
 	"FRE",   "POS",    "SQR",  "RND",  "LOG",     "EXP",    "COS",    "SIN",
 	"TAN",   "ATN",    "PEEK", "LEN",  "STR$",    "VAL",    "ASC",    "CHR$",
 	"LEFT$", "RIGHT$", "MID$"
@@ -156,7 +156,8 @@ _substitute = {
 		}
 
 def pettoascii(c):
-	return _substitute.get(c, chr(c))
+	pet = _substitute.get(c)
+	return chr(c) if pet is None else pet
 
 class BasicDecoder(decoders.Prefix):
 	def decode(self, ctx, ivl):
@@ -171,7 +172,11 @@ class BasicDecoder(decoders.Prefix):
 			# line number
 			# line numbers from 0-65535
 			# largest enter-able is 63999 (not sure why), but larger runs and list fine
-			print(ctx.mem.r16(addr), end=' ') # line numbers separated by a space
+			line_num = ctx.mem.r16(addr)
+			#if line_num == 311:
+			#	print(hex(addr-2))
+			#	break
+			print(line_num, end=' ') # line numbers separated by a space
 			addr += 2
 
 			while True:
