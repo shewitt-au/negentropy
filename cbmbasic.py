@@ -339,7 +339,6 @@ if __name__=='__main__':
 		def __init__(self, mem):
 			self.mem = mem
 
-	address = None
 	with open("monopoly.prg", "rb") as f:
 		contents = f.read()
 		mem = memory.Memory(contents)
