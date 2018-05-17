@@ -298,38 +298,38 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
+InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, target, op_info, mode_info")
+def M6502Iterator(mem, ivl):
+	addr = ivl.first
+	while addr<=ivl.last:
+		opcode = mem.r8(addr)
+		op_info = opcode_to_mnemonic_and_mode[opcode]
+		mode_info = mode_to_operand_info[op_info.mode]
+
+		if mode_info.operand_size == 0:
+			operand = None
+		elif mode_info.operand_size == 1:
+			operand = mem.r8(addr+1)
+		elif mode_info.operand_size == 2:
+			operand = mem.r16(addr+1)
+
+		if op_info.mode == AddrMode.Relative:
+			target = addr+sign_extend(operand)+2
+		elif mode_info.has_address:
+			target = operand
+		else:
+			target = None
+
+		yield InstructionInfo(addr, opcode, operand, target, op_info, mode_info)
+
+		addr += mode_info.operand_size+1
+
 class M6502Decoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
 
-	InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, target, op_info, mode_info")
-	def M6502Iterator(self, ctx, ivl):
-		addr = ivl.first
-		while addr<=ivl.last:
-			opcode = ctx.mem.r8(addr)
-			op_info = opcode_to_mnemonic_and_mode[opcode]
-			mode_info = mode_to_operand_info[op_info.mode]
-
-			if mode_info.operand_size == 0:
-				operand = None
-			elif mode_info.operand_size == 1:
-				operand = ctx.mem.r8(addr+1)
-			elif mode_info.operand_size == 2:
-				operand = ctx.mem.r16(addr+1)
-
-			if op_info.mode == AddrMode.Relative:
-				target = addr+sign_extend(operand)+2
-			elif mode_info.has_address:
-				target = operand
-			else:
-				target = None
-
-			yield self.InstructionInfo(addr, opcode, operand, target, op_info, mode_info)
-
-			addr += mode_info.operand_size+1
-
 	def preprocess(self, ctx, ivl):
-		for ii in self.M6502Iterator(ctx, ivl):
+		for ii in M6502Iterator(ctx.mem, ivl):
 			ctx.add_link_destination(ii.address)
 			if ii.target is not None:
 				ctx.add_link_source(ii.target)
@@ -338,7 +338,7 @@ class M6502Decoder(decoders.Prefix):
 		def lines(self):
 			target_already_exits = params['target_already_exits']
 
-			for ii in self.M6502Iterator(ctx, ivl):
+			for ii in M6502Iterator(ctx.mem, ivl):
 				def format_numerical_operand(v):
 					if ii.mode_info.operand_size==0:
 						return ""
