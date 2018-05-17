@@ -73,7 +73,7 @@
 
 {%- macro instruction(i) -%}
 {{i.instruction.mnemonic}} {{i.instruction.pre}}{{operand(i)}}{{i.instruction.post}}
-{%- endmacro %}
+{%- endmacro -%}
 
 {#- ----------------section handlers---------------- -#}
 
@@ -148,9 +148,10 @@
 {% endfor -%}
 {%- endmacro -%}
 
-{#- ********************************BODY******************************** -#}
+{#- ********************************BODY******************************** #}
 
 <body>
+
 <div class="container">
 {% if title %}<h1>{{title}}</h1><br/>{% endif %}
 

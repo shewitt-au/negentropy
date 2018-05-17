@@ -11,9 +11,11 @@ def render(env, template_name, **template_vars):
 	template = env.get_template(template_name)
 	return template.render(**template_vars)
 
-@jinja2.contextfilter
-def dispatch(context, macro_name, *args, **kwargs):
-	return context.vars[macro_name+'_handler'](*args, **kwargs)
+def add_dispatcher(env, filter_name, markup):
+	@jinja2.contextfilter
+	def dispatch(context, tag, *args, **kwargs):
+		return context.vars[markup.format(tag)](*args, **kwargs)
+	env.filters[filter_name] = dispatch
 
 def sequence_to_string(it, pat, **kwargs):
 	sep = kwargs.get("s")
@@ -67,7 +69,7 @@ def run(args):
 	env.globals['index'] = index.get_index(bd)
 	env.globals['have_holes'] = bd.holes>0 
 	env.filters['seq2str'] = sequence_to_string
-	env.filters['dispatch'] = dispatch
+	add_dispatcher(env, "dispatch", "{}_handler")
 
 	s = render(env, 'template.html')
 	with open(args.output, "w", encoding='utf-8') as of:
