@@ -371,14 +371,14 @@ def line_tokens(mem, ivl):
 	# largest enter-able is 63999 (not sure why), but larger runs and list fine
 	yield {
 		'type': 'line_number',
-		'value': str(mem.r16(addr))}
+		'val': mem.r16(addr)}
 	addr += 2
 
 	# when listed a programs have a space after the line number
 	yield {
 		'type': 'text',
 		'fake': True,
-		'value': ' '}
+		'val': ' '}
 
 	value = ""
 	in_quotes = False
@@ -388,7 +388,7 @@ def line_tokens(mem, ivl):
 			if value:
 				yield {
 					'type': 'text',
-					'value': value}
+					'val': value}
 				value = ""
 			break
 
@@ -398,7 +398,7 @@ def line_tokens(mem, ivl):
 				value += '"'
 				yield {
 					'type': 'quoted',
-					'value': value}
+					'val': value}
 				value = ""
 			elif token!=0:
 				value += pettoascii(token)
@@ -407,18 +407,18 @@ def line_tokens(mem, ivl):
 				if value:
 					yield {
 						'type': 'text',
-						'value': value}
+						'val': value}
 				in_quotes = True
 				value = '"'
 			elif token&0x80:
 				if value:
 					yield {
 						'type': 'text',
-						'value': value}
+						'val': value}
 					value = ""
 				yield {
 					'type': 'command',
-					'value': command(token)}
+					'val': command(token)}
 			else:
 				value += pettoascii(token)
 
@@ -427,7 +427,7 @@ def line_tokens(mem, ivl):
 		# TODO: figure out what to do in this situation
 		yield {
 			'type': 'text',
-			'value': value}
+			'val': value}
 
 def line_to_address(mem, ivl, line):
 	mem = mem.view(ivl)
@@ -443,13 +443,12 @@ class BasicDecoder(decoders.Prefix):
 	def decode(self, ctx, ivl, params=None):
 		def lines():
 			for livl in line_iterator(ctx.mem, ivl):
-				line = ""
-				for v in line_tokens(ctx.mem, livl):
-					line += v['value']
-				
-				yield {'line': line}
+				yield {
+					'type': 'line',
+					'tokens': line_tokens(ctx.mem, livl)
+				}
 
 		return {
-				'type': 'basic',
-				'lines': lines()
-				}
+			'type': 'basic',
+			'lines': lines()
+		}

@@ -143,10 +143,30 @@
 
 {#- ----------------basic---------------- -#}
 {%- macro basic_handler(section) -%}
-{%- for i in section.lines -%}
-{{ i.line }}<br/>
+{%- for ln in section.lines -%}
+{%- for tkn in ln.tokens -%}
+{{ tkn.type|cbmbasic_dispatch(tkn) }}
+{%- endfor -%}
+<br/>
 {% endfor -%}
 {%- endmacro -%}
+
+{%- macro cbmbasic_line_number_handler(tkn) -%}
+{{ tkn.val }}
+{%- endmacro -%}
+
+{%- macro cbmbasic_text_handler(tkn) -%}
+{{ tkn.val }}
+{%- endmacro -%}
+
+{%- macro cbmbasic_command_handler(tkn) -%}
+{{ tkn.val }}
+{%- endmacro -%}
+
+{%- macro cbmbasic_quoted_handler(tkn) -%}
+{{ tkn.val }}
+{%- endmacro -%}
+
 
 {#- ********************************BODY******************************** #}
 

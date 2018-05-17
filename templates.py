@@ -70,6 +70,7 @@ def run(args):
 	env.globals['have_holes'] = bd.holes>0 
 	env.filters['seq2str'] = sequence_to_string
 	add_dispatcher(env, "dispatch", "{}_handler")
+	add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")
 
 	s = render(env, 'template.html')
 	with open(args.output, "w", encoding='utf-8') as of:
