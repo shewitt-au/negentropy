@@ -374,12 +374,6 @@ def line_tokens(mem, ivl):
 		'val': mem.r16(addr)}
 	addr += 2
 
-	# when listed a programs have a space after the line number
-	yield {
-		'type': 'text',
-		'fake': True,
-		'val': ' '}
-
 	value = ""
 	in_quotes = False
 	for addr in range(addr, ivl.last+1):
