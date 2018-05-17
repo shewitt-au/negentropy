@@ -330,9 +330,9 @@ class M6502Decoder(decoders.Prefix):
 
 	def preprocess(self, ctx, ivl):
 		for ii in self.M6502Iterator(ctx, ivl):
-			ctx.link_destinations.add(ii.address)
+			ctx.add_link_destination(ii.address)
 			if ii.target is not None:
-				ctx.link_sources.add(ii.target)
+				ctx.add_link_source(ii.target)
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):
@@ -340,12 +340,12 @@ class M6502Decoder(decoders.Prefix):
 
 			for ii in self.M6502Iterator(ctx, ivl):
 				def format_numerical_operand(v):
-					if ii.mode_info.operand_size == 0:
+					if ii.mode_info.operand_size==0:
 						return ""
-					elif ii.mode_info.operand_size == 1:
-						return "${:02x}".format(v)
-					elif ii.mode_info.operand_size == 2:
+					elif ii.op_info.mode==AddrMode.Relative or ii.mode_info.operand_size==2:
 						return "${:04x}".format(v)
+					elif ii.mode_info.operand_size==1:
+						return "${:02x}".format(v)
 
 				target = None
 				if ii.target:
@@ -358,7 +358,7 @@ class M6502Decoder(decoders.Prefix):
 					else:
 						s = ctx.syms.by_address.get(ii.target-1)
 						one_before = s is not None
-						target = ii.target-1
+						target = ii.target-1 if one_before else ii.target
 
 					if s:
 						operand_body = s[1]

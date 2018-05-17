@@ -6,7 +6,7 @@ class CharDecoder(decoders.Prefix):
 		self.name = name
 
 	def preprocess(self, ctx, ivl):
-		ctx.link_destinations.add(ivl.first)
+		ctx.add_link_destination(ivl.first)
 		pass
 
 	def decode(self, ctx, ivl, params):

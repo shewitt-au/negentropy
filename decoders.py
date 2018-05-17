@@ -16,6 +16,12 @@ class Context(object):
 		self.holes = 0
 		self.memtype = memmod.MemType(self, memtype, decoders, default_decoder)
 
+	def add_link_source(self, addr):
+		self.link_sources.add(addr)
+
+	def add_link_destination(self, addr):
+		self.link_destinations.add(addr)
+
 	def preprocess(self, ivl=None):
 		if not ivl:
 			ivl = self.mem_range
