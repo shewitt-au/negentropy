@@ -22,6 +22,9 @@ class Context(object):
 	def add_link_destination(self, addr):
 		self.link_destinations.add(addr)
 
+	def is_destination(self, addr):
+		 return (addr in self.link_destinations) and (addr in self.link_sources)
+
 	def preprocess(self, ivl=None):
 		if not ivl:
 			ivl = self.mem_range
@@ -35,7 +38,7 @@ class Context(object):
 class Prefix(object):
 	def prefix(self, ctx, ivl, params):
 		c = ctx.cmts.by_address.get(ivl.first)
-		is_destination = ivl.first in ctx.link_sources
+		is_destination = ctx.is_destination(ivl.first)
 		params['target_already_exits'] = is_destination
 		s = ctx.syms.by_address.get(ivl.first)
 		return {

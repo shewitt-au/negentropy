@@ -31,7 +31,7 @@ class CharDecoder(decoders.Prefix):
 		return {
 				'type'   : self.name,
 				'address': ivl.first,
-				'is_destination' : not target_already_exits and ivl.first in ctx.link_sources,
+				'is_destination' : not target_already_exits and ctx.is_destination(ivl.first),
 				'label'  : ctx.syms.by_address.get(ivl.first),
 				'comment_before' : None if c is None else c[0],
 				'comment_after'  : None if c is None else c[1],

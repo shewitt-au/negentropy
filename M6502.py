@@ -370,7 +370,7 @@ class M6502Decoder(decoders.Prefix):
 
 				yield {
 					'address': ii.address,
-					'is_destination' : (not target_already_exits) and (ii.address in ctx.link_sources),
+					'is_destination' : (not target_already_exits) and ctx.is_destination(ii.address),
 					'bytes': ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1),
 					'instruction': {
 						'mnemonic': ii.op_info.mnemonic,
@@ -378,7 +378,7 @@ class M6502Decoder(decoders.Prefix):
 						'post': ii.mode_info.post,
 						'operand': operand_body,
 						'op_adjust': '+1' if one_before else '',
-						'is_source' : target in ctx.link_destinations,
+						'is_source' : ctx.is_destination(target),
 						'target' : target
 						}
 					}
