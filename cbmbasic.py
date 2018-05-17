@@ -352,6 +352,7 @@ def pettoascii(c):
 	return decoding_table[c]
 
 def line_iterator(mem, ivl):
+	mem = mem.view(ivl)
 	addr = ivl.first
 	while addr<=ivl.last:
 		link = mem.r16(addr)
@@ -361,6 +362,8 @@ def line_iterator(mem, ivl):
 		addr = link
 
 def line_tokens(mem, ivl):
+	mem = mem.view(ivl)
+
 	addr = ivl.first+2 # skip over link
 
 	# line number
@@ -426,10 +429,16 @@ def line_tokens(mem, ivl):
 			'type': 'text',
 			'value': value}
 
+def line_to_address(mem, ivl, line):
+	mem = mem.view(ivl)
+	for livl in line_iterator(mem, ivl):
+		if mem.r16(livl.first+2)==line:
+			return livl.first
+
 class BasicDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
-		for addr in line_iterator(ctx.mem, ivl):
-			ctx.add_link_destination(ivl.first)
+		for livl in line_iterator(ctx.mem, ivl):
+			ctx.add_link_destination(livl.first)
 
 	def decode(self, ctx, ivl, params=None):
 		def lines():
@@ -444,19 +453,3 @@ class BasicDecoder(decoders.Prefix):
 				'type': 'basic',
 				'lines': lines()
 				}
-
-#if __name__=='__main__':
-#	import memory
-#	from interval import Interval
-#
-#	class Context(object):
-#		def __init__(self, mem):
-#			self.mem = mem
-#
-#	with open("monopoly.prg", "rb") as f:
-#		contents = f.read()
-#		mem = memory.Memory(contents)
-#
-#	ctx = Context(mem)
-#	bd = BasicDecoder()
-#	bd.decode(ctx, mem.range())

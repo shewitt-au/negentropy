@@ -23,6 +23,7 @@ class Memory(object):
 		if not self.ivl.contains(ivl):
 			raise IndexError
 		cpy = copy.copy(self)
+		cpy.data = self.data[ivl.first-self.ivl.first:]
 		cpy.ivl = ivl
 		return cpy
 
