@@ -1,5 +1,6 @@
 import decoders
 from collections import namedtuple
+from interval import Interval
 
 # $80 - $ca
 CommandInfo = namedtuple("CommandInfo", "name, num_line_parmas")
@@ -350,56 +351,92 @@ decoding_table = (
 def pettoascii(c):
 	return decoding_table[c]
 
-def basic_line_iterator(mem, ivl):
+def line_iterator(mem, ivl):
 	addr = ivl.first
 	while addr<=ivl.last:
 		link = mem.r16(addr)
 		if link==0 or not ivl.contains(link): # second check needed sometimes (what does BASIC ROM DO>)
 				break # a line link of 0 ends the program
-		yield addr
+		yield Interval(addr, link-1)
 		addr = link
+
+def line_tokens(mem, ivl):
+	addr = ivl.first+2 # skip over link
+
+	# line number
+	# line numbers from 0-65535
+	# largest enter-able is 63999 (not sure why), but larger runs and list fine
+	yield {
+		'type': 'line_number',
+		'value': str(mem.r16(addr))}
+	addr += 2
+
+	# when listed a programs have a space after the line number
+	yield {
+		'type': 'text',
+		'fake': True,
+		'value': ' '}
+
+	value = ""
+	in_quotes = False
+	for addr in range(addr, ivl.last+1):
+		token = mem.r8(addr)
+		if token==0:
+			if value:
+				yield {
+					'type': 'text',
+					'value': value}
+				value = ""
+			break
+
+		if in_quotes:
+			if token==0x22: # quotes
+				in_quotes = False
+				value += '"'
+				yield {
+					'type': 'quoted',
+					'value': value}
+				value = ""
+			elif token!=0:
+				value += pettoascii(token)
+		else:
+			if token==0x22: # quotes
+				if value:
+					yield {
+						'type': 'text',
+						'value': value}
+				in_quotes = True
+				value = '"'
+			elif token&0x80:
+				if value:
+					yield {
+						'type': 'text',
+						'value': value}
+					value = ""
+				yield {
+					'type': 'command',
+					'value': command(token)}
+			else:
+				value += pettoascii(token)
+
+	if value:
+		yield {
+			'type': 'text',
+			'value': value}
 
 class BasicDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
-		for addr in basic_line_iterator(ctx.mem, ivl):
-			ctx.add_link_destination(addr)
+		for addr in line_iterator(ctx.mem, ivl):
+			ctx.add_link_destination(ivl.first)
 
 	def decode(self, ctx, ivl, params=None):
 		def lines():
-			for addr in basic_line_iterator(ctx.mem, ivl):
-				addr += 2
-
-				# line number
-				# line numbers from 0-65535
-				# largest enter-able is 63999 (not sure why), but larger runs and list fine
-				line_num = ctx.mem.r16(addr)
-				line_string = "{} ".format(line_num)
-				addr += 2
-
-				in_quotes = False
-				while True:
-					token = ctx.mem.r8(addr)
-					addr += 1
-					if token==0:
-						break
-
-					if in_quotes:
-						if token==0x22: # quotes
-							in_quotes = False
-							line_string += '"'
-						elif token!=0:
-							line_string += pettoascii(token)
-					else:
-						if token!=0:
-							if token==0x22: # quotes
-								in_quotes = True
-								line_string += '"'
-							elif token&0x80:
-								line_string += command(token)
-							else:
-								line_string += pettoascii(token)
-
-				yield {'line': line_string}
+			for livl in line_iterator(ctx.mem, ivl):
+				line = ""
+				for v in line_tokens(ctx.mem, livl):
+					line += v['value']
+				
+				yield {'line': line}
 
 		return {
 				'type': 'basic',
