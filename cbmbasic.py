@@ -1,22 +1,89 @@
 import decoders
+from collections import namedtuple
 
 # $80 - $ca
+CommandInfo = namedtuple("CommandInfo", "name, num_line_parmas")
 _commands = (
-	"END",    "FOR",   "NEXT", "DATA", "INPUT#",  "INPUT",  "DIM",   "READ",
-	"LET",    "GOTO",  "RUN",  "IF",   "RESTORE", "GOSUB",  "RETURN", "REM",
-	"STOP",   "ON",    "WAIT", "LOAD", "SAVE",    "VERIFY", "DEF",    "POKE",
-	"PRINT#", "PRINT", "CONT", "LIST", "CLR",     "CMD",    "SYS",    "OPEN",
-	"CLOSE",  "GET",   "NEW",  "TAB(", "TO",      "FN",     "SPC(",   "THEN",
-	"NOT",    "STEP",  "+",    "-",    "*",       "/",      "↑",      "AND",
-	"OR",     ">",     "=",    "<",    "SGN",     "INT",    "ABS",    "USR",
-	"FRE",   "POS",    "SQR",  "RND",  "LOG",     "EXP",    "COS",    "SIN",
-	"TAN",   "ATN",    "PEEK", "LEN",  "STR$",    "VAL",    "ASC",    "CHR$",
-	"LEFT$", "RIGHT$", "MID$"
+	CommandInfo("END",		0),		# $80
+	CommandInfo("FOR",		0),		# $81
+	CommandInfo("NEXT",		0),		# $82
+	CommandInfo("DATA",		0),		# $83
+	CommandInfo("INPUT#",	0),		# $84
+	CommandInfo("INPUT",	0),		# $85
+	CommandInfo("DIM",		0),		# $86
+	CommandInfo("READ",		0),		# $87
+	CommandInfo("LET",		0),		# $88
+	CommandInfo("GOTO",		-1),	# $89
+	CommandInfo("RUN",		1),		# $8a
+	CommandInfo("IF",		0),		# $8b
+	CommandInfo("RESTORE",	0),		# $8c
+	CommandInfo("GOSUB",	-1),	# $8d
+	CommandInfo("RETURN",	0),		# $8e
+	CommandInfo("REM",		0),		# $8f
+	CommandInfo("STOP",		0),		# $90
+	CommandInfo("ON",		0),		# $91
+	CommandInfo("WAIT",		0),		# $92
+	CommandInfo("LOAD",		0),		# $93
+	CommandInfo("SAVE",		0),		# $94
+	CommandInfo("VERIFY",	0),		# $95
+	CommandInfo("DEF",		0),		# $96
+	CommandInfo("POKE",		0),		# $97
+	CommandInfo("PRINT#",	0),		# $98
+	CommandInfo("PRINT",	0),		# $99
+	CommandInfo("CONT",		0),		# $9a
+	CommandInfo("LIST",		-1),	# $9b
+	CommandInfo("CLR",		0),		# $9c
+	CommandInfo("CMD",		0),		# $9d
+	CommandInfo("SYS",		0),		# $9e
+	CommandInfo("OPEN",		0),		# $9f
+	CommandInfo("CLOSE",	0),		# $a0
+	CommandInfo("GET",		0),		# $a1
+	CommandInfo("NEW",		0),		# $a2
+	CommandInfo("TAB(",		0),		# $a3
+	CommandInfo("TO",		0),		# $a4
+	CommandInfo("FN",		0),		# $a5
+	CommandInfo("SPC(",		0),		# $a6
+	CommandInfo("THEN",		0),		# $a7
+	CommandInfo("NOT",		0),		# $a8
+	CommandInfo("STEP",		0),		# $a9
+	CommandInfo("+",		0),		# $aa
+	CommandInfo("-",		0),		# $ab
+	CommandInfo("*",		0),		# $ac
+	CommandInfo("/",		0),		# $ad
+	CommandInfo("↑",		0),		# $ae
+	CommandInfo("AND",		0),		# $af
+	CommandInfo("OR",		0),		# $b0
+	CommandInfo(">",		0),		# $b1
+	CommandInfo("=",		0),		# $b2
+	CommandInfo("<",		0),		# $b3
+	CommandInfo("SGN",		0),		# $b4
+	CommandInfo("INT",		0),		# $b5
+	CommandInfo("ABS",		0),		# $b6
+	CommandInfo("USR",		0),		# $b7
+	CommandInfo("FRE",		0),		# $b7
+	CommandInfo("POS",		0),		# $b9
+	CommandInfo("SQR",		0),		# $ba
+	CommandInfo("RND",		0),		# $bb
+	CommandInfo("LOG",		0),		# $bc
+	CommandInfo("EXP",		0),		# $bd
+	CommandInfo("COS",		0),		# $be
+	CommandInfo("SIN",		0),		# $bf
+	CommandInfo("TAN",		0),		# $c0
+	CommandInfo("ATN",		0),		# $c1
+	CommandInfo("PEEK",		0),		# $c2
+	CommandInfo("LEN",		0),		# $c3
+	CommandInfo("STR$",		0),		# $c4
+	CommandInfo("VAL",		0),		# $c5
+	CommandInfo("ASC",		0),		# $c6
+	CommandInfo("CHR$",		0),		# $c7
+	CommandInfo("LEFT$",	0),		# $c8
+	CommandInfo("RIGHT$",	0),		# $c9
+	CommandInfo("MID$",		0)		# $ca
 )
 
 def command(token):
 	if token>=0x80 and token<=0xca:
-		return _commands[token-0x80]
+		return _commands[token-0x80].name
 	else:
 		return "?"
 
@@ -285,7 +352,13 @@ def pettoascii(c):
 
 class BasicDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
-		pass
+		addr = ivl.first
+		while True:
+			ctx.add_link_destination(addr)
+			# link to next line
+			addr = ctx.mem.r16(addr)
+			if addr==0 or not ivl.contains(addr): # second check needed sometimes (what does BASIC ROM DO>)
+				break # a line link of 0 ends the program
 
 	def decode(self, ctx, ivl, params=None):
 		def lines():
