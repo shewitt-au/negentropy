@@ -350,24 +350,23 @@ decoding_table = (
 def pettoascii(c):
 	return decoding_table[c]
 
+def basic_line_iterator(mem, ivl):
+	addr = ivl.first
+	while addr<=ivl.last:
+		link = mem.r16(addr)
+		if link==0 or not ivl.contains(link): # second check needed sometimes (what does BASIC ROM DO>)
+				break # a line link of 0 ends the program
+		yield addr
+		addr = link
+
 class BasicDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
-		addr = ivl.first
-		while True:
+		for addr in basic_line_iterator(ctx.mem, ivl):
 			ctx.add_link_destination(addr)
-			# link to next line
-			addr = ctx.mem.r16(addr)
-			if addr==0 or not ivl.contains(addr): # second check needed sometimes (what does BASIC ROM DO>)
-				break # a line link of 0 ends the program
 
 	def decode(self, ctx, ivl, params=None):
 		def lines():
-			addr = ivl.first
-			while True:
-				# link to next line
-				link = ctx.mem.r16(addr)
-				if link==0 or not ivl.contains(link): # second check needed sometimes (what does BASIC ROM DO>)
-					break # a line link of 0 ends the program
+			for addr in basic_line_iterator(ctx.mem, ivl):
 				addr += 2
 
 				# line number
