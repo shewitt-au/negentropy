@@ -420,6 +420,8 @@ def line_tokens(mem, ivl):
 				value += pettoascii(token)
 
 	if value:
+		# IWGH: next line (based on line links) starts without this one finishing
+		# TODO: figure out what to do in this situation
 		yield {
 			'type': 'text',
 			'value': value}
