@@ -502,12 +502,12 @@ def line_to_address(mem, ivl, line):
 class BasicDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
 		for livl in line_iterator(ctx.mem, ivl):
-			ctx.add_link_destination(livl.first)
+			ctx.link_add_reachable(livl.first)
 
 			for token in line_tokens(ctx.mem, livl):
 				if token['type'] == 'line_num':
 					addr = line_to_address(ctx.mem, ivl, token['val'])
-					ctx.add_link_source(addr)
+					ctx.link_add_referenced(addr)
 
 	def decode(self, ctx, ivl, params=None):
 		def lines():

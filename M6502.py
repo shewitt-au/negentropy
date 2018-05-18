@@ -330,9 +330,9 @@ class M6502Decoder(decoders.Prefix):
 
 	def preprocess(self, ctx, ivl):
 		for ii in M6502Iterator(ctx.mem, ivl):
-			ctx.add_link_destination(ii.address)
+			ctx.link_add_reachable(ii.address)
 			if ii.target is not None:
-				ctx.add_link_source(ii.target)
+				ctx.link_add_referenced(ii.target)
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):

@@ -11,19 +11,20 @@ class Context(object):
 		self.mem_range = self.mem.range()
 		self.syms = symmod.read_symbols(symbols)
 		self.cmts = symmod.read_comments(comments)
-		self.link_sources = set()
-		self.link_destinations = set()
+		self.links_referenced_addresses = set()
+		self.links_reachable_addresses = set()
 		self.holes = 0
 		self.memtype = memmod.MemType(self, memtype, decoders, default_decoder)
 
-	def add_link_source(self, addr):
-		self.link_sources.add(addr)
+	def link_add_referenced(self, addr):
+		self.links_referenced_addresses.add(addr)
 
-	def add_link_destination(self, addr):
-		self.link_destinations.add(addr)
+	def link_add_reachable(self, addr):
+		self.links_reachable_addresses.add(addr)
 
 	def is_destination(self, addr):
-		 return (addr in self.link_destinations) and (addr in self.link_sources)
+		 return (addr in self.links_reachable_addresses and 
+		 		 addr in self.links_referenced_addresses)
 
 	def preprocess(self, ivl=None):
 		if not ivl:
