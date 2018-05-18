@@ -61,14 +61,14 @@ class MemRegion(Interval):
 		self.params = params
 
 	def preprocess(self, ctx, ivl=None):
-		ptn = self if (ivl is None) else ivl
-		for i in ptn.cut_left_iter(merge(ctx.syms.keys_in_range(ptn), ctx.cmts.keys_in_range(ptn))):
+		ivl = self if (ivl is None) else ivl
+		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
 			self.decoder.preprocess(ctx, i)
 
 	def items(self, ctx, ivl=None):
-		ptn = self if (ivl is None) else ivl
+		ivl = self if (ivl is None) else ivl
 		params = self.params.copy()
-		for i in ptn.cut_left_iter(merge(ctx.syms.keys_in_range(ptn), ctx.cmts.keys_in_range(ptn))):
+		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
 			yield self.decoder.prefix(ctx, i, params)
 			yield self.decoder.decode(ctx, i, params)
 
