@@ -144,6 +144,7 @@
 {#- ----------------basic---------------- -#}
 {%- macro basic_handler(section) -%}
 {%- for ln in section.lines -%}
+{{- anchor(ln) -}}
 {%- for tkn in ln.tokens -%}
 {{ tkn.type|cbmbasic_dispatch(tkn) }}
 {%- endfor -%}
@@ -167,8 +168,14 @@
 {%- endmacro -%}
 
 {%- macro cbmbasic_line_num_handler(tkn) -%}
-<b>{{ tkn.val }}</b>{% endmacro -%}
-
+{%- if tkn.is_source -%}
+<a href="#{{"{:04x}".format(tkn.target)}}">
+{%- endif -%}
+{{ tkn.val }}
+{%- if tkn.is_source -%}
+</a>
+{%- endif -%}
+{%- endmacro -%}
 
 {#- ********************************BODY******************************** #}
 

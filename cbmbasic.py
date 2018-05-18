@@ -497,18 +497,34 @@ def line_to_address(mem, ivl, line):
 	for livl in line_iterator(mem, ivl):
 		if mem.r16(livl.first+2)==line:
 			return livl.first
+	return None
 
 class BasicDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
 		for livl in line_iterator(ctx.mem, ivl):
 			ctx.add_link_destination(livl.first)
 
+			for token in line_tokens(ctx.mem, livl):
+				if token['type'] == 'line_num':
+					addr = line_to_address(ctx.mem, ivl, token['val'])
+					ctx.add_link_source(addr)
+
 	def decode(self, ctx, ivl, params=None):
 		def lines():
+			def annotated_tokens():
+				for token in line_tokens(ctx.mem, livl):
+					if token['type'] == 'line_num':
+						target = line_to_address(ctx.mem, ivl, token['val'])
+						token['is_source'] = ctx.is_destination(target)
+						token['target'] = target
+					yield token
+
 			for livl in line_iterator(ctx.mem, ivl):
 				yield {
 					'type': 'line',
-					'tokens': line_tokens(ctx.mem, livl)
+					'tokens': annotated_tokens(),
+					'is_destination': ctx.is_destination(livl.first),
+					'address': livl.first
 				}
 
 		return {
