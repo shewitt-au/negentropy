@@ -1,9 +1,10 @@
 import decoders
-from collections import namedtuple
 from interval import Interval
+from enum import Enum, unique, auto
+from collections import namedtuple
 
 # $80 - $ca
-CommandInfo = namedtuple("CommandInfo", "name, num_line_parmas")
+CommandInfo = namedtuple("CommandInfo", "name, num_line_params")
 _commands = (
 	CommandInfo("END",		0),		# $80
 	CommandInfo("FOR",		0),		# $81
@@ -44,7 +45,7 @@ _commands = (
 	CommandInfo("TO",		0),		# $a4
 	CommandInfo("FN",		0),		# $a5
 	CommandInfo("SPC(",		0),		# $a6
-	CommandInfo("THEN",		0),		# $a7
+	CommandInfo("THEN",		1),		# $a7
 	CommandInfo("NOT",		0),		# $a8
 	CommandInfo("STEP",		0),		# $a9
 	CommandInfo("+",		0),		# $aa
@@ -84,9 +85,9 @@ _commands = (
 
 def command(token):
 	if token>=0x80 and token<=0xca:
-		return _commands[token-0x80].name
+		return _commands[token-0x80]
 	else:
-		return "?"
+		return CommandInfo("?", 0)
 
 # From cbmcodecs: https://pypi.org/project/cbmcodecs/
 decoding_table = (
@@ -364,64 +365,127 @@ def line_iterator(mem, ivl):
 def line_tokens(mem, ivl):
 	mem = mem.view(ivl)
 
-	addr = ivl.first+2 # skip over link
-
-	# line number
-	# line numbers from 0-65535
-	# largest enter-able is 63999 (not sure why), but larger runs and list fine
 	yield {
 		'type': 'line_number',
-		'val': mem.r16(addr)}
-	addr += 2
+		'val': mem.r16(ivl.first+2)}
 
-	value = ""
-	in_quotes = False
-	for addr in range(addr, ivl.last+1):
+	# parsing state
+	@unique
+	class PS(Enum):
+		ExpectingAnything = auto()
+		ProcessCommand = auto()
+		ProcessColon = auto()
+		ExpectingLineNums = auto()
+		Quote = auto()
+		GetRestOfText = auto()
+		Done = auto()
+	ps = PS.ExpectingAnything
+
+	line_num = 0
+	line_num_quota = 0
+	text = ""
+	
+	for addr in range(ivl.first+4, ivl.last+1): # +4 skips line link and number
 		token = mem.r8(addr)
-		if token==0:
-			if value:
-				yield {
-					'type': 'text',
-					'val': value}
-				value = ""
-			break
 
-		if in_quotes:
-			if token==0x22: # quotes
-				in_quotes = False
-				value += '"'
-				yield {
-					'type': 'quoted',
-					'val': value}
-				value = ""
-			elif token!=0:
-				value += pettoascii(token)
-		else:
-			if token==0x22: # quotes
-				if value:
+		recycle_token = True
+		while recycle_token:
+			recycle_token = False
+			# *************************************************************#
+			if ps==PS.ExpectingAnything:
+				# command
+				if token&0x80:
+					recycle_token = True
+					ps = PS.ProcessCommand
+				# colon
+				elif token==0x3a:
+					recycle_token = True
+					ps = PS.ProcessColon
+				# quotes
+				elif token==0x22:
+					text = '"'
+					ps = PS.Quote
+				# text
+				else:
+					if line_num_quota and (token>=ord('0') and token<=ord('9')):
+						line_num = int(token-ord('0'))
+						ps = PS.ExpectingLineNums
+					else:
+						text = pettoascii(token)
+						ps = PS.GetRestOfText
+			# *************************************************************#
+			elif ps==PS.GetRestOfText:
+				# command
+				if token&0x80:
+					recycle_token = True
+					ps = PS.ProcessCommand
+				# colon
+				elif token==0x3a:
+					recycle_token = True
+					ps = PS.ProcessColon
+				# quotes
+				elif token==0x22:
+					recycle_token = True
+					ps = PS.ExpectingAnything # A bit of a hack
+				elif token==0:
+					ps = PS.Done
+				else:
+					text += pettoascii(token)
+
+				# we generate an output token when we leave this state
+				if ps!=PS.GetRestOfText:
 					yield {
 						'type': 'text',
-						'val': value}
-				in_quotes = True
-				value = '"'
-			elif token&0x80:
-				if value:
-					yield {
-						'type': 'text',
-						'val': value}
-					value = ""
+						'val': text}
+			# *************************************************************#
+			elif ps==PS.ProcessCommand:
+				cmd = command(token)
 				yield {
 					'type': 'command',
-					'val': command(token)}
+					'val': cmd.name}
+				line_num_quota = cmd.num_line_params
+				if line_num_quota:
+					line_num = 0
+				ps = PS.ExpectingAnything
+			# *************************************************************#
+			elif ps==PS.ProcessColon:
+				line_num_quota = 0
+				# in this context a colon is a statement separator so we
+				# return it in its own text token
+				yield {
+					'type': 'text',
+					'val': ':'}
+				ps = PS.ExpectingAnything
+			# *************************************************************#
+			elif ps==PS.Quote:
+				if token==0x22: # quote
+					yield {
+						'type': 'quoted',
+						'val': text+'"'}
+					ps = PS.ExpectingAnything
+				elif token==0:
+					yield {
+						'type': 'quoted',
+						'val': text}
+					ps = PS.Done
+				else:
+					text += pettoascii(token)
+			# *************************************************************#
+			elif ps==PS.ExpectingLineNums:
+				if token>=ord('0') and token<=ord('9'):
+					line_num = line_num*10 + int(token-ord('0'))
+				else:
+					yield {
+						'type': 'line_num',
+						'val':	line_num
+					}
+					if line_num_quota!=-1:
+						line_num_quota -= 1
+					recycle_token = True
+					ps = PS.ExpectingAnything
+			# *************************************************************#
 			else:
-				value += pettoascii(token)
-
-	if value:
-		# IWGH: next line (based on line links) starts without this one finishing
-		# TODO: figure out what to do in this situation
-		yield {
-			'type': 'text',
-			'val': value}
+				assert False, "Unexpected state!"
 
 def line_to_address(mem, ivl, line):
 	mem = mem.view(ivl)
