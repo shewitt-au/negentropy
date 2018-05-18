@@ -484,7 +484,7 @@ def line_tokens(mem, ivl):
 						'type': 'line_num',
 						'val':	line_num
 					}
-					if line_num_quota!=-1:
+					if line_num_quota>0:
 						line_num_quota -= 1
 					recycle_token = True
 					ps = PS.ExpectingAnything
