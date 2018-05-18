@@ -463,7 +463,7 @@ def line_tokens(mem, ivl):
 				ps = PS.ExpectingAnything
 			# *************************************************************#
 			elif ps==PS.OpenQuote:
-				value = '"'
+				strval = '"'
 				ps = PS.ProcessQuote
 			# *************************************************************#
 			elif ps==PS.ProcessQuote:
