@@ -4,83 +4,83 @@ from enum import Enum, unique, auto
 from collections import namedtuple
 
 # $80 - $ca
-CommandInfo = namedtuple("CommandInfo", "name, num_line_params")
+CommandInfo = namedtuple("CommandInfo", "name, num_lines, syscall")
 _commands = (
-	CommandInfo("END",		0),		# $80
-	CommandInfo("FOR",		0),		# $81
-	CommandInfo("NEXT",		0),		# $82
-	CommandInfo("DATA",		0),		# $83
-	CommandInfo("INPUT#",	0),		# $84
-	CommandInfo("INPUT",	0),		# $85
-	CommandInfo("DIM",		0),		# $86
-	CommandInfo("READ",		0),		# $87
-	CommandInfo("LET",		0),		# $88
-	CommandInfo("GOTO",		-1),	# $89
-	CommandInfo("RUN",		1),		# $8a
-	CommandInfo("IF",		0),		# $8b
-	CommandInfo("RESTORE",	0),		# $8c
-	CommandInfo("GOSUB",	-1),	# $8d
-	CommandInfo("RETURN",	0),		# $8e
-	CommandInfo("REM",		0),		# $8f
-	CommandInfo("STOP",		0),		# $90
-	CommandInfo("ON",		0),		# $91
-	CommandInfo("WAIT",		0),		# $92
-	CommandInfo("LOAD",		0),		# $93
-	CommandInfo("SAVE",		0),		# $94
-	CommandInfo("VERIFY",	0),		# $95
-	CommandInfo("DEF",		0),		# $96
-	CommandInfo("POKE",		0),		# $97
-	CommandInfo("PRINT#",	0),		# $98
-	CommandInfo("PRINT",	0),		# $99
-	CommandInfo("CONT",		0),		# $9a
-	CommandInfo("LIST",		-1),	# $9b
-	CommandInfo("CLR",		0),		# $9c
-	CommandInfo("CMD",		0),		# $9d
-	CommandInfo("SYS",		0),		# $9e
-	CommandInfo("OPEN",		0),		# $9f
-	CommandInfo("CLOSE",	0),		# $a0
-	CommandInfo("GET",		0),		# $a1
-	CommandInfo("NEW",		0),		# $a2
-	CommandInfo("TAB(",		0),		# $a3
-	CommandInfo("TO",		0),		# $a4
-	CommandInfo("FN",		0),		# $a5
-	CommandInfo("SPC(",		0),		# $a6
-	CommandInfo("THEN",		1),		# $a7
-	CommandInfo("NOT",		0),		# $a8
-	CommandInfo("STEP",		0),		# $a9
-	CommandInfo("+",		0),		# $aa
-	CommandInfo("-",		0),		# $ab
-	CommandInfo("*",		0),		# $ac
-	CommandInfo("/",		0),		# $ad
-	CommandInfo("↑",		0),		# $ae
-	CommandInfo("AND",		0),		# $af
-	CommandInfo("OR",		0),		# $b0
-	CommandInfo(">",		0),		# $b1
-	CommandInfo("=",		0),		# $b2
-	CommandInfo("<",		0),		# $b3
-	CommandInfo("SGN",		0),		# $b4
-	CommandInfo("INT",		0),		# $b5
-	CommandInfo("ABS",		0),		# $b6
-	CommandInfo("USR",		0),		# $b7
-	CommandInfo("FRE",		0),		# $b7
-	CommandInfo("POS",		0),		# $b9
-	CommandInfo("SQR",		0),		# $ba
-	CommandInfo("RND",		0),		# $bb
-	CommandInfo("LOG",		0),		# $bc
-	CommandInfo("EXP",		0),		# $bd
-	CommandInfo("COS",		0),		# $be
-	CommandInfo("SIN",		0),		# $bf
-	CommandInfo("TAN",		0),		# $c0
-	CommandInfo("ATN",		0),		# $c1
-	CommandInfo("PEEK",		0),		# $c2
-	CommandInfo("LEN",		0),		# $c3
-	CommandInfo("STR$",		0),		# $c4
-	CommandInfo("VAL",		0),		# $c5
-	CommandInfo("ASC",		0),		# $c6
-	CommandInfo("CHR$",		0),		# $c7
-	CommandInfo("LEFT$",	0),		# $c8
-	CommandInfo("RIGHT$",	0),		# $c9
-	CommandInfo("MID$",		0)		# $ca
+	CommandInfo("END",		0,  False),		# $80
+	CommandInfo("FOR",		0,  False),		# $81
+	CommandInfo("NEXT",		0,  False),		# $82
+	CommandInfo("DATA",		0,  False),		# $83
+	CommandInfo("INPUT#",	0,  False),		# $84
+	CommandInfo("INPUT",	0,  False),		# $85
+	CommandInfo("DIM",		0,  False),		# $86
+	CommandInfo("READ",		0,  False),		# $87
+	CommandInfo("LET",		0,  False),		# $88
+	CommandInfo("GOTO",		-1, False),		# $89
+	CommandInfo("RUN",		1,  False),		# $8a
+	CommandInfo("IF",		0,  False),		# $8b
+	CommandInfo("RESTORE",	0,  False),		# $8c
+	CommandInfo("GOSUB",	-1, False),		# $8d
+	CommandInfo("RETURN",	0,  False),		# $8e
+	CommandInfo("REM",		0,  False),		# $8f
+	CommandInfo("STOP",		0,  False),		# $90
+	CommandInfo("ON",		0,  False),		# $91
+	CommandInfo("WAIT",		0,  False),		# $92
+	CommandInfo("LOAD",		0,  False),		# $93
+	CommandInfo("SAVE",		0,  False),		# $94
+	CommandInfo("VERIFY",	0,  False),		# $95
+	CommandInfo("DEF",		0,  False),		# $96
+	CommandInfo("POKE",		0,  False),		# $97
+	CommandInfo("PRINT#",	0,  False),		# $98
+	CommandInfo("PRINT",	0,  False),		# $99
+	CommandInfo("CONT",		0,  False),		# $9a
+	CommandInfo("LIST",		-1, False),		# $9b
+	CommandInfo("CLR",		0,  False),		# $9c
+	CommandInfo("CMD",		0,  False),		# $9d
+	CommandInfo("SYS",		0,  True),		# $9e
+	CommandInfo("OPEN",		0,  False),		# $9f
+	CommandInfo("CLOSE",	0,  False),		# $a0
+	CommandInfo("GET",		0,  False),		# $a1
+	CommandInfo("NEW",		0,  False),		# $a2
+	CommandInfo("TAB(",		0,  False),		# $a3
+	CommandInfo("TO",		0,  False),		# $a4
+	CommandInfo("FN",		0,  False),		# $a5
+	CommandInfo("SPC(",		0,  False),		# $a6
+	CommandInfo("THEN",		1,  False),		# $a7
+	CommandInfo("NOT",		0,  False),		# $a8
+	CommandInfo("STEP",		0,  False),		# $a9
+	CommandInfo("+",		0,  False),		# $aa
+	CommandInfo("-",		0,  False),		# $ab
+	CommandInfo("*",		0,  False),		# $ac
+	CommandInfo("/",		0,  False),		# $ad
+	CommandInfo("↑",		0,  False),		# $ae
+	CommandInfo("AND",		0,  False),		# $af
+	CommandInfo("OR",		0,  False),		# $b0
+	CommandInfo(">",		0,  False),		# $b1
+	CommandInfo("=",		0,  False),		# $b2
+	CommandInfo("<",		0,  False),		# $b3
+	CommandInfo("SGN",		0,  False),		# $b4
+	CommandInfo("INT",		0,  False),		# $b5
+	CommandInfo("ABS",		0,  False),		# $b6
+	CommandInfo("USR",		0,  False),		# $b7
+	CommandInfo("FRE",		0,  False),		# $b7
+	CommandInfo("POS",		0,  False),		# $b9
+	CommandInfo("SQR",		0,  False),		# $ba
+	CommandInfo("RND",		0,  False),		# $bb
+	CommandInfo("LOG",		0,  False),		# $bc
+	CommandInfo("EXP",		0,  False),		# $bd
+	CommandInfo("COS",		0,  False),		# $be
+	CommandInfo("SIN",		0,  False),		# $bf
+	CommandInfo("TAN",		0,  False),		# $c0
+	CommandInfo("ATN",		0,  False),		# $c1
+	CommandInfo("PEEK",		0,  False),		# $c2
+	CommandInfo("LEN",		0,  False),		# $c3
+	CommandInfo("STR$",		0,  False),		# $c4
+	CommandInfo("VAL",		0,  False),		# $c5
+	CommandInfo("ASC",		0,  False),		# $c6
+	CommandInfo("CHR$",		0,  False),		# $c7
+	CommandInfo("LEFT$",	0,  False),		# $c8
+	CommandInfo("RIGHT$",	0,  False),		# $c9
+	CommandInfo("MID$",		0,  False)		# $ca
 )
 
 def command(token):
@@ -379,12 +379,11 @@ def line_tokens(mem, ivl):
 		OpenQuote = auto()
 		ProcessQuote = auto()
 		GetRestOfText = auto()
+		GetRestOfAddress = auto()
 		Done = auto()
 	ps = PS.ExpectingAnything
 
-	line_num = 0
 	line_num_quota = 0
-	text = ""
 	
 	for addr in range(ivl.first+4, ivl.last+1): # +4 skips line link and number
 		token = mem.r8(addr)
@@ -409,11 +408,26 @@ def line_tokens(mem, ivl):
 				# text
 				else:
 					if line_num_quota and (token>=ord('0') and token<=ord('9')):
-						line_num = int(token-ord('0'))
+						numval = int(token-ord('0'))
 						ps = PS.GetRestOfLineNumber
 					else:
-						text = pettoascii(token)
+						strval = pettoascii(token)
 						ps = PS.GetRestOfText
+			# *************************************************************#
+			elif ps==PS.ProcessCommand:
+				cmd = command(token)
+				yield {
+					'type': 'command',
+					'val': cmd.name}
+
+				if cmd.syscall:
+					numval = 0
+					ps = PS.GetRestOfAddress
+				else:
+					line_num_quota = cmd.num_lines
+					if line_num_quota:
+						numval = 0
+					ps = PS.ExpectingAnything
 			# *************************************************************#
 			elif ps==PS.GetRestOfText:
 				# command
@@ -431,23 +445,13 @@ def line_tokens(mem, ivl):
 				elif token==0:
 					ps = PS.Done
 				else:
-					text += pettoascii(token)
+					strval += pettoascii(token)
 
 				# we generate an output token when we leave this state
 				if ps!=PS.GetRestOfText:
 					yield {
 						'type': 'text',
-						'val': text}
-			# *************************************************************#
-			elif ps==PS.ProcessCommand:
-				cmd = command(token)
-				yield {
-					'type': 'command',
-					'val': cmd.name}
-				line_num_quota = cmd.num_line_params
-				if line_num_quota:
-					line_num = 0
-				ps = PS.ExpectingAnything
+						'val': strval}
 			# *************************************************************#
 			elif ps==PS.ProcessColon:
 				line_num_quota = 0
@@ -459,33 +463,44 @@ def line_tokens(mem, ivl):
 				ps = PS.ExpectingAnything
 			# *************************************************************#
 			elif ps==PS.OpenQuote:
-				text = '"'
+				value = '"'
 				ps = PS.ProcessQuote
 			# *************************************************************#
 			elif ps==PS.ProcessQuote:
 				if token==0x22: # quote
 					yield {
 						'type': 'quoted',
-						'val': text+'"'}
+						'val': strval+'"'}
 					ps = PS.ExpectingAnything
 				elif token==0:
 					yield {
 						'type': 'quoted',
-						'val': text}
+						'val': strval}
 					ps = PS.Done
 				else:
-					text += pettoascii(token)
+					strval += pettoascii(token)
 			# *************************************************************#
 			elif ps==PS.GetRestOfLineNumber:
 				if token>=ord('0') and token<=ord('9'):
-					line_num = line_num*10 + int(token-ord('0'))
+					numval = numval*10 + int(token-ord('0'))
 				else:
 					yield {
 						'type': 'line_num',
-						'val':	line_num
+						'val':	numval
 					}
 					if line_num_quota>0:
 						line_num_quota -= 1
+					recycle_token = True
+					ps = PS.ExpectingAnything
+			# *************************************************************#
+			elif ps==PS.GetRestOfAddress:
+				if token>=ord('0') and token<=ord('9'):
+					numval = numval*10 + int(token-ord('0'))
+				else:
+					yield {
+						'type': 'address',
+						'val':	numval
+					}
 					recycle_token = True
 					ps = PS.ExpectingAnything
 			# *************************************************************#
@@ -505,16 +520,23 @@ class BasicDecoder(decoders.Prefix):
 			ctx.link_add_reachable(livl.first)
 
 			for token in line_tokens(ctx.mem, livl):
-				if token['type'] == 'line_num':
+				tp = token['type']
+				if tp=='line_num':
 					addr = line_to_address(ctx.mem, ivl, token['val'])
 					ctx.link_add_referenced(addr)
-
+				elif tp=='address':
+					ctx.link_add_referenced(token['val'])
+			
 	def decode(self, ctx, ivl, params=None):
 		def lines():
 			def annotated_tokens():
 				for token in line_tokens(ctx.mem, livl):
 					if token['type'] == 'line_num':
 						target = line_to_address(ctx.mem, ivl, token['val'])
+						token['is_source'] = ctx.is_destination(target)
+						token['target'] = target
+					elif token['type'] == 'address':
+						target = token['val']
 						token['is_source'] = ctx.is_destination(target)
 						token['target'] = target
 					yield token

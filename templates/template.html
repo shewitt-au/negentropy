@@ -177,6 +177,17 @@
 {%- endif -%}
 {%- endmacro -%}
 
+{%- macro cbmbasic_address_handler(tkn) -%}
+{%- if tkn.is_source -%}
+<a href="#{{"{:04x}".format(tkn.target)}}">
+{%- endif -%}
+{{ tkn.val }}
+{%- if tkn.is_source -%}
+</a>
+{%- endif -%}
+{%- endmacro -%}
+
+
 {#- ********************************BODY******************************** #}
 
 <body>
