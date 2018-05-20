@@ -18,16 +18,16 @@ def main():
 					help="file to write the disassembly to"
 					)
 	parser.add_argument(
-					"-w", "--webbrowser",
-					action="store_true",
-					help="open OUT in webbrowser when done")
-	parser.add_argument(
-					"-t", "--title",
-					help="title of the generated HTML page")
-	parser.add_argument(
 					"-m", "--memtype",
 					help="file that describes what kind of data address ranges contain"
 					)
+	parser.add_argument(
+					"-l", "--labels",
+					action="append",
+					help="file for mapping addresses to symbolic names (labels)")
+	parser.add_argument(
+					"-c", "--comments",
+					help="file used to inject comments into the disassembly")
 	parser.add_argument(
 					"-g", "--gaps",
 					action="store_true",
@@ -38,12 +38,12 @@ def main():
 					help="default decoder if address is not in MEMTYPE file (implies --gaps)"
 					)
 	parser.add_argument(
-					"-l", "--labels",
-					action="append",
-					help="file for mapping addresses to symbolic names (labels)")
+					"-t", "--title",
+					help="title of the generated HTML page")
 	parser.add_argument(
-					"-c", "--comments",
-					help="file used to inject comments into the disassembly")
+					"-w", "--webbrowser",
+					action="store_true",
+					help="open OUT in webbrowser when done")
 	parser.add_argument(
 					"-o", "--origin",
 					type=(lambda v: int(v, 16)),

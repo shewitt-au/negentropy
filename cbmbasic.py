@@ -541,14 +541,16 @@ class BasicDecoder(decoders.Prefix):
 						token['target'] = target
 					yield token
 
+			target_already_exits = params['target_already_exits']
 			for livl in line_iterator(ctx.mem, ivl):
 				yield {
 					'type': 'line',
 					'address': livl.first,
 					'tokens': annotated_tokens(),
-					'is_destination': ctx.is_destination(livl.first),
+					'is_destination': (not target_already_exits) and (ctx.is_destination(livl.first)),
 					'address': livl.first
 				}
+				target_already_exits
 
 		return {
 			'type': 'basic',
