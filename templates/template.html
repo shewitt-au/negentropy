@@ -143,13 +143,14 @@
 
 {#- ----------------basic---------------- -#}
 {%- macro basic_handler(section) -%}
-{%- for ln in section.lines -%}
-{{- anchor(ln) -}}
+<div class="code">
+{% for ln in section.lines -%}
+{{- anchor(ln) }}{{address(ln)}}{{tabs() -}}
 {%- for tkn in ln.tokens -%}
 {{ tkn.type|cbmbasic_dispatch(tkn) }}
-{%- endfor -%}
-<br/>
+{%- endfor %}
 {% endfor -%}
+</div>
 {%- endmacro -%}
 
 {%- macro cbmbasic_line_number_handler(tkn) -%}

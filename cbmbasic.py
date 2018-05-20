@@ -544,6 +544,7 @@ class BasicDecoder(decoders.Prefix):
 			for livl in line_iterator(ctx.mem, ivl):
 				yield {
 					'type': 'line',
+					'address': livl.first,
 					'tokens': annotated_tokens(),
 					'is_destination': ctx.is_destination(livl.first),
 					'address': livl.first
