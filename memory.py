@@ -25,7 +25,7 @@ class Memory(object):
 
 	def view(self, ivl):
 		if not self.ivl.contains(ivl):
-			raise IndexError
+			raise MemoryException
 		cpy = copy.copy(self)
 		cpy.data = self.data[ivl.first-self.ivl.first:]
 		cpy.ivl = ivl
