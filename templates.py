@@ -3,7 +3,7 @@ import webbrowser
 import decoders
 import gfx
 import data
-import M6502
+import M6502decoder
 import index
 import cbmbasic
 
@@ -50,7 +50,7 @@ def run(args):
 					"bitmap" : gfx.CharDecoder("chars"),
 					"data" : data.BytesDecoder("data", 16),
 					"ptr16" : data.PointerDecoder("ptr16", 4),
-					"code" : M6502.M6502Decoder("code"),
+					"code" : M6502decoder.M6502Decoder("code"),
 					"basic" : cbmbasic.BasicDecoder()
 					},
 				default_decoder = args.defaultdecoder,
