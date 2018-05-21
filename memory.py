@@ -3,6 +3,10 @@ import bisect
 from heapq import merge
 import copy
 from interval import Interval, with_holes
+import errors 
+
+class MemoryException(errors.Dis64Exception):
+	pass
 
 class Memory(object):
 	def __init__(self, data, org=None):
@@ -29,7 +33,7 @@ class Memory(object):
 
 	def _map(self, addr, sz=1):
 		if not self.ivl.contains(Interval(addr, addr+sz-1)):
-			raise IndexError
+			raise MemoryException
 		return addr-self.ivl.first
 
 	def r8(self, addr):
