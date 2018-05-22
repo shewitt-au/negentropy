@@ -6,7 +6,15 @@ from interval import Interval, with_holes
 import errors 
 
 class MemoryException(errors.Dis64Exception):
-	pass
+	def __init__(self, msg, envelope=None, subset=None):
+		super().__init__(msg)
+		self.envelope = envelope
+		self.subset = subset
+
+	def __str__(self):
+		bs = super().__str__()
+		bs += "\n\tenvelope: {}\n\tsubset  : {}".format(self.envelope, self.subset)
+		return bs
 
 class Memory(object):
 	def __init__(self, data, org=None):
@@ -25,15 +33,16 @@ class Memory(object):
 
 	def view(self, ivl):
 		if not self.ivl.contains(ivl):
-			raise MemoryException
+			raise MemoryException("Attempt to map view that's not in range")
 		cpy = copy.copy(self)
 		cpy.data = self.data[ivl.first-self.ivl.first:]
 		cpy.ivl = ivl
 		return cpy
 
 	def _map(self, addr, sz=1):
-		if not self.ivl.contains(Interval(addr, addr+sz-1)):
-			raise MemoryException
+		rd = Interval(addr, addr+sz-1)
+		if not self.ivl.contains(rd):
+			raise MemoryException("Address not in range", self.ivl, rd)
 		return addr-self.ivl.first
 
 	def r8(self, addr):

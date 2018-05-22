@@ -353,11 +353,15 @@ def pettoascii(c):
 
 def line_iterator(mem, ivl):
 	mem = mem.view(ivl)
+
 	addr = ivl.first
 	while addr<=ivl.last:
 		link = mem.r16(addr)
-		if link==0 or not ivl.contains(link): # second check needed sometimes (what does BASIC ROM DO>)
-				break # a line link of 0 ends the program
+		if link&0xff00 == 0:
+			# Code from LIST command:
+			# .,A6CD B1 5F    LDA ($5F),Y     HIGH BYTE OF LINK
+			# .,A6CF F0 43    BEQ $A714       END OF PROGRAM
+			break # end of the program
 		yield Interval(addr, link-1)
 		addr = link
 
