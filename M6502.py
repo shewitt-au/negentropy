@@ -1,5 +1,6 @@
 from enum import Enum, unique, auto
 from collections import namedtuple
+from interval import Interval
 import memory
 
 @unique
@@ -298,7 +299,7 @@ opcode_to_mnemonic_and_mode = [
 def sign_extend(x):
 	return (x^0x80)-0x80;
 
-InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, target, op_info, mode_info")
+InstructionInfo = namedtuple("InstructionInfo", "ivl, opcode, operand, target, op_info, mode_info")
 def M6502Iterator(mem, ivl):
 	mem = mem.view(ivl)
 	addr = ivl.first
@@ -324,6 +325,6 @@ def M6502Iterator(mem, ivl):
 		else:
 			target = None
 
-		yield InstructionInfo(addr, opcode, operand, target, op_info, mode_info)
+		yield InstructionInfo(Interval(addr, addr+mode_info.operand_size), opcode, operand, target, op_info, mode_info)
 
 		addr += mode_info.operand_size+1

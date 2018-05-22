@@ -7,9 +7,11 @@ class M6502Decoder(decoders.Prefix):
 
 	def preprocess(self, ctx, ivl):
 		for ii in M6502Iterator(ctx.mem, ivl):
-			ctx.link_add_reachable(ii.address)
+			ctx.link_add_reachable(ii.ivl.first)
 			if ii.target is not None:
 				ctx.link_add_referenced(ii.target)
+		# return the non-processed part of the interval
+		return Interval(ii.ivl.last+1, ivl.last)
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):
@@ -46,9 +48,9 @@ class M6502Decoder(decoders.Prefix):
 					operand_body = format_numerical_operand(ii.operand)
 
 				yield {
-					'address': ii.address,
-					'is_destination' : (not target_already_exits) and ctx.is_destination(ii.address),
-					'bytes': ctx.mem.r8m(ii.address, ii.mode_info.operand_size+1),
+					'address': ii.ivl.first,
+					'is_destination' : (not target_already_exits) and ctx.is_destination(ii.ivl.first),
+					'bytes': ctx.mem.r8m(ii.ivl.first, ii.mode_info.operand_size+1),
 					'instruction': {
 						'mnemonic': ii.op_info.mnemonic,
 						'pre': ii.mode_info.pre,
