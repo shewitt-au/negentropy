@@ -1,5 +1,6 @@
 from enum import Enum, unique, auto
 from collections import namedtuple
+import memory
 
 @unique
 class AddrMode(Enum):
@@ -306,12 +307,15 @@ def M6502Iterator(mem, ivl):
 		op_info = opcode_to_mnemonic_and_mode[opcode]
 		mode_info = mode_to_operand_info[op_info.mode]
 
-		if mode_info.operand_size == 0:
-			operand = None
-		elif mode_info.operand_size == 1:
-			operand = mem.r8(addr+1)
-		elif mode_info.operand_size == 2:
-			operand = mem.r16(addr+1)
+		try:
+			if mode_info.operand_size == 0:
+				operand = None
+			elif mode_info.operand_size == 1:
+				operand = mem.r8(addr+1)
+			elif mode_info.operand_size == 2:
+				operand = mem.r16(addr+1)
+		except memory.MemoryException:
+			return # there's some space left at the end of 'ivl'
 
 		if op_info.mode == AddrMode.Relative:
 			target = addr+sign_extend(operand)+2
