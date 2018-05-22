@@ -299,6 +299,7 @@ def sign_extend(x):
 
 InstructionInfo = namedtuple("InstructionInfo", "address, opcode, operand, target, op_info, mode_info")
 def M6502Iterator(mem, ivl):
+	mem = mem.view(ivl)
 	addr = ivl.first
 	while addr<=ivl.last:
 		opcode = mem.r8(addr)
