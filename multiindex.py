@@ -1,10 +1,8 @@
 import bisect
 
 # A crude implementation of a multi-index container.
-# Since we read in the data files and then the in-memory data is never changed
-# no attempt is made to implement updateability. This obviously implies that
-# you should NOT change the key values in any of the collections as it will
-# invalidate the indices.
+# You should NOT carelessly change the key values in a way that invalidate
+# the indices.
 
 # Class needed because bisect doesn't support key extractors
 class KeyWrapper(object):
