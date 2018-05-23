@@ -64,10 +64,10 @@ class MemRegion(Interval):
 
 	def preprocess(self, ctx, ivl=None):
 		ivl = self if (ivl is None) else ivl
+		remains = ivl
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
 			remains = self.decoder.preprocess(ctx, i)
-			if not remains.is_empty():
-				raise errors.UnprocessedData("Unprocessed data", ivl, remains)
+		return remains	
 
 	def items(self, ctx, ivl=None):
 		ivl = self if (ivl is None) else ivl
@@ -152,6 +152,8 @@ class MemType(object):
 			return self.overlapping(ivl)
 
 	def preprocess(self, ctx, ivl):
+		unprocessed = []
+
 		for region in self._region_iterator(ivl):
 			try:
 				pp = region.preprocess
@@ -161,7 +163,15 @@ class MemType(object):
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
 				dr.preprocess(ctx)
 			else:
-				pp(ctx)
+				remains = pp(ctx)
+				if not remains.is_empty():
+					region.last = remains.first-1
+					unprocessed.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+
+		if unprocessed:
+			self.map += unprocessed
+			self.map.sort()
+
 
 	def items(self, ctx, ivl):
 		hole_idx = 0
