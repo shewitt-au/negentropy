@@ -1,5 +1,6 @@
 import decoders
 from cbmbasic import *
+from interval import Interval
 
 class BasicDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
@@ -13,6 +14,8 @@ class BasicDecoder(decoders.Prefix):
 					ctx.link_add_referenced(addr)
 				elif tp=='address':
 					ctx.link_add_referenced(token['val'])
+		# return the non-processed part of the interval
+		return Interval()
 			
 	def decode(self, ctx, ivl, params=None):
 		def lines():
