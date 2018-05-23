@@ -15,7 +15,7 @@ class MemoryException(Dis64Exception):
 #TODO: this is on death row!
 class UnprocessedData(Dis64Exception):
 	def __init__(self, msg, region=None, ivl=None):
-		super().__init__(mg)
+		super().__init__(msg)
 		self.region = region
 		self.ivl = ivl
 
