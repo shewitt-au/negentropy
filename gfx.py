@@ -1,5 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw
 import decoders
+from interval import Interval
 
 class CharDecoder(decoders.Prefix):
 	def __init__(self, name):
@@ -7,7 +8,10 @@ class CharDecoder(decoders.Prefix):
 
 	def preprocess(self, ctx, ivl):
 		ctx.link_add_reachable(ivl.first)
-		pass
+
+		# return the non-processed part of the interval
+		num_chars = len(ivl)//8
+		return Interval(ivl.first+8*num_chars, ivl.last)
 
 	def decode(self, ctx, ivl, params):
 		num_chars = len(ivl)//8

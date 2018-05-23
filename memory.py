@@ -76,7 +76,9 @@ class MemRegion(Interval):
 	def preprocess(self, ctx, ivl=None):
 		ivl = self if (ivl is None) else ivl
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
-			self.decoder.preprocess(ctx, i)
+			remains = self.decoder.preprocess(ctx, i)
+			if not remains.is_empty():
+				print("Unprocessed: ", remains)
 
 	def items(self, ctx, ivl=None):
 		ivl = self if (ivl is None) else ivl

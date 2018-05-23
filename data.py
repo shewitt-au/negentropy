@@ -1,4 +1,5 @@
 import decoders
+from interval import Interval
 
 class BytesDecoder(decoders.Prefix):
 	def __init__(self, name, linelen):
@@ -8,6 +9,8 @@ class BytesDecoder(decoders.Prefix):
 	def preprocess(self, ctx, ivl):
 		for addr in range(ivl.first, ivl.last+1, self.linelen):
 			ctx.link_add_reachable(addr)
+		# return the non-processed part of the interval
+		return Interval()
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):
@@ -31,15 +34,22 @@ class PointerDecoder(decoders.Prefix):
 		self.linelen = linelen
 
 	def preprocess(self, ctx, ivl):
+		mem = ctx.mem.view(ivl)
+
 		bpl = 2*self.linelen
 		for addr in range(ivl.first, ivl.last+1, bpl):
 			ctx.link_add_reachable(addr)
 		for addr in range(ivl.first, ivl.last+1, 2):
-			ctx.link_add_referenced(ctx.mem.r16(addr))
+			ctx.link_add_referenced(mem.r16(addr))
+
+		# return the non-processed part of the interval
+		return Interval(addr+2, ivl.last)
 
 	def decode(self, ctx, ivl, params):
+		mem = ctx.mem.view(ivl)
+
 		def value(addr):
-			v = ctx.mem.r16(addr)
+			v = mem.r16(addr)
 			s = ctx.syms.by_address.get(v)
 			val = "{:04x}".format(v) if s is None else s[1]
 			return {"val": val, "is_source": ctx.is_destination(v), "target": v}
