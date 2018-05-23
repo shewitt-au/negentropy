@@ -6,12 +6,14 @@ class M6502Decoder(decoders.Prefix):
 		self.name = name
 
 	def preprocess(self, ctx, ivl):
+		remains = ivl
 		for ii in M6502Iterator(ctx.mem, ivl):
 			ctx.link_add_reachable(ii.ivl.first)
 			if ii.target is not None:
 				ctx.link_add_referenced(ii.target)
+			remains.first = ii.ivl.last+1
 		# return the non-processed part of the interval
-		return Interval(ii.ivl.last+1, ivl.last)
+		return remains
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):

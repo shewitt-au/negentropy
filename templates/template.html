@@ -153,7 +153,7 @@
 </div>
 {%- endmacro -%}
 
-{%- macro cbmbasic_line_number_handler(tkn) -%}
+{%- macro cbmbasic_line_num_handler(tkn) -%}
 {{ tkn.val }} {% endmacro -%}
 
 {%- macro cbmbasic_text_handler(tkn) -%}
@@ -168,7 +168,7 @@
 {{ tkn.val }}
 {%- endmacro -%}
 
-{%- macro cbmbasic_line_num_handler(tkn) -%}
+{%- macro cbmbasic_line_ref_handler(tkn) -%}
 {%- if tkn.is_source -%}
 <a href="#{{"{:04x}".format(tkn.target)}}">
 {%- endif -%}

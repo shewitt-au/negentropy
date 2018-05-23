@@ -369,8 +369,8 @@ def line_tokens(mem, ivl):
 	mem = mem.view(ivl)
 
 	yield {
+		'type': 'line_num',
 		'ivl': Interval(ivl.first+2, ivl.first+3),
-		'type': 'line_number',
 		'val': mem.r16(ivl.first+2)}
 
 	# parsing state
@@ -427,8 +427,8 @@ def line_tokens(mem, ivl):
 			elif ps==PS.ProcessCommand:
 				cmd = command(token)
 				yield {
-					'ivl': Interval(addr, addr),
 					'type': 'command',
+					'ivl': Interval(addr, addr),
 					'val': cmd.name}
 
 				if cmd.syscall:
@@ -440,6 +440,7 @@ def line_tokens(mem, ivl):
 					ps = PS.ExpectingAnything
 			# *************************************************************#
 			elif ps==PS.GetText:
+					token_start = addr
 					strval = pettoascii(token)
 					ps = PS.GetRestOfText
 			# *************************************************************#
@@ -460,11 +461,11 @@ def line_tokens(mem, ivl):
 				elif token==ord(','):
 					recycle_token = True
 					ps = PS.ProcessComma
-				elif token==0:
-					ps = PS.Done
 				elif line_num_quota and (token>=ord('0') and token<=ord('9')):
 					recycle_token = True
 					ps = PS.GetLineNumber
+				elif token==0:
+					ps = PS.Done
 				else:
 					strval += pettoascii(token)
 
@@ -472,11 +473,13 @@ def line_tokens(mem, ivl):
 				if ps!=PS.GetRestOfText:
 					yield {
 						'type': 'text',
+						'ivl': Interval(token_start, addr-1),
 						'val': strval}
 			# *************************************************************#
 			elif ps==PS.ProcessComma:
 				yield {
 						'type': 'text',
+						'ivl': Interval(addr, addr),
 						'val': chr(token)}
 				ps = PS.ExpectingAnything
 			# *************************************************************#
@@ -486,10 +489,12 @@ def line_tokens(mem, ivl):
 				# return it in its own text token
 				yield {
 					'type': 'text',
+					'ivl': Interval(addr, addr),
 					'val': ':'}
 				ps = PS.ExpectingAnything
 			# *************************************************************#
 			elif ps==PS.OpenQuote:
+				token_start = addr
 				strval = '"'
 				ps = PS.ProcessQuote
 			# *************************************************************#
@@ -497,17 +502,20 @@ def line_tokens(mem, ivl):
 				if token==0x22: # quote
 					yield {
 						'type': 'quoted',
+						'ivl': Interval(token_start, addr),
 						'val': strval+'"'}
 					ps = PS.ExpectingAnything
 				elif token==0:
 					yield {
 						'type': 'quoted',
+						'ivl': Interval(token_start, addr-1),
 						'val': strval}
 					ps = PS.Done
 				else:
 					strval += pettoascii(token)
 			# *************************************************************#
 			elif ps==PS.GetLineNumber:
+					token_start = addr
 					numval = token-ord('0')
 					ps = PS.GetRestOfLineNumber
 			# *************************************************************#
@@ -516,7 +524,8 @@ def line_tokens(mem, ivl):
 					numval = numval*10 + int(token-ord('0'))
 				else:
 					yield {
-						'type': 'line_num',
+						'type': 'line_ref',
+						'ivl': Interval(token_start, addr-1),
 						'val':	numval
 					}
 					if line_num_quota>0:
@@ -526,6 +535,7 @@ def line_tokens(mem, ivl):
 			# *************************************************************#
 			elif ps==PS.GetAddress:
 				if token>=ord('0') and token<=ord('9'):
+					token_start = addr
 					numval = token-ord('0')
 					ps = PS.GetRestOfAddress
 				else:
@@ -538,6 +548,7 @@ def line_tokens(mem, ivl):
 				else:
 					yield {
 						'type': 'address',
+						'ivl': Interval(token_start, addr-1),
 						'val':	numval
 					}
 					recycle_token = True
@@ -552,3 +563,4 @@ def line_to_address(mem, ivl, line):
 		if mem.r16(livl.first+2)==line:
 			return livl.first
 	return None
+ 

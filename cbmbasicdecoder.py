@@ -9,19 +9,20 @@ class BasicDecoder(decoders.Prefix):
 
 			for token in line_tokens(ctx.mem, livl):
 				tp = token['type']
-				if tp=='line_num':
+				if tp=='line_ref':
 					addr = line_to_address(ctx.mem, ivl, token['val'])
 					ctx.link_add_referenced(addr)
 				elif tp=='address':
 					ctx.link_add_referenced(token['val'])
+
 		# return the non-processed part of the interval
-		return Interval()
+		return Interval(token['ivl'].last+4, ivl.last) # +1 to NULL line term, +1 to skip it, +2 over link
 			
 	def decode(self, ctx, ivl, params=None):
 		def lines():
 			def annotated_tokens():
 				for token in line_tokens(ctx.mem, livl):
-					if token['type'] == 'line_num':
+					if token['type'] == 'line_ref':
 						target = line_to_address(ctx.mem, ivl, token['val'])
 						token['is_source'] = ctx.is_destination(target)
 						token['target'] = target
