@@ -2,6 +2,7 @@ from enum import Enum, unique, auto
 from collections import namedtuple
 from interval import Interval
 import memory
+import errors
 
 @unique
 class AddrMode(Enum):
@@ -315,7 +316,7 @@ def M6502Iterator(mem, ivl):
 				operand = mem.r8(addr+1)
 			elif mode_info.operand_size == 2:
 				operand = mem.r16(addr+1)
-		except memory.MemoryException:
+		except errors.MemoryException:
 			return # there's some space left at the end of 'ivl'
 
 		if op_info.mode == AddrMode.Relative:

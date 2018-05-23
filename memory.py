@@ -5,17 +5,6 @@ import copy
 from interval import Interval, with_holes
 import errors 
 
-class MemoryException(errors.Dis64Exception):
-	def __init__(self, msg, envelope=None, subset=None):
-		super().__init__(msg)
-		self.envelope = envelope
-		self.subset = subset
-
-	def __str__(self):
-		bs = super().__str__()
-		bs += "\n\tenvelope: {}\n\tsubset  : {}".format(self.envelope, self.subset)
-		return bs
-
 class Memory(object):
 	def __init__(self, data, org=None):
 		self.data = data
@@ -33,7 +22,7 @@ class Memory(object):
 
 	def view(self, ivl):
 		if not self.ivl.contains(ivl):
-			raise MemoryException("Attempt to map view that's not in range")
+			raise errors.MemoryException("Attempt to map view that's not in range")
 		cpy = copy.copy(self)
 		cpy.data = self.data[ivl.first-self.ivl.first:]
 		cpy.ivl = ivl
@@ -42,7 +31,7 @@ class Memory(object):
 	def _map(self, addr, sz=1):
 		rd = Interval(addr, addr+sz-1)
 		if not self.ivl.contains(rd):
-			raise MemoryException("Address not in range", self.ivl, rd)
+			raise errors.MemoryException("Address not in range", self.ivl, rd)
 		return addr-self.ivl.first
 
 	def r8(self, addr):
@@ -78,7 +67,7 @@ class MemRegion(Interval):
 		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
 			remains = self.decoder.preprocess(ctx, i)
 			if not remains.is_empty():
-				print("Unprocessed: ", remains)
+				raise errors.UnprocessedData("Unprocessed data", ivl, remains)
 
 	def items(self, ctx, ivl=None):
 		ivl = self if (ivl is None) else ivl
