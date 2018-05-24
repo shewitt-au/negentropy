@@ -27,6 +27,9 @@ class Interval(object):
 			self.first = first
 			self.last = last
 
+	def copy(self):
+		return copy.copy(self)
+
 	def _get(self):
 		return (self.first, self.last)
 	def _set(self, ivl):

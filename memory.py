@@ -25,7 +25,7 @@ class Memory(object):
 			raise errors.MemoryException("Attempt to map view that's not in range")
 		cpy = copy.copy(self)
 		cpy.data = self.data[ivl.first-self.ivl.first:]
-		cpy.ivl = copy.copy(ivl)
+		cpy.ivl = ivl.copy()
 		return cpy
 
 	def _map(self, addr, sz=1):
