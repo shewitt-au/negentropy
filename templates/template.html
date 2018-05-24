@@ -134,10 +134,9 @@
 <a name="{{section.name}}"></a>
 <div class="hole">
 {% if section.next %}<a href="#{{section.next}}">Next hole</a><br/><br/>{% endif %}
-{% set ns = next_item(items) %}
-{{ ns.type|dispatch(ns) }}
-{% set ns = next_item(items) %}
-{{ ns.type|dispatch(ns) }}
+{%- for r in section.contents -%}
+{{ r.type|dispatch(r) }}
+{% endfor -%}
 </div>
 {%- endmacro -%}
 

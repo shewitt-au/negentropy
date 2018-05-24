@@ -30,6 +30,16 @@ class Interval(object):
 	def copy(self):
 		return copy.copy(self)
 
+	# useful when Interval is used as a base class (to alter the Interval part but keep the rest)
+	def copy_and_assign(self, ivl):
+		cp = self.copy()
+		cp.assign(ivl)
+		return cp
+
+	def assign(self, other):
+		self.first = other.first
+		self.last = other.last
+
 	def _get(self):
 		return (self.first, self.last)
 	def _set(self, ivl):
@@ -113,18 +123,48 @@ class Interval(object):
 		else:
 			return Interval(max(self.first, other.first), min(self.last, other.last))
 
+	@staticmethod
+	def exclusive_left(left, right):
+		return left.last<right.first
+
 	def contains(self, other):
 		if isinstance(other, __class__):
 			return other.first>=self.first and other.last<=self.last
 		else:
 			return other>=self.first and other<=self.last
 
+	@classmethod
+	def inner_comlement(cls, left, right):
+		if cls.exclusive_left(left, right):
+			return cls(left.last+1, right.first-1)
+		elif cls.exclusive_left(right, left):
+			return cls(right.last+1, left.first-1)
+		else:
+			return cls()
+
+	# checks if two intervals are adjacent or overlapping
+	@classmethod
+	def friendly(cls, left, right):
+		return cls.inner_comlement(left, right).is_empty()
+
+	@classmethod
+	def disjoint(cls, left, right):
+		return cls.exclusive_left(left, right) or cls.exclusive_left(right, left)
+
+	@classmethod
+	def union(cls, first, second):
+		assert cls.friendly(first, second), "Can't make a union of separated intervals"
+		return cls(min(first.first, second.first), max(first.last, second.last))
+
 	def cut_left(self, pos):
-		return (Interval(self.first, min(pos-1, self.last)), Interval(max(pos, self.first), self.last))
+		return (
+			self.copy_and_assign(Interval(self.first, min(pos-1, self.last))),
+			self.copy_and_assign(Interval(max(pos, self.first), self.last))
+			)
 
 	def cut_left_iter(self, cuts):
 		l = self
-		r = Interval()
+		r = self.copy_and_assign(Interval())
 		it = iter(cuts)
 
 		try:
@@ -143,11 +183,14 @@ class Interval(object):
 				yield r
 
 	def cut_right(self, pos):
-		return (Interval(self.first, min(pos, self.last)), Interval(max(pos+1, self.first), self.last))
+		return (
+			self.copy_and_assign(Interval(self.first, min(pos, self.last))),
+			self.copy_and_assign(Interval(max(pos+1, self.first), self.last))
+			)
 
 	def cut_right_iter(self, cuts):
 		l = self
-		r = Interval()
+		r = self.copy_and_assign(Interval())
 		it = iter(cuts)
 
 		try:

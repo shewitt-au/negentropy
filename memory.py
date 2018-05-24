@@ -61,34 +61,58 @@ class MemRegion(Interval):
 		super().__init__(tuple_or_first, last)
 		self.decoder = decoder
 		self.params = params
+		self.is_hole = False
 
-	def preprocess(self, ctx, ivl=None):
-		ivl = self if (ivl is None) else ivl
-		remains = ivl
-		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
-			remains = self.decoder.preprocess(ctx, i)
-		return remains	
+	def preprocess(self, ctx):
+		return self.decoder.preprocess(ctx, self)
 
-	def items(self, ctx, ivl=None):
-		ivl = self if (ivl is None) else ivl
+	def items(self, ctx):
 		params = self.params.copy()
-		for i in ivl.cut_left_iter(merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))):
-			yield self.decoder.prefix(ctx, i, params)
-			yield self.decoder.decode(ctx, i, params)
+		yield self.decoder.prefix(ctx, self, params)
+		yield self.decoder.decode(ctx, self, params)
 
 	def __and__(self, other):
 		cpy = copy.copy(self)
 		ivl = super().__and__(other)
 		cpy.first = ivl.first
-		cpy.lasr = ivl.last
+		cpy.last = ivl.last
 		return cpy
 
 	def __str__(self):
 		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
 
 	def __repr__(self):
-		return "MemRegion({}: {:04x}-${:04x})".format(self.decoder, self.first, self.last)
+		return "MemRegion({}: ${:04x}-${:04x})".format(self.decoder, self.first, self.last)
 
+class CompoundMemRegion(Interval):
+	def __init__(self):
+		super().__init__()
+		self.contents = []
+
+	def add(self, r):
+		self.contents.append(r)
+		if self.is_empty():
+			self.assign(r)
+		else:
+			self.assign(Interval.union(self, r))
+
+	def items(self, ctx):
+		for r in self.contents:
+			yield from r.items(ctx)
+
+	def __and__(self, other):
+		cpy = copy.copy(self)
+		ivl = super().__and__(other)
+		cpy.first = ivl.first
+		cpy.last = ivl.last
+		return cpy
+
+	def __str__(self):
+		return "CompoundMemRegion {}".format(self.contents)
+
+	def __repr__(self):
+		return "CompoundMemRegion {}".format(self.contents)
+		
 memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^({.*?^})?", re.MULTILINE|re.DOTALL)
 
 # A representation of the MemType.txt file. A collection of 'MemRegion's.
@@ -151,44 +175,53 @@ class MemType(object):
 		else:
 			return self.overlapping(ivl)
 
+# self.cut_left_iter(merge(ctx.syms.keys_in_range(self), ctx.cmts.keys_in_range(self)))
+
 	def preprocess(self, ctx, ivl):
-		unprocessed = []
+		new_map = []
 
-		for region in self._region_iterator(ivl):
-			try:
-				pp = region.preprocess
-			except AttributeError:
-				# we found a hole and we've got a default decoder
-				ctx.holes += 1
-				dr = MemRegion(self.default_decoder, region.first, region.last, {})
-				pp = dr.preprocess
-	
-			remains = pp(ctx)
-			if not remains.is_empty():
-				region.last = remains.first-1
-				unprocessed.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+		for rgntocut in self._region_iterator(ivl):
+			for region in rgntocut.cut_left_iter(merge(ctx.syms.keys_in_range(rgntocut), ctx.cmts.keys_in_range(rgntocut))):
+				try:
+					pp = region.preprocess
+				except AttributeError:
+					# we found a hole and we've got a default decoder
+					ctx.holes += 1
+					dr = MemRegion(self.default_decoder, region.first, region.last, {})
+					remains = dr.preprocess(ctx)
+					if remains.is_empty():
+						new_map.append(dr)
+					else:
+						cr = CompoundMemRegion()
+						dr.last = remains.first-1
+						cr.add(dr)
+						cr.add(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+						cr.is_hole = True
+						new_map.append(cr)
+				else:
+					remains = pp(ctx)
+					print(region)
+					print(remains)
+					if not remains.is_empty():
+						region.last = remains.first-1
+						new_map.append(region)
+						new_map.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+					else:
+						new_map.append(region)
 
-		if unprocessed:
-			self.map += unprocessed
-			self.map.sort()
-
+		self.map = new_map
 
 	def items(self, ctx, ivl):
 		hole_idx = 0
-		gen = self._region_iterator(ivl)
-		for region in gen:
-			try:
-				gen = region.items
-			except AttributeError:
+		for region in self.overlapping(ivl):
+			if region.is_hole:
 				# we found a hole and we've got a default decoder
 				yield {
 					'type': "hole",
-					'contents': gen,
+					'contents': region.items(ctx),
 					'name': "hole_"+str(hole_idx),
 					'next': "hole_"+str(hole_idx+1) if (hole_idx+1<ctx.holes) else None
 					}
 				hole_idx += 1
-				dr = MemRegion(self.default_decoder, region.first, region.last, {})
-				yield from dr.items(ctx)
 			else:
-				yield from gen(ctx)
+				yield from region.items(ctx)
