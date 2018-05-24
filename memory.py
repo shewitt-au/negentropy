@@ -161,12 +161,12 @@ class MemType(object):
 				# we found a hole and we've got a default decoder
 				ctx.holes += 1
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
-				dr.preprocess(ctx)
-			else:
-				remains = pp(ctx)
-				if not remains.is_empty():
-					region.last = remains.first-1
-					unprocessed.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+				pp = dr.preprocess
+	
+			remains = pp(ctx)
+			if not remains.is_empty():
+				region.last = remains.first-1
+				unprocessed.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
 
 		if unprocessed:
 			self.map += unprocessed
