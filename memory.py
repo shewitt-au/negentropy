@@ -62,14 +62,22 @@ class MemRegion(Interval):
 		self.decoder = decoder
 		self.params = params
 		self.is_hole = False
+		self.subsets = []
 
 	def preprocess(self, ctx):
-		return self.decoder.preprocess(ctx, self)
+		remains = self
+		for region in self.cut_left_iter(merge(ctx.syms.keys_in_range(self), ctx.cmts.keys_in_range(self))):
+			self.subsets.append(region)
+			remains = self.decoder.preprocess(ctx, self)
+		if not self.subsets:
+			self.subsets.append(self)
+		return remains
 
 	def items(self, ctx):
 		params = self.params.copy()
-		yield self.decoder.prefix(ctx, self, params)
-		yield self.decoder.decode(ctx, self, params)
+		for ivl in self.subsets:
+			yield self.decoder.prefix(ctx, ivl, params)
+			yield self.decoder.decode(ctx, ivl, params)
 
 	def __and__(self, other):
 		cpy = copy.copy(self)
@@ -178,32 +186,31 @@ class MemType(object):
 	def preprocess(self, ctx, ivl):
 		new_map = []
 
-		for rgntocut in self._region_iterator(ivl):
-			for region in rgntocut.cut_left_iter(merge(ctx.syms.keys_in_range(rgntocut), ctx.cmts.keys_in_range(rgntocut))):
-				try:
-					pp = region.preprocess
-				except AttributeError:
-					# we found a hole and we've got a default decoder
-					ctx.holes += 1
-					dr = MemRegion(self.default_decoder, region.first, region.last, {})
-					remains = dr.preprocess(ctx)
-					if remains.is_empty():
-						new_map.append(dr)
-					else:
-						cr = CompoundMemRegion()
-						dr.last = remains.first-1
-						cr.add(dr)
-						cr.add(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
-						cr.is_hole = True
-						new_map.append(cr)
+		for region in self._region_iterator(ivl):
+			try:
+				pp = region.preprocess
+			except AttributeError:
+				# we found a hole and we've got a default decoder
+				ctx.holes += 1
+				dr = MemRegion(self.default_decoder, region.first, region.last, {})
+				remains = dr.preprocess(ctx)
+				if remains.is_empty():
+					new_map.append(dr)
 				else:
-					remains = pp(ctx)
-					if not remains.is_empty():
-						region.last = remains.first-1
-						new_map.append(region)
-						new_map.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
-					else:
-						new_map.append(region)
+					cr = CompoundMemRegion()
+					dr.last = remains.first-1
+					cr.add(dr)
+					cr.add(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+					cr.is_hole = True
+					new_map.append(cr)
+			else:
+				remains = pp(ctx)
+				if not remains.is_empty():
+					region.last = remains.first-1
+					new_map.append(region)
+					new_map.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+				else:
+					new_map.append(region)
 
 		self.map = new_map
 

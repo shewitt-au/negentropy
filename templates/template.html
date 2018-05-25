@@ -143,8 +143,8 @@
 {#- ----------------basic---------------- -#}
 {%- macro basic_handler(section) -%}
 <div class="code">
-{% for ln in section.lines -%}
-{{- anchor(ln) }}{#{{address(ln)}}#}{{tabs() -}}
+{%- for ln in section.lines -%}
+{{- anchor(ln) }}{#{{address(ln)}}{{tabs() -}}-#}
 {%- for tkn in ln.tokens -%}
 {{ tkn.type|cbmbasic_dispatch(tkn) }}
 {%- endfor %}
@@ -193,18 +193,20 @@
 <body>
 
 <div class="container">
-{% if title %}<h1>{{title}}</h1><br/>{% endif %}
+{%- if title %}<h1>{{title}}</h1><br/>{% endif -%}
 
 {#- ----------------first hole link---------------- -#}
-{% if have_holes %}
+{%- if have_holes %}
 <a href="#hole_0">First hole</a><br/><br/>
-{% endif %}
+{% endif -%}
 
 {#- ----------------index---------------- -#}
+{%- if has_index %}
 {%- for ii in index -%}
 <a href="#{{"{:04x}".format(ii.address)}}">{{ii.name}}</a><br/>
 {% endfor -%}
 <br/>
+{% endif -%}
 
 {#- ----------------sections---------------- -#}
 {%- for section in items -%}

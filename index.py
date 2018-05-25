@@ -1,3 +1,6 @@
+def has_index(ctx):
+	return len(ctx.syms.sorted_name)>0 # Not really good enough, but will do for now (what about 'al' syms?)
+
 def get_index(ctx):
 	for s in ctx.syms.sorted_name:
 		if not s[2]:

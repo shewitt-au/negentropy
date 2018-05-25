@@ -61,6 +61,7 @@ def run(args):
 	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
 	env.globals['title'] = args.title
 	env.globals['items'] = bd.items()
+	env.globals['has_index'] = index.has_index(bd)
 	env.globals['index'] = index.get_index(bd)
 	env.globals['have_holes'] = bd.holes>0 
 	env.filters['seq2str'] = sequence_to_string
