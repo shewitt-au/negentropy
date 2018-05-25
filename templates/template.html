@@ -144,7 +144,7 @@
 {%- macro basic_handler(section) -%}
 <div class="code">
 {% for ln in section.lines -%}
-{{- anchor(ln) }}{{address(ln)}}{{tabs() -}}
+{{- anchor(ln) }}{#{{address(ln)}}#}{{tabs() -}}
 {%- for tkn in ln.tokens -%}
 {{ tkn.type|cbmbasic_dispatch(tkn) }}
 {%- endfor %}
@@ -210,7 +210,8 @@
 {%- for section in items -%}
 {{ section.type|dispatch(section) }}
 {% endfor -%}
-
 </div>
+
 </body>
+
 </html>

@@ -175,8 +175,6 @@ class MemType(object):
 		else:
 			return self.overlapping(ivl)
 
-# self.cut_left_iter(merge(ctx.syms.keys_in_range(self), ctx.cmts.keys_in_range(self)))
-
 	def preprocess(self, ctx, ivl):
 		new_map = []
 
@@ -200,8 +198,6 @@ class MemType(object):
 						new_map.append(cr)
 				else:
 					remains = pp(ctx)
-					print(region)
-					print(remains)
 					if not remains.is_empty():
 						region.last = remains.first-1
 						new_map.append(region)

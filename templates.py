@@ -40,10 +40,6 @@ def sequence_to_string(it, pat, **kwargs):
 
 	return ret
 
-def next_item(coll):
-	i = iter(coll)
-	return next(i)
-
 def run(args):
 	bd = decoders.Context(
 				decoders = {
@@ -51,7 +47,7 @@ def run(args):
 					"data" : data.BytesDecoder("data", 16),
 					"ptr16" : data.PointerDecoder("ptr16", 4),
 					"code" : M6502decoder.M6502Decoder("code"),
-					"basic" : cbmbasicdecoder.BasicDecoder()
+					"basic" : cbmbasicdecoder.BasicDecoder("basic")
 					},
 				default_decoder = args.defaultdecoder,
 				address = args.origin,
@@ -65,7 +61,6 @@ def run(args):
 	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
 	env.globals['title'] = args.title
 	env.globals['items'] = bd.items()
-	env.globals['next_item'] = next_item
 	env.globals['index'] = index.get_index(bd)
 	env.globals['have_holes'] = bd.holes>0 
 	env.filters['seq2str'] = sequence_to_string

@@ -3,6 +3,9 @@ from cbmbasic import *
 from interval import Interval
 
 class BasicDecoder(decoders.Prefix):
+	def __init__(self, name):
+		self.name = name
+
 	def preprocess(self, ctx, ivl):
 		for livl in line_iterator(ctx.mem, ivl):
 			ctx.link_add_reachable(livl.first)
@@ -44,6 +47,6 @@ class BasicDecoder(decoders.Prefix):
 				target_already_exits
 
 		return {
-			'type': 'basic',
+			'type': self.name,
 			'lines': lines()
 		}
