@@ -13,6 +13,7 @@ class CharDecoder(decoders.Prefix):
 		return Interval(ivl.first+8*num_chars, ivl.last)
 
 	def decode(self, ctx, ivl, params):
+		mem = ctx.mem.view(ivl)
 		num_chars = len(ivl)//8
 		mcm = params.get('mcm', False)
 		pallet = params.get('pallet', 1)
@@ -22,7 +23,7 @@ class CharDecoder(decoders.Prefix):
 
 		def generate():
 			fn = "{:04x}.png".format(ivl.first)
-			bm = C64Bitmap.genset(ctx.mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet, first_number, first_char);
+			bm = C64Bitmap.genset(mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet, first_number, first_char);
 			bm.save(fn)
 			return fn
 
