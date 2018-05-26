@@ -75,7 +75,7 @@ memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^(
 
 # A representation of the MemType.txt file. A collection of 'MemRegion's.
 class MemType(object):
-	def __init__(self, ctx, fname, decoders, default_decoder=None):
+	def __init__(self, ctx, fname, default_decoder=None):
 		self.map = [] # A list of 'MemRegion's
 		if default_decoder:
 			self.default_decoder = ctx.decoders[default_decoder]
@@ -99,7 +99,7 @@ class MemType(object):
 				if m[4]:
 					params = eval(m[4], {})
 
-				self.map.append(MemRegion(decoders[m[1]], m[2], m[3], params))
+				self.map.append(MemRegion(ctx.decoders[m[1]], m[2], m[3], params))
 				pos = m.end()
 		else:
 			if self.default_decoder is None:
@@ -145,6 +145,7 @@ class MemType(object):
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
 				remains = dr.preprocess(ctx)
 				if remains.is_empty():
+					dr.is_hole = True
 					new_map.append(dr)
 				else:
 					cr = CompoundMemRegion()

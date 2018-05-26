@@ -15,7 +15,7 @@ class Context(object):
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
 		self.holes = 0
-		self.memtype = memmap.MemType(self, memtype, decoders, default_decoder)
+		self.memtype = memmap.MemType(self, memtype, default_decoder)
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)
