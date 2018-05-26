@@ -1,7 +1,6 @@
 from enum import Enum, unique, auto
 from collections import namedtuple
 from interval import Interval
-import memory
 import errors
 
 @unique

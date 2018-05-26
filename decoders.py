@@ -1,4 +1,5 @@
 import memory as memmod
+import memmap
 import symbols as symmod
 from interval import Interval
 
@@ -14,7 +15,7 @@ class Context(object):
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
 		self.holes = 0
-		self.memtype = memmod.MemType(self, memtype, decoders, default_decoder)
+		self.memtype = memmap.MemType(self, memtype, decoders, default_decoder)
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)
