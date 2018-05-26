@@ -2,6 +2,30 @@ import errors
 from interval import Interval
 import copy
 
+class Bytes16(bytes):
+	def __len__(self):
+		return super().__len__()//2
+
+	def __getitem__(self, idx):
+		if isinstance(idx, slice):
+			stop = None if idx.stop is None else idx.stop*2
+			step = None if idx.step is None else idx.step*2
+			return Bytes16(super().__getitem__(slice(idx.start*2, stop, step)))
+		else:
+			return super().__getitem__(idx)+super().__getitem__(idx+1)*256
+
+	class Bytes16Iter(object):
+		def __init__(self, itr):
+			self.itr = itr
+
+		def __next__(self):
+			l = next(self.itr)
+			h = next(self.itr)
+			return l+h*256
+
+	def __iter__(self):
+		return Bytes16.Bytes16Iter(super().__iter__())
+
 class Memory(object):
 	def __init__(self, data, org=None):
 		self.data = data
@@ -44,7 +68,7 @@ class Memory(object):
 
 	def r16m(self, addr, sz):
 		ma = self._map(addr, sz*2)
-		return [self.r16(a) for a in range(ma, ma+sz, 2)]
+		return Bytes16(self.data[ma: ma+sz*2])
 
 	def __len__(self):
 		return len(self.ivl)
