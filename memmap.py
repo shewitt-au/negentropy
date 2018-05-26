@@ -5,6 +5,7 @@ import copy
 from interval import Interval, with_holes
 
 # Represents a region of memory (C64's) and associates it with a specific decoder.
+# Handles splitting the region into smaller ones at labels and comments.
 class MemRegion(Interval):
 	def __init__(self, decoder, tuple_or_first, last=None, params=None):
 		super().__init__(tuple_or_first, last)
@@ -36,10 +37,10 @@ class MemRegion(Interval):
 		return cpy
 
 	def __str__(self):
-		return "{}: ${:04x}-${:04x}".format(self.decoder, self.first, self.last)
+		return "${:04x}-${:04x}: subsets={}, decoder={}".format(self.first, self.last, self.subsets, self.decoder)
 
 	def __repr__(self):
-		return "MemRegion({}: ${:04x}-${:04x})".format(self.decoder, self.first, self.last)
+		return "MemRegion({})".format(str(self))
 
 class CompoundMemRegion(Interval):
 	def __init__(self):
@@ -65,10 +66,10 @@ class CompoundMemRegion(Interval):
 		return cpy
 
 	def __str__(self):
-		return "CompoundMemRegion {}".format(self.contents)
+		return "{}".format(self.contents)
 
 	def __repr__(self):
-		return "CompoundMemRegion {}".format(self.contents)
+		return "CompoundMemRegion({})".format(self.contents)
 		
 memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^({.*?^})?", re.MULTILINE|re.DOTALL)
 
