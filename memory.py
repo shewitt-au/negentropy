@@ -27,17 +27,18 @@ class Bytes16(bytes):
 		return Bytes16.Bytes16Iter(super().__iter__())
 
 class Memory(object):
-	def __init__(self, data, org=None):
+	def __init__(self, data, load_address=None):
 		self.data = data
-		if org is None:
+		if load_address is None:
+			# if no address is supplied we assume the file is load-address prefixed
 			self.ivl = Interval(0x0000, 0x0001)
-			org = self.r16(0)
+			load_address = self.r16(0)
 			off = 2
 		else:
 			off = 0
 
 		self.data = self.data[off:]
-		self.ivl = Interval(org, size=len(self.data))
+		self.ivl = Interval(load_address, size=len(self.data))
 
 		print("Loaded: {}".format(self.ivl))
 
@@ -46,7 +47,7 @@ class Memory(object):
 			raise errors.MemoryException("Attempt to map view that's not in range")
 		cpy = copy.copy(self)
 		cpy.data = self.data[ivl.first-self.ivl.first:]
-		cpy.ivl = ivl.copy()
+		cpy.ivl = ivl.copy() # go for safety
 		return cpy
 
 	def _map(self, addr, sz=1):
