@@ -6,11 +6,14 @@ class Interval(object):
 	# Interval(): an empty Interval
 	# Interval((f, l)): an Interval from f to l (inclusive)
 	# Interval(f, l): an Interval from f to l (inclusive)
-	def __init__(self, first=None, last=None):
+	def __init__(self, first=None, last=None, size=None):
 		if isinstance(first, str):
 			first = int(first, 16)
 		if isinstance(last, str):
 			last = int(last, 16)
+
+		if size is not None:
+			last = first+size-1
 
 		if first is None and last is None:
 			# an empty interval

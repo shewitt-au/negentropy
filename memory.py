@@ -37,7 +37,7 @@ class Memory(object):
 			off = 0
 
 		self.data = self.data[off:]
-		self.ivl = Interval(org, org+len(self.data)-1)
+		self.ivl = Interval(org, size=len(self.data))
 
 		print("Loaded: {}".format(self.ivl))
 
@@ -50,7 +50,7 @@ class Memory(object):
 		return cpy
 
 	def _map(self, addr, sz=1):
-		rd = Interval(addr, addr+sz-1)
+		rd = Interval(addr, size=sz)
 		if not self.ivl.contains(rd):
 			raise errors.MemoryException("Address not in range", self.ivl, rd)
 		return addr-self.ivl.first
