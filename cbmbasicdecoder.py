@@ -7,6 +7,8 @@ class BasicDecoder(decoders.Prefix):
 		self.name = name
 
 	def preprocess(self, ctx, ivl):
+		print(hex(line_to_address(ctx.mem, ivl, 319)))
+
 		for livl in line_iterator(ctx.mem, ivl):
 			ctx.link_add_reachable(livl.first)
 

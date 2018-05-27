@@ -348,8 +348,41 @@ decoding_table = (
 	'\u03c0'    #  0xFF -> GREEK SMALL LETTER PI
 )
 
+# Add 80 (NO D, NO 14)
+# 1 2 3 4 5 6 7 8 9 a b c e f
+# 10 11 12 13 15 16 17 18 19 1a 1b 1c 1d 1e 1f
+
+# Actually starts a new line
+# d
+
+# Deletes a char before cursor - actually does it
+# 14
+
+# 20 - 7f chars
+
+# Add 40 (NO 8D)
+# 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8e 8f
+# 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f
+
+# Actually starts a new line (same as D)
+# 8d
+
+# a0 - ff chars
+
+_p2sadjust = [0x80, 0x00, -0X40, 0X40, 0X40, -0X40, -0X80, 0X00]
+
+def pettoscreen(c):
+	return c+_p2sadjust[c>>5]
+
 def pettoascii(c):
-	return decoding_table[c]
+	if c>=0x01 and c<=0x1f:
+		c += 0x80
+	elif c>=0x80 and c<=0x9f:
+		c += 0x40
+	else:
+		c = pettoscreen(c)
+
+	return chr(0xee00+c)
 
 def line_iterator(mem, ivl):
 	mem = mem.view(ivl)
@@ -357,7 +390,7 @@ def line_iterator(mem, ivl):
 	addr = ivl.first
 	while addr<=ivl.last:
 		link = mem.r16(addr)
-		if link&0xff00 == 0:
+		if link&0xff00 ==0:
 			# Code from LIST command:
 			# .,A6CD B1 5F    LDA ($5F),Y     HIGH BYTE OF LINK
 			# .,A6CF F0 43    BEQ $A714       END OF PROGRAM
