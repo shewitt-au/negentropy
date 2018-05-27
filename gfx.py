@@ -63,8 +63,8 @@ c64Colours = (
 	)
 
 class C64Bitmap(object):
-	def __init__(self, sz):
-		self.image = Image.new("P", sz, 0)
+	def __init__(self, sz, bgcol=0):
+		self.image = Image.new("P", sz, bgcol)
 		self.image.putpalette(c64Colours)
 		self.pixels = self.image.load()
 
@@ -95,7 +95,8 @@ class C64Bitmap(object):
 		for yy in range(pos[1], pos[1]+8*zoom, zoom):
 			v = next(it)
 			for xx in range(pos[0], pos[0]+8*zoom, zoom):
-				self.plotpixel((xx, yy), (c if int(v)&0x80 else 0), zoom)
+				if int(v)&0x80:
+					self.plotpixel((xx, yy), c, zoom)
 				v = v<<1
 	#
 	#  MULTI-COLOR CHARACTER MODE (MCM = 1, BMM = ECM = 0 )
@@ -208,3 +209,12 @@ class C64Bitmap(object):
 				else:
 					self.setchar(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), pallet, self.zoom)
 				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), mcm, 11, self.zoom)
+
+if __name__ == '__main__':
+	b = C64Bitmap((128, 64), 6)
+	with open("chargen", "rb") as f:
+		d = f.read()
+	for y in range(0, 8):
+		for x in range(0, 16):
+			b.setchar(d, x+y*16, (x*8, y*8), 14)
+	b.save("chars.png")
