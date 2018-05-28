@@ -54,7 +54,8 @@ def run(args):
 				memory = args.input,
 				memtype = args.memtype,
 				symbols = args.labels,
-				comments = args.comments
+				comments = args.comments,
+				flags = args.flag
 		)
 	bd.preprocess()
 
@@ -63,7 +64,8 @@ def run(args):
 	env.globals['items'] = bd.items()
 	env.globals['has_index'] = index.has_index(bd)
 	env.globals['index'] = index.get_index(bd)
-	env.globals['have_holes'] = bd.holes>0 
+	env.globals['have_holes'] = bd.holes>0
+	env.globals['flags'] = args.flag
 	env.filters['seq2str'] = sequence_to_string
 	add_dispatcher(env, "dispatch", "{}_handler")
 	add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")

@@ -29,6 +29,10 @@ def main():
 					"-c", "--comments",
 					help="file used to inject comments into the disassembly")
 	parser.add_argument(
+					"-f", "--flag",
+					action="append",
+					help="set various flags")
+	parser.add_argument(
 					"-g", "--gaps",
 					action="store_true",
 					help="show gaps in memtype file (implies '--defaultdecoder data' if no decoder specified)"
@@ -54,6 +58,8 @@ def main():
 	# post-processing
 	if args.gaps is True and args.defaultdecoder is None:
 		args.defaultdecoder = "data"
+	if args.flag is None:
+		args.flag = []
 	
 	templates.run(args)
 

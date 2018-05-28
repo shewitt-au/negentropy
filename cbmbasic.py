@@ -89,7 +89,7 @@ def command(token):
 		return CommandInfo("?", 0)
 
 # From cbmcodecs: https://pypi.org/project/cbmcodecs/
-decoding_table = (
+_decoding_table = (
 	'\ufffe'    #  0x00 -> UNDEFINED
 	'\ufffe'    #  0x01 -> UNDEFINED
 	'\ufffe'    #  0x02 -> UNDEFINED
@@ -348,33 +348,58 @@ decoding_table = (
 	'\u03c0'    #  0xFF -> GREEK SMALL LETTER PI
 )
 
-# Add 80 (NO D, NO 14)
-# 1 2 3 4 5 6 7 8 9 a b c e f
-# 10 11 12 13 15 16 17 18 19 1a 1b 1c 1d 1e 1f
-
-# Actually starts a new line
-# d
-
-# Deletes a char before cursor - actually does it
-# 14
-
-# 20 - 7f chars
-
-# Add 40 (NO 8D)
-# 80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8e 8f
-# 90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f
-
-# Actually starts a new line (same as D)
-# 8d
-
-# a0 - ff chars
-
 _p2sadjust = [0x80, 0x00, -0X40, 0X40, 0X40, -0X40, -0X80, 0X00]
+
+_control_char_names = {
+	0x03:	"{run/stop}",
+	0x05:	"{white}",
+	0X08:	"{ctrl+h}",
+	0X09:	"{ctrl+i}",
+	0X0E:	"{ctrl+n}",
+	0X11:	"{crsr down}",
+	0x12:	"{rvs on}",
+	0x13:	"{home}",
+	0x14:	"{del}",
+	0x1c:	"{red}",
+	0x1d:	"{crsr right}",
+	0x1e:	"{green}",
+	0x1f:	"{blue}",
+	0x81:	"{orange}",
+	0x85:	"{f1}",
+	0X86:	"{f3}",
+	0x87:	"{f5}",
+	0x88:	"{f7}",
+	0x89:	"{f2}",
+	0x8a:	"{f4}",
+	0X8b:	"{f6}",
+	0x8c:	"{f8}",
+	0x8d:	"{shift return}",
+	0x8e:	"{ctrl+/}",
+	0x90:	"{black}",
+	0x91:	"{crsr up}",
+	0x92:	"{rvs off}",
+	0x93:	"{clear}",
+	0x94:	"{inst}",
+	0x95:	"{brown}",
+	0x96:	"{light-red}",
+	0x97:	"{darkgrey}",
+	0X98:	"{grey}",
+	0X99:	"{lightgreen}",
+	0X9a:	"{lightblue}",
+	0x9b:	"{lightgrey}",
+	0x9c:	"{purple}",
+	0x9d:	"{crsr left}",
+	0x9e:	"{yellow}",
+	0x9f:	"{cyan}"
+}
 
 def pettoscreen(c):
 	return c+_p2sadjust[c>>5]
 
 def pettoascii(c):
+	return _control_char_names.get(c, _decoding_table[c])
+
+def c64fontmapper(c):
 	if c>=0x01 and c<=0x1f:
 		c += 0x80
 	elif c>=0x80 and c<=0x9f:
@@ -398,8 +423,10 @@ def line_iterator(mem, ivl):
 		yield Interval(addr, link-1)
 		addr = link
 
-def line_tokens(mem, ivl):
+def line_tokens(mem, ivl, c64font=False):
 	mem = mem.view(ivl)
+
+	mapper = c64fontmapper if c64font else pettoascii
 
 	yield {
 		'type': 'line_num',
@@ -474,7 +501,7 @@ def line_tokens(mem, ivl):
 			# *************************************************************#
 			elif ps==PS.GetText:
 					token_start = addr
-					strval = pettoascii(token)
+					strval = mapper(token)
 					ps = PS.GetRestOfText
 			# *************************************************************#
 			elif ps==PS.GetRestOfText:
@@ -500,7 +527,7 @@ def line_tokens(mem, ivl):
 				elif token==0:
 					ps = PS.Done
 				else:
-					strval += pettoascii(token)
+					strval += mapper(token)
 
 				# we generate an output token when we leave this state
 				if ps!=PS.GetRestOfText:
@@ -545,7 +572,7 @@ def line_tokens(mem, ivl):
 						'val': strval}
 					ps = PS.Done
 				else:
-					strval += pettoascii(token)
+					strval += mapper(token)
 			# *************************************************************#
 			elif ps==PS.GetLineNumber:
 					token_start = addr

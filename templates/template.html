@@ -23,11 +23,13 @@
 .hole {
 	border: 2px solid red;
 }
-.c64pm {
+.basic {
+{%- if 'c64font' in flags -%}
 	font: normal 8pt "C64 Pro Mono Local", verdana, helvetica, sans-serif;
 	letter-spacing: 0px;
 	padding: 0;
 	margin: 0;
+{%- endif -%}
 	white-space: pre;
 }
 </style>
@@ -153,7 +155,7 @@
 
 {#- ----------------basic---------------- -#}
 {%- macro basic_handler(section) -%}
-<div class="c64pm">
+<div class="basic">
 {%- for ln in section.lines -%}
 {{- anchor(ln) }}{#{{address(ln)}}{{tabs() -}}-#}
 {%- for tkn in ln.tokens -%}

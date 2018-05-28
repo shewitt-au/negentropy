@@ -4,7 +4,7 @@ import symbols as symmod
 from interval import Interval
 
 class Context(object):
-	def __init__(self, decoders, address, memory, memtype, default_decoder, symbols, comments):
+	def __init__(self, decoders, address, memory, memtype, default_decoder, symbols, comments, flags):
 		self.decoders = decoders
 		with open(memory, "rb") as f:
 			contents = f.read()
@@ -16,6 +16,7 @@ class Context(object):
 		self.links_reachable_addresses = set()
 		self.holes = 0
 		self.memtype = memmap.MemType(self, memtype, default_decoder)
+		self.flags = flags
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)

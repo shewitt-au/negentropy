@@ -7,8 +7,6 @@ class BasicDecoder(decoders.Prefix):
 		self.name = name
 
 	def preprocess(self, ctx, ivl):
-		print(hex(line_to_address(ctx.mem, ivl, 319)))
-
 		for livl in line_iterator(ctx.mem, ivl):
 			ctx.link_add_reachable(livl.first)
 
@@ -26,7 +24,8 @@ class BasicDecoder(decoders.Prefix):
 	def decode(self, ctx, ivl, params=None):
 		def lines():
 			def annotated_tokens():
-				for token in line_tokens(ctx.mem, livl):
+				# TODO: We should use 'params' to pass data in
+				for token in line_tokens(ctx.mem, livl, "c64font" in ctx.flags):
 					if token['type'] == 'line_ref':
 						target = line_to_address(ctx.mem, ivl, token['val'])
 						token['is_source'] = ctx.is_destination(target)
