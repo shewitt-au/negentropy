@@ -12,20 +12,19 @@ class MemRegion(Interval):
 		self.decoder = decoder
 		self.params = params
 		self.is_hole = False
-		self.subsets = []
+
+	def _region_iterator(self, ctx):
+		return self.cut_left_iter(merge(ctx.syms.keys_in_range(self), ctx.cmts.keys_in_range(self)))
 
 	def preprocess(self, ctx):
 		remains = self
-		for region in self.cut_left_iter(merge(ctx.syms.keys_in_range(self), ctx.cmts.keys_in_range(self))):
-			self.subsets.append(region)
+		for region in self._region_iterator(ctx):
 			remains = self.decoder.preprocess(ctx, self)
-		if not self.subsets:
-			self.subsets.append(self)
 		return remains
 
 	def items(self, ctx):
 		params = self.params.copy()
-		for ivl in self.subsets:
+		for ivl in self._region_iterator(ctx):
 			yield self.decoder.prefix(ctx, ivl, params)
 			yield self.decoder.decode(ctx, ivl, params)
 
@@ -37,7 +36,7 @@ class MemRegion(Interval):
 		return cpy
 
 	def __str__(self):
-		return "${:04x}-${:04x}: subsets={}, decoder={}".format(self.first, self.last, self.subsets, self.decoder)
+		return "${:04x}-${:04x}: decoder={}".format(self.first, self.last, self.decoder)
 
 	def __repr__(self):
 		return "MemRegion({})".format(str(self))
@@ -157,8 +156,9 @@ class MemType(object):
 			else:
 				remains = pp(ctx)
 				if not remains.is_empty():
-					region.last = remains.first-1
-					new_map.append(region)
+					region_cpy = copy.copy(region)
+					region_cpy.last = remains.first-1
+					new_map.append(region_cpy)
 					new_map.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
 				else:
 					new_map.append(region)

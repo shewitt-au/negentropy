@@ -80,13 +80,17 @@ _commands = (
 	CommandInfo("LEFT$",	0,  False),		# $c8
 	CommandInfo("RIGHT$",	0,  False),		# $c9
 	CommandInfo("MID$",		0,  False)		# $ca
+	#
+	#CommandInfo("\u03C0)",		0,  False)		# $ff PI symmol
 )
 
 def command(token):
 	if token>=0x80 and token<=0xca:
 		return _commands[token-0x80]
+	elif token==0xff:
+		return CommandInfo("\u03C0", 0,  False)		# $ff PI symmol
 	else:
-		return CommandInfo("?", 0)
+		return CommandInfo("?", 0, False)
 
 # From cbmcodecs: https://pypi.org/project/cbmcodecs/
 _decoding_table = (
@@ -415,7 +419,7 @@ def line_iterator(mem, ivl):
 	addr = ivl.first
 	while addr<=ivl.last:
 		link = mem.r16(addr)
-		if link&0xff00 ==0:
+		if (link&0xff00)==0:
 			# Code from LIST command:
 			# .,A6CD B1 5F    LDA ($5F),Y     HIGH BYTE OF LINK
 			# .,A6CF F0 43    BEQ $A714       END OF PROGRAM
@@ -425,7 +429,6 @@ def line_iterator(mem, ivl):
 
 def line_tokens(mem, ivl, c64font=False):
 	mem = mem.view(ivl)
-
 	mapper = c64fontmapper if c64font else pettoascii
 
 	yield {
