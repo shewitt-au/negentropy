@@ -80,7 +80,7 @@ class MemType(object):
 			self.default_decoder = ctx.decoders[default_decoder]
 		else:
 			self.default_decoder = None
-		
+
 		txt = None
 		if fname:
 			with open(fname, "r") as f:
