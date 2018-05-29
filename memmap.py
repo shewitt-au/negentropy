@@ -19,7 +19,7 @@ class MemRegion(Interval):
 	def preprocess(self, ctx):
 		remains = self
 		for region in self._region_iterator(ctx):
-			remains = self.decoder.preprocess(ctx, self)
+			remains = self.decoder.preprocess(ctx, region)
 		return remains
 
 	def items(self, ctx):

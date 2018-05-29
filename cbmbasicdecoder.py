@@ -7,6 +7,7 @@ class BasicDecoder(decoders.Prefix):
 		self.name = name
 
 	def preprocess(self, ctx, ivl):
+		token = None
 		for livl in line_iterator(ctx.mem, ivl):
 			ctx.link_add_reachable(livl.first)
 
@@ -19,7 +20,8 @@ class BasicDecoder(decoders.Prefix):
 					ctx.link_add_referenced(token['val'])
 
 		# return the non-processed part of the interval
-		return Interval(token['ivl'].last+4, ivl.last) # +1 to NULL line term, +1 to skip it, +2 over link
+		unproc = Interval(token['ivl'].last+4, ivl.last) if token else ivl # +1 to NULL line term, +1 to skip it, +2 over link
+		return unproc
 			
 	def decode(self, ctx, ivl, params=None):
 		def lines():
