@@ -3,6 +3,7 @@ import bisect
 from heapq import merge
 import copy
 from interval import Interval, with_holes
+import decoders
 
 # Represents a region of memory (C64's) and associates it with a specific decoder.
 # Handles splitting the region into smaller ones at labels and comments.
@@ -12,21 +13,33 @@ class MemRegion(Interval):
 		self.decoder = decoder
 		self.params = params
 		self.is_hole = False
+		self.subregions = []
 
 	def _region_iterator(self, ctx):
 		return self.cut_left_iter(merge(ctx.syms.keys_in_range(self), ctx.cmts.keys_in_range(self)))
 
 	def preprocess(self, ctx):
-		remains = self
-		for region in self._region_iterator(ctx):
-			remains = self.decoder.preprocess(ctx, region)
+		cp = self.decoder.cutting_policy()
+		if cp==decoders.CuttingPolicy.Automatic:
+			remains = self
+			for region in self._region_iterator(ctx):
+				self.subregions.append(region)
+			remains = self.decoder.preprocess(ctx, self)
+		elif cp==decoders.CuttingPolicy.Guided:
+			cutter = decoders.GuidedCutter(ctx, self, self.subregions)
+			remains = self.decoder.preprocess(ctx, self, cutter)
+
 		return remains
 
 	def items(self, ctx):
 		params = self.params.copy()
-		for ivl in self._region_iterator(ctx):
-			yield self.decoder.prefix(ctx, ivl, params)
-			yield self.decoder.decode(ctx, ivl, params)
+		for ivl in self.subregions:
+			# using a clipped interval like this is the easiest way to allow
+			# altering the interval without rewriting the subregions list.
+			clipped_interval = ivl&self
+			if not clipped_interval.is_empty():
+				yield self.decoder.prefix(ctx, clipped_interval, params)
+				yield self.decoder.decode(ctx, clipped_interval, params)
 
 	def __and__(self, other):
 		cpy = copy.copy(self)
@@ -150,7 +163,9 @@ class MemType(object):
 					cr = CompoundMemRegion()
 					dr.last = remains.first-1
 					cr.add(dr)
-					cr.add(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+					mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
+					mr.preprocess(ctx)
+					cr.add(mr)
 					cr.is_hole = True
 					new_map.append(cr)
 			else:
@@ -159,7 +174,9 @@ class MemType(object):
 					region_cpy = copy.copy(region)
 					region_cpy.last = remains.first-1
 					new_map.append(region_cpy)
-					new_map.append(MemRegion(ctx.decoders['data'], remains.first, remains.last, {}))
+					mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
+					mr.preprocess(ctx)
+					new_map.append(mr)
 				else:
 					new_map.append(region)
 

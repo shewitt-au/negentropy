@@ -1,7 +1,50 @@
+from enum import Enum, unique, auto
+from heapq import merge
 import memory as memmod
 import memmap
 import symbols as symmod
 from interval import Interval
+
+@unique
+class CuttingPolicy(Enum):
+	Automatic = auto()
+	Guided  = auto()
+	Dont = auto()
+
+class GuidedCutter(object):
+	def __init__(self, ctx, ivl, coll):
+		self.cuts = merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))
+		self.current = Interval()
+		self.coll = coll
+		self._next_cut()
+
+	def _next_cut(self):
+		try:
+			self.cut = next(self.cuts)
+		except StopIteration:
+			self.cut = None
+
+	# Add an atomic region that can't be cut. Cuts only occur at joins.
+	# If a cut point isn't present at a join the regions are merged.
+	# Cuts at other locations are ignored.
+	# TODO: flag the ignored cuts and log.
+	def atomic(self, ivl):
+		self.current = Interval.union(self.current, ivl)
+		if self.cut is None:
+			return
+
+		while self.cut<=ivl.last:
+			self._next_cut()
+			if self.cut is None:
+				return
+
+		if self.cut==(ivl.last+1):
+			self.coll.append(self.current)
+			self.current = Interval()
+
+	def done(self):
+		if not self.current.is_empty():
+			self.coll.append(self.current)
 
 class Context(object):
 	def __init__(self, decoders, address, memory, memtype, default_decoder, symbols, comments, flags):
@@ -53,3 +96,6 @@ class Prefix(object):
 			'comment_after': None if c is None else c[2],
 			'comment_inline': None if c is None else c[3]
 			}
+
+	def cutting_policy(self):
+		return CuttingPolicy.Automatic
