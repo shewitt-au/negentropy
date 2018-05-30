@@ -28,6 +28,8 @@ class MemRegion(Interval):
 		elif cp==decoders.CuttingPolicy.Guided:
 			cutter = decoders.GuidedCutter(ctx, self, self.subregions)
 			remains = self.decoder.preprocess(ctx, self, cutter)
+		else: # CuttingPolicy.Dont
+			remains = self.decoder.preprocess(ctx, self)
 
 		return remains
 
