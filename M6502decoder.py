@@ -5,12 +5,17 @@ class M6502Decoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
 
-	def preprocess(self, ctx, ivl):
+	def cutting_policy(self):
+		return decoders.CuttingPolicy.Guided
+
+	def preprocess(self, ctx, ivl, cutter):
 		ii = None
 		for ii in M6502Iterator(ctx.mem, ivl):
+			cutter.atomic(ii.ivl)
 			ctx.link_add_reachable(ii.ivl.first)
 			if ii.target is not None:
 				ctx.link_add_referenced(ii.target)
+		cutter.done()
 		# return the non-processed part of the interval
 		return ivl if ii is None else Interval(ii.ivl.last+1, ivl.last)
 

@@ -33,14 +33,19 @@ class PointerDecoder(decoders.Prefix):
 		self.name = name
 		self.linelen = linelen
 
-	def preprocess(self, ctx, ivl):
+	def cutting_policy(self):
+		return decoders.CuttingPolicy.Guided
+
+	def preprocess(self, ctx, ivl, cutter):
 		mem = ctx.mem.view(ivl)
 
 		bpl = 2*self.linelen
 		for addr in range(ivl.first, ivl.last+1, bpl):
 			ctx.link_add_reachable(addr)
 		for addr in range(ivl.first, ivl.last+1, 2):
+			cutter.atomic(ivl)
 			ctx.link_add_referenced(mem.r16(addr))
+		cutter.done()
 
 		# return the non-processed part of the interval
 		return Interval(addr+2, ivl.last)
