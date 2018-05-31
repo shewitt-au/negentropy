@@ -33,12 +33,6 @@ class Interval(object):
 	def copy(self):
 		return copy.copy(self)
 
-	# useful when Interval is used as a base class (to alter the Interval part but keep the rest)
-	def copy_and_assign(self, ivl):
-		cp = self.copy()
-		cp.assign(ivl)
-		return cp
-
 	def assign(self, other):
 		self.first = other.first
 		self.last = other.last
@@ -166,13 +160,13 @@ class Interval(object):
 
 	def cut_left(self, pos):
 		return (
-			self.copy_and_assign(Interval(self.first, min(pos-1, self.last))),
-			self.copy_and_assign(Interval(max(pos, self.first), self.last))
+			Interval(self.first, min(pos-1, self.last)),
+			Interval(max(pos, self.first), self.last)
 			)
 
 	def cut_left_iter(self, cuts):
 		l = self
-		r = self.copy_and_assign(Interval())
+		r = Interval()
 		it = iter(cuts)
 
 		try:
@@ -192,13 +186,13 @@ class Interval(object):
 
 	def cut_right(self, pos):
 		return (
-			self.copy_and_assign(Interval(self.first, min(pos, self.last))),
-			self.copy_and_assign(Interval(max(pos+1, self.first), self.last))
+			Interval(self.first, min(pos, self.last)),
+			Interval(max(pos+1, self.first), self.last)
 			)
 
 	def cut_right_iter(self, cuts):
 		l = self
-		r = self.copy_and_assign(Interval())
+		r = Interval()
 		it = iter(cuts)
 
 		try:
@@ -215,42 +209,3 @@ class Interval(object):
 				l = r
 			if not r.is_empty():
 				yield r
-
-
-def nop_hole_decorator(ivl, is_hole):
-	return ivl
-
-def hole_decorator(ivl, is_hole):
-	cpy = copy.copy(ivl)
-	cpy.is_hole = is_hole
-	return cpy
-
-def with_holes(envelope, coll, decorator=nop_hole_decorator):
-	it = iter(coll)
-	try:
-		first = next(coll)
-	except StopIteration:
-		# if the interval collection is empty return the envelope as a hole
-		yield decorator(envelope, True)
-	else:
-		assert envelope.contains(first), "'envelope' must contains all items in 'coll'"
-		if first.first > envelope.first:
-			# we have a hole before the contents of 'coll'
-			yield decorator(Interval(envelope.first, first.first-1), True)
-
-		last = first
-		for n in it:
-			assert envelope.contains(n), "'envelope' must contains all items in 'coll'"
-			yield decorator(last, False)
-
-			hole = Interval(last.last+1, n.first-1)
-			if not hole.is_empty():
-				yield decorator(hole, True)
-
-			last = n
-	
-		yield decorator(last, False)
-
-		if last.last < envelope.last:
-			# we have a hole after the contents of 'coll'
-			yield decorator(Interval(last.last+1, envelope.last), True)

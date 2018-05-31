@@ -2,34 +2,61 @@ import re
 import bisect
 from heapq import merge
 import copy
-from interval import Interval, with_holes
+from interval import Interval
 import decoders
+
+class BaseRegion(object):
+	def __init__(self, first=None, last=None):
+		self.ivl = Interval(first, last)
+
+	def __eq__(self, other):
+		return self.ivl == other
+
+	def __ne__(self, other):
+		return self.ivl != other
+
+	def __lt__(self, other):
+		return self.ivl < other
+
+	def __le__(self, other):
+		return self.ivl <= other
+
+	def __gt__(self, other):
+		return self.ivl > other
+
+	def __ge__(self, other):
+		return self.ivl >= other
+
+	def __and__(self, other):
+		cpy = copy.copy(self)
+		cpy.ivl = self.ivl & other
+		return cpy
 
 # Represents a region of memory (C64's) and associates it with a specific decoder.
 # Handles splitting the region into smaller ones at labels and comments.
-class MemRegion(Interval):
-	def __init__(self, decoder, tuple_or_first, last=None, params=None):
-		super().__init__(tuple_or_first, last)
+class MemRegion(BaseRegion):
+	def __init__(self, decoder, first, last=None, params=None):
+		super().__init__(first, last)
 		self.decoder = decoder
 		self.params = params
 		self.is_hole = False
 		self.subregions = []
 
 	def _region_iterator(self, ctx):
-		return self.cut_left_iter(merge(ctx.syms.keys_in_range(self), ctx.cmts.keys_in_range(self)))
+		return self.ivl.cut_left_iter(merge(ctx.syms.keys_in_range(self.ivl), ctx.cmts.keys_in_range(self.ivl)))
 
 	def preprocess(self, ctx):
 		cp = self.decoder.cutting_policy()
 		if cp==decoders.CuttingPolicy.Automatic:
-			remains = self
+			remains = self.ivl
 			for region in self._region_iterator(ctx):
 				self.subregions.append(region)
-			remains = self.decoder.preprocess(ctx, self)
+			remains = self.decoder.preprocess(ctx, self.ivl)
 		elif cp==decoders.CuttingPolicy.Guided:
-			cutter = decoders.GuidedCutter(ctx, self, self.subregions)
-			remains = self.decoder.preprocess(ctx, self, cutter)
+			cutter = decoders.GuidedCutter(ctx, self.ivl, self.subregions)
+			remains = self.decoder.preprocess(ctx, self.ivl, cutter)
 		else: # CuttingPolicy.Dont
-			remains = self.decoder.preprocess(ctx, self)
+			remains = self.decoder.preprocess(ctx, self.ivl)
 
 		return remains
 
@@ -38,25 +65,18 @@ class MemRegion(Interval):
 		for ivl in self.subregions:
 			# using a clipped interval like this is the easiest way to allow
 			# altering the interval without rewriting the subregions list.
-			clipped_interval = ivl&self
+			clipped_interval = ivl&self.ivl
 			if not clipped_interval.is_empty():
 				yield self.decoder.prefix(ctx, clipped_interval, params)
 				yield self.decoder.decode(ctx, clipped_interval, params)
 
-	def __and__(self, other):
-		cpy = copy.copy(self)
-		ivl = super().__and__(other)
-		cpy.first = ivl.first
-		cpy.last = ivl.last
-		return cpy
-
 	def __str__(self):
-		return "${:04x}-${:04x}: decoder={}".format(self.first, self.last, self.decoder)
+		return "{}: decoder={}".format(self.ivl, self.decoder)
 
 	def __repr__(self):
 		return "MemRegion({})".format(str(self))
 
-class CompoundMemRegion(Interval):
+class CompoundMemRegion(BaseRegion):
 	def __init__(self):
 		super().__init__()
 		self.contents = []
@@ -71,13 +91,6 @@ class CompoundMemRegion(Interval):
 	def items(self, ctx):
 		for r in self.contents:
 			yield from r.items(ctx)
-
-	def __and__(self, other):
-		cpy = copy.copy(self)
-		ivl = super().__and__(other)
-		cpy.first = ivl.first
-		cpy.last = ivl.last
-		return cpy
 
 	def __str__(self):
 		return "{}".format(self.contents)
@@ -129,6 +142,10 @@ class MemType(object):
 	def __getitem__(self, key):
 		return self.map[key]
 
+	def contains(self, addr):
+		i = bisect.bisect_left(self.map, addr)
+		return i!=len(self) and self[i]==addr
+
 	# Iterates over the overlapping regions clipping the ends if they only
 	# partially overlap.
 	def overlapping(self, ivl):
@@ -137,26 +154,15 @@ class MemType(object):
 		for idx in range(b, e):
 			yield self[idx]&ivl
 
-	def contains(self, addr):
-		i = bisect.bisect_left(self.map, addr)
-		return i!=len(self) and self[i]==addr
-
-	def _region_iterator(self, ivl):
-		if self.default_decoder:
-			return with_holes(ivl, self.overlapping(ivl))
-		else:
-			return self.overlapping(ivl)
-
 	def preprocess(self, ctx, ivl):
 		new_map = []
 
-		for region in self._region_iterator(ivl):
-			try:
-				pp = region.preprocess
-			except AttributeError:
+		def process_hole(self):
+			hole = hole_finder.hole()
+			if not hole.is_empty():
 				# we found a hole and we've got a default decoder
 				ctx.holes += 1
-				dr = MemRegion(self.default_decoder, region.first, region.last, {})
+				dr = MemRegion(self.default_decoder, hole.first, hole.last, {})
 				remains = dr.preprocess(ctx)
 				if remains.is_empty():
 					dr.is_hole = True
@@ -170,17 +176,27 @@ class MemType(object):
 					cr.add(mr)
 					cr.is_hole = True
 					new_map.append(cr)
+
+		hole_finder = HoleFinder(ivl) if self.default_decoder else FakeHoleFinder()
+
+		for region in self.overlapping(ivl):
+			hole_finder.feed(region.ivl)
+
+			process_hole(self)
+
+			remains = region.preprocess(ctx)
+			if not remains.is_empty():
+				region_cpy = copy.copy(region)
+				region_cpy.last = remains.first-1
+				new_map.append(region_cpy)
+				mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
+				mr.preprocess(ctx)
+				new_map.append(mr)
 			else:
-				remains = pp(ctx)
-				if not remains.is_empty():
-					region_cpy = copy.copy(region)
-					region_cpy.last = remains.first-1
-					new_map.append(region_cpy)
-					mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
-					mr.preprocess(ctx)
-					new_map.append(mr)
-				else:
-					new_map.append(region)
+				new_map.append(region)
+
+		hole_finder.feed()
+		process_hole(self)
 
 		self.map = new_map
 
@@ -198,3 +214,52 @@ class MemType(object):
 				hole_idx += 1
 			else:
 				yield from region.items(ctx)
+
+class FakeHoleFinder(object):
+	def __init__(self):
+		self.empty = Interval()
+
+	def feed(self, ivl=None):
+		pass
+
+	def hole(self):
+		return self.empty
+
+class HoleFinder(object):
+	def __init__(self, envelope):
+		self.empty = Interval()
+		self.envelope = envelope
+		self.current = None
+		self.last = None
+
+	def feed(self, ivl=None):
+		if self.current is None:
+			self.current = ivl
+		else:
+			self.last = self.current
+			self.current = ivl
+
+	def hole(self):
+		if self.current is None:
+			if self.last is None:
+				# we've been fed no intervals, return the envelope as a hole
+				return self.envelope
+			else:
+				# a hole between the last interval and the envelope
+				return Interval(self.last.last+1, self.envelope.last)
+
+		# if we have a hole between the first interval and the envelope
+		if self.last is None:
+			if self.current.first > self.envelope.first:
+				return Interval(self.envelope.first, self.current.first-1)
+			else:
+				return self.empty
+
+		return Interval(self.last.last+1, self.current.first-1)
+
+if __name__=='__main__':
+	hf = HoleFinder(Interval(0, 0x100))
+	hf.feed(Interval(0x1, 0xff))
+	print(hf.hole())
+	hf.feed()
+	print(hf.hole())
