@@ -55,6 +55,12 @@
 {%- endif -%}
 {%- endmacro -%}
 
+{%- macro comment_inline(i) -%}
+{%- if i.comment -%}
+<span class="comment"> ; {{i.comment}}</span>
+{%- endif -%}
+{%- endmacro -%}
+
 {%- macro tabs() %}   {% endmacro -%}
 
 {%- macro address(i) -%}
@@ -102,7 +108,8 @@
 {%- macro code_handler(section) -%}
 <div class="code">
 {%- for i in section.lines -%}
-{{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{instruction(i)}}
+{{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{instruction(i)-}}
+{{-comment_inline(i)}}
 {% endfor -%}
 </div>
 {%- endmacro -%}

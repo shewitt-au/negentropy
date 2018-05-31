@@ -73,16 +73,6 @@ def read_comments(fname):
 			pos = 0 # before
 			addr = -1
 
-			def update_stinggs():
-				if line[0:2] == r"\/":
-					line = line[2:]
-					after += line+"\n"
-				elif line[0] == r">":
-					line = line[1:]
-					inline += line+"\n"
-				else:
-					before += line+"\n"
-
 			for line in f:
 				if line=="":
 					continue
@@ -94,6 +84,8 @@ def read_comments(fname):
 				newaddr = int(m[1], 16)
 
 				if addr!=newaddr:
+					if inline:
+						inline = inline.rstrip()
 					comments.add((addr, before, after, inline))
 					pos = 0 # before
 					before = after = inline = ""
@@ -115,6 +107,8 @@ def read_comments(fname):
 				addr = newaddr
 
 		# Add the last one
+		if inline:
+			inline = inline.rstrip()
 		comments.add((addr, before, after, inline))
 
 		#TODO: REVISIT THIS - WE CAN'T REMOVE NOW!

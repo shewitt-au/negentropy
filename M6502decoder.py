@@ -53,10 +53,14 @@ class M6502Decoder(decoders.Prefix):
 					one_before = False
 					operand_body = format_numerical_operand(ii.operand)
 
+				c = ctx.cmts.by_address.get(ii.ivl.first)
+				inline_comment = None if c is None else c[3]
+
 				yield {
 					'address': ii.ivl.first,
 					'is_destination' : (not target_already_exits) and ctx.is_destination(ii.ivl.first),
 					'bytes': ctx.mem.r8m(ii.ivl.first, ii.mode_info.operand_size+1),
+					'comment': inline_comment,
 					'instruction': {
 						'mnemonic': ii.op_info.mnemonic,
 						'pre': ii.mode_info.pre,
