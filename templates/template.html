@@ -4,10 +4,12 @@
 <head>
 <meta charset="utf-8"/>
 <style>
+{%- if 'c64font' in flags -%}
 @font-face {
 	 font-family: "C64 Pro Mono Local";
 	 src: url("C64_Pro_Mono-STYLE.woff2") format("woff2");
 }
+{%- endif -%}
 .container {
 	font-family: monospace;
 }
@@ -207,6 +209,10 @@
 {%- endif -%}
 {%- endmacro -%}
 
+{#- ----------------notinterested---------------- -#}
+{%- macro notinterested_handler(section) -%}
+Not interested: {{section.ivl}}<br/>
+{%- endmacro -%}
 
 {#- ********************************BODY******************************** #}
 

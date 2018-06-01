@@ -6,6 +6,7 @@ import data
 import M6502decoder
 import index
 import cbmbasicdecoder
+import notinteresteddecoder
 
 def render(env, template_name, **template_vars):
 	template = env.get_template(template_name)
@@ -47,7 +48,8 @@ def run(args):
 					"data" : data.BytesDecoder("data", 16),
 					"ptr16" : data.PointerDecoder("ptr16", 4),
 					"code" : M6502decoder.M6502Decoder("code"),
-					"basic" : cbmbasicdecoder.BasicDecoder("basic")
+					"basic" : cbmbasicdecoder.BasicDecoder("basic"),
+					"notinterested" : notinteresteddecoder.NotInterestedDecoder("notinterested")
 					},
 				default_decoder = args.defaultdecoder,
 				address = args.origin,
