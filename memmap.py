@@ -97,6 +97,40 @@ class CompoundMemRegion(BaseRegion):
 
 	def __repr__(self):
 		return "CompoundMemRegion({})".format(self.contents)
+
+def fake_with_holes(envelope, coll):
+	for ivl in coll:
+		yield (ivl, False)
+
+def with_holes(envelope, coll):
+	it = iter(coll)
+	try:
+		first = next(coll)
+	except StopIteration:
+		# if the interval collection is empty return the envelope as a hole
+		yield (envelope, True)
+	else:
+		assert envelope.contains(first.ivl), "'envelope' must contains all items in 'coll'"
+		if first.ivl.first > envelope.first:
+			# we have a hole before the contents of 'coll'
+			yield (Interval(envelope.first, first.ivl.first-1), True)
+
+		last = first
+		for n in it:
+			assert envelope.contains(n), "'envelope' must contains all items in 'coll'"
+			yield (last, False)
+
+			hole = Interval(last.ivl.last+1, n.ivl.first-1)
+			if not hole.is_empty():
+				yield (hole, True)
+
+			last = n
+	
+		yield (last, False)
+
+		if last.ivl.last < envelope.last:
+			# we have a hole after the contents of 'coll'
+			yield (Interval(last.ivl.last+1, envelope.last), True)
 		
 memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^({.*?^})?", re.MULTILINE|re.DOTALL)
 
@@ -154,15 +188,20 @@ class MemType(object):
 		for idx in range(b, e):
 			yield self[idx]&ivl
 
-	def preprocess(self, ctx, ivl):
-		new_map = []
+	def _region_iter(self, ivl):
+		if self.default_decoder:
+			return with_holes(ivl, self.overlapping(ivl))
+		else:
+			return fake_with_holes(ivl, self.overlapping(ivl))
 
-		def process_hole(self):
-			hole = hole_finder.hole()
-			if not hole.is_empty():
+	def preprocess(self, ctx, ivl):
+		new_map = []				
+
+		for region, is_hole in self._region_iter(ivl):
+			if  is_hole:
 				# we found a hole and we've got a default decoder
 				ctx.holes += 1
-				dr = MemRegion(self.default_decoder, hole.first, hole.last, {})
+				dr = MemRegion(self.default_decoder, region.first, region.last, {})
 				remains = dr.preprocess(ctx)
 				if remains.is_empty():
 					dr.is_hole = True
@@ -176,27 +215,17 @@ class MemType(object):
 					cr.add(mr)
 					cr.is_hole = True
 					new_map.append(cr)
-
-		hole_finder = HoleFinder(ivl) if self.default_decoder else FakeHoleFinder()
-
-		for region in self.overlapping(ivl):
-			hole_finder.feed(region.ivl)
-
-			process_hole(self)
-
-			remains = region.preprocess(ctx)
-			if not remains.is_empty():
-				region_cpy = copy.copy(region)
-				region_cpy.last = remains.first-1
-				new_map.append(region_cpy)
-				mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
-				mr.preprocess(ctx)
-				new_map.append(mr)
 			else:
-				new_map.append(region)
-
-		hole_finder.feed()
-		process_hole(self)
+				remains = region.preprocess(ctx)
+				if not remains.is_empty():
+					region_cpy = copy.copy(region)
+					region_cpy.last = remains.first-1
+					new_map.append(region_cpy)
+					mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
+					mr.preprocess(ctx)
+					new_map.append(mr)
+				else:
+					new_map.append(region)
 
 		self.map = new_map
 
@@ -214,52 +243,3 @@ class MemType(object):
 				hole_idx += 1
 			else:
 				yield from region.items(ctx)
-
-class FakeHoleFinder(object):
-	def __init__(self):
-		self.empty = Interval()
-
-	def feed(self, ivl=None):
-		pass
-
-	def hole(self):
-		return self.empty
-
-class HoleFinder(object):
-	def __init__(self, envelope):
-		self.empty = Interval()
-		self.envelope = envelope
-		self.current = None
-		self.last = None
-
-	def feed(self, ivl=None):
-		if self.current is None:
-			self.current = ivl
-		else:
-			self.last = self.current
-			self.current = ivl
-
-	def hole(self):
-		if self.current is None:
-			if self.last is None:
-				# we've been fed no intervals, return the envelope as a hole
-				return self.envelope
-			else:
-				# a hole between the last interval and the envelope
-				return Interval(self.last.last+1, self.envelope.last)
-
-		# if we have a hole between the first interval and the envelope
-		if self.last is None:
-			if self.current.first > self.envelope.first:
-				return Interval(self.envelope.first, self.current.first-1)
-			else:
-				return self.empty
-
-		return Interval(self.last.last+1, self.current.first-1)
-
-if __name__=='__main__':
-	hf = HoleFinder(Interval(0, 0x100))
-	hf.feed(Interval(0x1, 0xff))
-	print(hf.hole())
-	hf.feed()
-	print(hf.hole())
