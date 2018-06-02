@@ -34,6 +34,9 @@
 {%- endif -%}
 	white-space: pre;
 }
+.notinterested {
+	background-color: orange;
+}
 </style>
 </head>
 
@@ -67,6 +70,10 @@
 
 {%- macro address(i) -%}
 <b>{{"{:04x}".format(i.address)}}</b>
+{%- endmacro -%}
+
+{%- macro address_range(i) -%}
+<b>{{"{:04x}-{:04x}".format(i.ivl.first, i.ivl.last)}}</b>
 {%- endmacro -%}
 
 {%- macro label(i) -%}
@@ -211,7 +218,9 @@
 
 {#- ----------------notinterested---------------- -#}
 {%- macro notinterested_handler(section) -%}
-Not interested: {{section.ivl}}<br/>
+<div class="notinterested">
+{{address_range(section)}} : Not interested!<br/>
+</div>
 {%- endmacro -%}
 
 {#- ********************************BODY******************************** #}
