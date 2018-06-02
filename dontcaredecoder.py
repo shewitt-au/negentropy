@@ -1,7 +1,7 @@
 import decoders
 from interval import Interval
 
-class NotInterestedDecoder(decoders.Prefix):
+class DontCareDecoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
 
@@ -9,7 +9,7 @@ class NotInterestedDecoder(decoders.Prefix):
 		return Interval()
 
 	def decode(self, ctx, ivl, params):
-		title = params.get('title', "Not interested!")
+		title = params.get('title', "Don't care")
 		return {
 				'type': self.name,
 				'title': title,
