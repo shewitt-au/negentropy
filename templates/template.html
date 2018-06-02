@@ -219,7 +219,7 @@
 {#- ----------------notinterested---------------- -#}
 {%- macro notinterested_handler(section) -%}
 <div class="notinterested">
-{{address_range(section)}} : Not interested!<br/>
+{{address_range(section)}} : {{section.title}}<br/>
 </div>
 {%- endmacro -%}
 
