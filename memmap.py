@@ -162,7 +162,7 @@ class MemType(object):
 				pos = m.end()
 		else:
 			if self.default_decoder is None:
-				self.default_decoder = 'data'
+				self.default_decoder = ctx.decoders['data']
 			self.map.append(MemRegion(self.default_decoder, ctx.mem_range.first, ctx.mem_range.last, {}))
 
 		# Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
