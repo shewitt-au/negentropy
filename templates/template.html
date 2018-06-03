@@ -37,6 +37,9 @@
 .notinterested {
 	background-color: orange;
 }
+.intro {
+	background-color: lightgreen;
+}
 </style>
 </head>
 
@@ -104,6 +107,14 @@
 {%- endmacro -%}
 
 {#- ----------------section handlers---------------- -#}
+
+{#- ----------------intro---------------- -#}
+{%- macro intro_handler(section) -%}
+<div class="intro">
+{{section.section_type}} section @
+{{-address_range(section)-}} 
+</div>
+{%- endmacro -%}
 
 {#- ----------------prefix---------------- -#}
 {%- macro prefix_handler(section) -%}

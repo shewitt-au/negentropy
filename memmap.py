@@ -62,6 +62,9 @@ class MemRegion(BaseRegion):
 		return remains
 
 	def items(self, ctx):
+		i = self.decoder.intro(ctx, self)
+		if not i is None:
+			yield i
 		params = self.params.copy()
 		for ivl in self.subregions:
 			# using a clipped interval like this is the easiest way to allow

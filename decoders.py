@@ -85,23 +85,24 @@ class Context(object):
 		return self.memtype.items(self, ivl)
 
 class Prefix(object):
+	def intro(self, ctx, memtype):
+		if ctx.authoring_info:
+			return {
+				'type': "intro",
+				'ivl': memtype.ivl,
+				'section_type': self.name
+				}
+		else:
+			return None
+
 	def prefix(self, ctx, ivl, params):
 		c = ctx.cmts[0].by_address.get(ivl.first)
 		is_destination = ctx.is_destination(ivl.first)
 		params['target_already_exits'] = is_destination
 		s = ctx.syms.by_address.get(ivl.first)
-		if ctx.authoring_info:
-			info = {'authoring_info': 
-					{'ivl': ivl,
-					 'type': self.name
-					}
-				   }
-		else:
-			info = {}
 		return {
 			'type': "prefix",
 			'address': ivl.first,
-			**info,
 			'is_destination' : is_destination,
 			'label': None if s is None else s[1],
 			'comment_before': None if c is None else c[1],
