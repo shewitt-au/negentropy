@@ -47,7 +47,9 @@ class GuidedCutter(object):
 			self.coll.append(self.current)
 
 class Context(object):
-	def __init__(self, decoders, address, memory, memtype, default_decoder, symbols, comments, flags):
+	def __init__(self, decoders, address, memory, 
+				memtype, default_decoder, symbols,
+				comments, flags, authoring_info):
 		self.decoders = decoders
 		with open(memory, "rb") as f:
 			contents = f.read()
@@ -60,6 +62,7 @@ class Context(object):
 		self.holes = 0
 		self.memtype = memmap.MemType(self, memtype, default_decoder)
 		self.flags = flags
+		self.authoring_info = authoring_info
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)
@@ -87,9 +90,18 @@ class Prefix(object):
 		is_destination = ctx.is_destination(ivl.first)
 		params['target_already_exits'] = is_destination
 		s = ctx.syms.by_address.get(ivl.first)
+		if ctx.authoring_info:
+			info = {'authoring_info': 
+					{'ivl': ivl,
+					 'type': self.name
+					}
+				   }
+		else:
+			info = {}
 		return {
 			'type': "prefix",
 			'address': ivl.first,
+			**info,
 			'is_destination' : is_destination,
 			'label': None if s is None else s[1],
 			'comment_before': None if c is None else c[1],

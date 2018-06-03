@@ -111,6 +111,10 @@
 {{ comment_before(section) }}
 {{ label(section) }}
 {{ comment_after(section) }}
+{%- if section.authoring_info -%}
+{{section.authoring_info.type}} section @
+{{-address_range(section.authoring_info)-}} 
+{%- endif -%}
 {%- endmacro -%}
 
 {#- ----------------code---------------- -#}

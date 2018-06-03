@@ -49,6 +49,10 @@ def main():
 					action="store_true",
 					help="open OUT in webbrowser when done")
 	parser.add_argument(
+					"-i", "--info",
+					action="store_true",
+					help="include authoring info")
+	parser.add_argument(
 					"-o", "--origin",
 					type=(lambda v: int(v, 16)),
 					help="address IN expects to be loaded at (if absent the first two bytes are used)")

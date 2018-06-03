@@ -57,6 +57,7 @@ def run(args):
 				memtype = args.memtype,
 				symbols = args.labels,
 				comments = args.comments,
+				authoring_info = args.info,
 				flags = args.flag
 		)
 	bd.preprocess()
