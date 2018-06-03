@@ -136,7 +136,7 @@ def with_holes(envelope, coll):
 			# we have a hole after the contents of 'coll'
 			yield (Interval(last.ivl.last+1, envelope.last), True)
 		
-memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^({.*?^})?", re.MULTILINE|re.DOTALL)
+memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^({.*?^})?\s*", re.MULTILINE|re.DOTALL)
 
 # A representation of the MemType.txt file. A collection of 'MemRegion's.
 class MemType(object):
