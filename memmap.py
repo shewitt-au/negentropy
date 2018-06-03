@@ -43,7 +43,9 @@ class MemRegion(BaseRegion):
 		self.subregions = []
 
 	def _region_iterator(self, ctx):
-		return self.ivl.cut_left_iter(merge(ctx.syms.keys_in_range(self.ivl), ctx.cmts.keys_in_range(self.ivl)))
+		return self.ivl.cut_left_iter(
+			merge(ctx.syms.keys_in_range(self.ivl), ctx.cmts[0].keys_in_range(self.ivl))
+			)
 
 	def preprocess(self, ctx):
 		cp = self.decoder.cutting_policy()
@@ -55,6 +57,7 @@ class MemRegion(BaseRegion):
 			remains = self.decoder.preprocess(ctx, self.ivl, cutter)
 		else: # CuttingPolicy.Dont
 			remains = self.decoder.preprocess(ctx, self.ivl)
+			self.subregions.add(self.ivl)
 
 		return remains
 

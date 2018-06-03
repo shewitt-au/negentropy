@@ -13,7 +13,7 @@ class CuttingPolicy(Enum):
 
 class GuidedCutter(object):
 	def __init__(self, ctx, ivl, coll):
-		self.cuts = merge(ctx.syms.keys_in_range(ivl), ctx.cmts.keys_in_range(ivl))
+		self.cuts = merge(ctx.syms.keys_in_range(ivl), ctx.cmts[0].keys_in_range(ivl))
 		self.current = Interval()
 		self.coll = coll
 		self._next_cut()
@@ -86,7 +86,7 @@ class Context(object):
 
 class Prefix(object):
 	def prefix(self, ctx, ivl, params):
-		c = ctx.cmts.by_address.get(ivl.first)
+		c = ctx.cmts[0].by_address.get(ivl.first)
 		is_destination = ctx.is_destination(ivl.first)
 		params['target_already_exits'] = is_destination
 		s = ctx.syms.by_address.get(ivl.first)
@@ -105,8 +105,7 @@ class Prefix(object):
 			'is_destination' : is_destination,
 			'label': None if s is None else s[1],
 			'comment_before': None if c is None else c[1],
-			'comment_after': None if c is None else c[2],
-			'comment_inline': None if c is None else c[3]
+			'comment_after': None if c is None else c[2]
 			}
 
 	def cutting_policy(self):

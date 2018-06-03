@@ -64,6 +64,7 @@ comments_re = re.compile(r"([0-9A-Fa-f]{4})\s*(.*)")
 
 def read_comments(fname):
 	comments = DictWithRange()
+	inline_comments = DictWithRange()
 
 	if not fname is None:
 		with open(fname, "r") as f:
@@ -84,9 +85,11 @@ def read_comments(fname):
 				newaddr = int(m[1], 16)
 
 				if addr!=newaddr:
+					if before or after:
+						comments.add((addr, before, after))
 					if inline:
 						inline = inline.rstrip()
-					comments.add((addr, before, after, inline))
+						inline_comments.add((addr, inline))
 					pos = 0 # before
 					before = after = inline = ""
 
@@ -107,11 +110,13 @@ def read_comments(fname):
 				addr = newaddr
 
 		# Add the last one
+		if before or after:
+			comments.add((addr, before, after))
 		if inline:
 			inline = inline.rstrip()
-		comments.add((addr, before, after, inline))
+			inline_comments.add((addr, inline))
 
 		#TODO: REVISIT THIS - WE CAN'T REMOVE NOW!
 		#del comments[-1] # Remove the invalid entry
 
-	return comments
+	return (comments, inline_comments)
