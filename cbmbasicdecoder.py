@@ -52,7 +52,7 @@ class BasicDecoder(decoders.Prefix):
 					'is_destination': (not target_already_exits) and (ctx.is_destination(livl.first)),
 					'address': livl.first
 				}
-				target_already_exits
+				target_already_exits = False
 
 		return {
 			'type': self.name,
