@@ -427,6 +427,105 @@ def line_iterator(mem, ivl):
 		yield Interval(addr, link-1)
 		addr = link
 
+class Lexer(object):
+	def __init__(self, mem, ivl):
+		self.mem = mem
+		self.ivl = ivl
+
+	def _spaces(self, addr):
+		for a in range(addr+1, self.ivl.last+1):
+			v = self.mem.r8(a)
+			if v!=ord(' '):
+				return (self.mem.string(addr, a-1), a)
+		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+
+	# IMPORTANT: numbers should not stop a text run or variables such
+	#            as 'X2$' will be spit.
+	_endstext = {ord('"'), ord(':'), ord(';'), ord(','), ord('('), ord(')'), 0}
+
+	def _text(self, addr):
+		for a in range(addr+1, self.ivl.last+1):
+			v = self.mem.r8(a)
+			if v&0x80 or v in self._endstext:
+				return (self.mem.string(addr, a-1), a)
+		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+
+	def _quoted(self, addr):
+		for a in range(addr+1, self.ivl.last+1):
+			v = self.mem.r8(a)
+			if v==ord('"'):
+				return (self.mem.string(addr, a), a+1)
+			elif v==0:
+				return (self.mem.string(addr, a-1), a)
+		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+
+	def _number(self, addr):
+		for a in range(addr+1, self.ivl.last+1):
+			v = self.mem.r8(a)
+			if v<ord('0') or v>ord('9'):
+				return (self.mem.string(addr, a-1), a)
+		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+
+	def tokens(self):
+		addr = self.ivl.first
+
+		while addr!=self.ivl.last:
+
+			#yield {
+			#	'type': 'link',
+			#	'ivl': Interval(addr, addr+1),
+			#	'val': self.mem.r16(addr)
+			#}
+			link = self.mem.r16(addr)
+			if link&0xff00 == 0:
+				break
+			addr += 2
+
+			#yield {
+			#	'type': 'line_num',
+			#	'ivl': Interval(addr, addr+1),
+			#	'val': self.mem.r16(addr)
+			#}
+			yield str(self.mem.r16(addr))+" "
+			addr += 2
+
+			while addr!=self.ivl.last:
+				v = self.mem.r8(addr)
+				if v==0:
+					addr += 1
+					yield '\n'
+					break
+				elif v&0x80: # command
+					yield command(v).name
+					addr += 1
+				elif v==ord(':'):
+					yield ':'
+					addr += 1
+				elif v==ord(';'):
+					yield ':'
+					addr += 1
+				elif v==ord(','):
+					yield ','
+					addr += 1
+				elif v==ord('('):
+					yield '('
+					addr += 1
+				elif v==ord(')'):
+					yield ')'
+					addr += 1
+				elif v==ord(' '):
+					ret, addr = self._spaces(addr)
+					yield ret
+				elif v==ord('"'):
+					ret, addr = self._quoted(addr)
+					yield ret
+				elif v>=ord('0') and v<=ord('9'):
+					ret, addr = self._number(addr)
+					yield ret
+				else:
+					ret, addr = self._text(addr)
+					yield ret
+
 def line_tokens(mem, ivl, c64font=False):
 	mem = mem.view(ivl)
 	mapper = c64fontmapper if c64font else pettoascii
@@ -627,3 +726,14 @@ def line_to_address(mem, ivl, line):
 			return livl.first
 	return None
  
+if __name__=='__main__':
+	from memory import *
+
+	with open("monopoly.prg", "rb") as f:
+		contents = f.read()
+		mem = Memory(contents)
+
+	lex = Lexer(mem, mem.range())
+	for token in lex.tokens():
+		print(token, end='')
+	print()

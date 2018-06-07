@@ -71,6 +71,11 @@ class Memory(object):
 		ma = self._map(addr, sz*2)
 		return Bytes16(self.data[ma: ma+sz*2])
 
+	def string(self, b, e):
+		sz = e-b+1
+		ma = self._map(b, sz)
+		return self.data[ma:ma+sz].decode("iso-8859-1")
+
 	def __len__(self):
 		return len(self.ivl)
 
