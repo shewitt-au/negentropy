@@ -427,6 +427,79 @@ def line_iterator(mem, ivl):
 		yield Interval(addr, link-1)
 		addr = link
 
+@unique
+class TokenType(Enum):
+	LineLink = auto()
+	LineNumber = auto()
+	Command = auto()
+	Quoted = auto()
+	Colon = auto()
+	Semicolon = auto()
+	Comma = auto()
+	OpenBracket = auto()
+	CloseBracket = auto()
+	Spaces = auto()
+	Number = auto()
+	Text = auto()
+	LineEnd = auto()
+
+
+class Token(object):
+	def __init__(self, type, val):
+		self.type = type
+		self.value = val
+
+	def value(self):
+		return self.value
+
+	def __str__(self):
+		return str(self.value)
+
+class LLToken(object):
+	def __init__(self, val):
+		self.type = TokenType.LineLink
+		self.value = val
+
+	def value(self):
+		return self.value
+
+	def __str__(self):
+		return "${:04x}".format(self.value)
+
+class CommandToken(object):
+	def __init__(self, val):
+		self.type = TokenType.Command
+		self.value = val
+
+	def value(self):
+		return self.value
+
+	def __str__(self):
+		return command(self.value).name
+
+class CharToken(object):
+	def __init__(self, type, val):
+		self.type = type
+		self.value = val
+
+	def value(self):
+		return self.value
+
+	def __str__(self):
+		return chr(self.value)
+
+class TextToken(object):
+	def __init__(self, type, mem, ivl):
+		self.type = type
+		self.mem = mem
+		self.ivl = ivl
+
+	def value(self):
+		return self.mem.string(self.ivl.first, self.ivl.last)
+
+	def __str__(self):
+		return self.value()
+
 class Lexer(object):
 	def __init__(self, mem, ivl):
 		self.mem = mem
@@ -440,8 +513,8 @@ class Lexer(object):
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v!=ord(' '):
-				return (self.mem.string(addr, a-1), a)
-		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+				return (Interval(addr, a-1), a)
+		return (Interval(addr, self.ivl.last), self.ivl.last+1)
 
 	# IMPORTANT: numbers should not stop a text run or variables such
 	#            as 'X2$' will be spit.
@@ -458,17 +531,17 @@ class Lexer(object):
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v&0x80 or self._textshouldend(v):
-				return (self.mem.string(addr, a-1), a)
-		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+				return (Interval(addr, a-1), a)
+		return (Interval(addr, self.ivl.last), self.ivl.last+1)
 
 	def _quoted(self, addr):
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v==ord('"'):
-				return (self.mem.string(addr, a), a+1)
+				return (Interval(addr, a), a+1)
 			elif v==0:
-				return (self.mem.string(addr, a-1), a)
-		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+				return (Interval(addr, a-1), a)
+		return (Interval(addr, self.ivl.last), self.ivl.last+1)
 
 	def _number(self, addr):
 		for a in range(addr+1, self.ivl.last+1):
@@ -481,67 +554,51 @@ class Lexer(object):
 		addr = self.ivl.first
 
 		while addr!=self.ivl.last:
-
-			#yield {
-			#	'type': 'link',
-			#	'ivl': Interval(addr, addr+1),
-			#	'val': self.mem.r16(addr)
-			#}
 			link = self.mem.r16(addr)
+			yield LLToken(link)
 			if link&0xff00 == 0:
 				break
 			addr += 2
 
-			#yield {
-			#	'type': 'line_num',
-			#	'ivl': Interval(addr, addr+1),
-			#	'val': self.mem.r16(addr)
-			#}
-			yield str(self.mem.r16(addr))+" "
+			yield Token(TokenType.LineNumber, self.mem.r16(addr))
 			addr += 2
 
 			while addr!=self.ivl.last:
 				v = self.mem.r8(addr)
 				if v==0:
 					addr += 1
-					yield '\n'
+					yield Token(TokenType.LineEnd, 0)
 					break
 				elif v&0x80: # command
-					ret = command(v).name
-					ret = "[{}]".format(ret)
 					addr += 1
-					yield ret
+					yield CommandToken(v)
 				elif v==ord('"'):
 					ret, addr = self._quoted(addr)
-					ret = "[{}]".format(ret)
-					yield ret
+					yield TextToken(TokenType.Quoted, mem, ret)
 				elif not self.remark and v==ord(':'):
-					yield ':'
 					addr += 1
+					yield CharToken(TokenType.Colon, v)
 				elif not self.remark and v==ord(';'):
-					yield ':'
 					addr += 1
+					yield CharToken(TokenType.Semicolon, v)
 				elif not self.remark and v==ord(','):
-					yield ','
 					addr += 1
+					yield CharToken(TokenType.Comma, v)
 				elif not self.remark and v==ord('('):
-					yield '('
 					addr += 1
+					yield CharToken(TokenType.OpenBracket, v)
 				elif not self.remark and v==ord(')'):
-					yield ')'
 					addr += 1
+					yield CharToken(TokenType.CloseBracket, v)
 				elif not self.remark and v==ord(' '):
 					ret, addr = self._spaces(addr)
-					ret = "[{}]".format(ret)
-					yield ret
+					yield TextToken(TokenType.Spaces, mem, ret)
 				elif not self.remark and v>=ord('0') and v<=ord('9'):
 					ret, addr = self._number(addr)
-					ret = "[{}]".format(ret)
-					yield ret
+					yield Token(TokenType.Number, v)
 				else:
 					ret, addr = self._text(addr)
-					ret = "[{}]".format(ret)
-					yield ret
+					yield TextToken(TokenType.Text, mem, ret)
 
 def line_tokens(mem, ivl, c64font=False):
 	mem = mem.view(ivl)
@@ -746,7 +803,7 @@ def line_to_address(mem, ivl, line):
 if __name__=='__main__':
 	from memory import *
 
-	with open("monopoly.prg", "rb") as f:
+	with open("bm.prg", "rb") as f:
 		contents = f.read()
 		mem = Memory(contents)
 
