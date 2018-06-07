@@ -431,6 +431,10 @@ class Lexer(object):
 	def __init__(self, mem, ivl):
 		self.mem = mem
 		self.ivl = ivl
+		self.remark = False
+
+	def remark_mode(self, b=True):
+		self.remark = b
 
 	def _spaces(self, addr):
 		for a in range(addr+1, self.ivl.last+1):
@@ -441,12 +445,19 @@ class Lexer(object):
 
 	# IMPORTANT: numbers should not stop a text run or variables such
 	#            as 'X2$' will be spit.
-	_endstext = {ord('"'), ord(':'), ord(';'), ord(','), ord('('), ord(')'), 0}
+	_endstext = {ord(' '), ord('"'), ord(':'), ord(';'), ord(','), ord('('), ord(')'), 0}
+	_endtextremark = {ord('"'), 0}
+
+	def _textshouldend(self, ch):
+		if self.remark:
+			return ch in self._endtextremark
+		else:
+			return ch in self._endstext
 
 	def _text(self, addr):
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
-			if v&0x80 or v in self._endstext:
+			if v&0x80 or self._textshouldend(v):
 				return (self.mem.string(addr, a-1), a)
 		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
 
@@ -496,34 +507,40 @@ class Lexer(object):
 					yield '\n'
 					break
 				elif v&0x80: # command
-					yield command(v).name
+					ret = command(v).name
+					ret = "[{}]".format(ret)
 					addr += 1
-				elif v==ord(':'):
-					yield ':'
-					addr += 1
-				elif v==ord(';'):
-					yield ':'
-					addr += 1
-				elif v==ord(','):
-					yield ','
-					addr += 1
-				elif v==ord('('):
-					yield '('
-					addr += 1
-				elif v==ord(')'):
-					yield ')'
-					addr += 1
-				elif v==ord(' '):
-					ret, addr = self._spaces(addr)
 					yield ret
 				elif v==ord('"'):
 					ret, addr = self._quoted(addr)
+					ret = "[{}]".format(ret)
 					yield ret
-				elif v>=ord('0') and v<=ord('9'):
+				elif not self.remark and v==ord(':'):
+					yield ':'
+					addr += 1
+				elif not self.remark and v==ord(';'):
+					yield ':'
+					addr += 1
+				elif not self.remark and v==ord(','):
+					yield ','
+					addr += 1
+				elif not self.remark and v==ord('('):
+					yield '('
+					addr += 1
+				elif not self.remark and v==ord(')'):
+					yield ')'
+					addr += 1
+				elif not self.remark and v==ord(' '):
+					ret, addr = self._spaces(addr)
+					ret = "[{}]".format(ret)
+					yield ret
+				elif not self.remark and v>=ord('0') and v<=ord('9'):
 					ret, addr = self._number(addr)
+					ret = "[{}]".format(ret)
 					yield ret
 				else:
 					ret, addr = self._text(addr)
+					ret = "[{}]".format(ret)
 					yield ret
 
 def line_tokens(mem, ivl, c64font=False):
@@ -734,6 +751,7 @@ if __name__=='__main__':
 		mem = Memory(contents)
 
 	lex = Lexer(mem, mem.range())
+	lex.remark_mode(False)
 	for token in lex.tokens():
 		print(token, end='')
 	print()
