@@ -441,64 +441,44 @@ class TokenType(Enum):
 	Spaces = auto()
 	Number = auto()
 	Text = auto()
+	LineNumberReference = auto()
 	LineEnd = auto()
 
 
 class Token(object):
-	def __init__(self, type, val):
+	def __init__(self, type, ivl):
 		self.type = type
+		self.ivl = ivl
+
+	def __str__(self):
+		return "{}: {}".format(self.type, self.ivl)
+
+class U16Token(Token):
+	def __init__(self, type, ivl, val):
+		super().__init__(type, ivl)
 		self.value = val
 
-	def value(self):
-		return self.value
+	def hexstr(self):
+		return "${:04x}".format(self.value)
 
 	def __str__(self):
 		return str(self.value)
 
-class LLToken(object):
-	def __init__(self, val):
-		self.type = TokenType.LineLink
+class CommandToken(Token):
+	def __init__(self, ivl, val):
+		super().__init__(TokenType.Command, ivl)
 		self.value = val
-
-	def value(self):
-		return self.value
-
-	def __str__(self):
-		return "${:04x}".format(self.value)
-
-class CommandToken(object):
-	def __init__(self, val):
-		self.type = TokenType.Command
-		self.value = val
-
-	def value(self):
-		return self.value
 
 	def __str__(self):
 		return command(self.value).name
 
-class CharToken(object):
-	def __init__(self, type, val):
-		self.type = type
+class CharToken(Token):
+	def __init__(self, type, ivl, val):
+		super().__init__(type, ivl)
 		self.value = val
-
-	def value(self):
-		return self.value
 
 	def __str__(self):
 		return chr(self.value)
-
-class TextToken(object):
-	def __init__(self, type, mem, ivl):
-		self.type = type
-		self.mem = mem
-		self.ivl = ivl
-
-	def value(self):
-		return self.mem.string(self.ivl.first, self.ivl.last)
-
-	def __str__(self):
-		return self.value()
 
 class Lexer(object):
 	def __init__(self, mem, ivl):
@@ -506,10 +486,9 @@ class Lexer(object):
 		self.ivl = ivl
 		self.remark = False
 
-	def remark_mode(self, b=True):
-		self.remark = b
-
 	def _spaces(self, addr):
+		if addr>=self.ivl.last:
+			return (Interval(addr, addr), addr+1)
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v!=ord(' '):
@@ -528,6 +507,8 @@ class Lexer(object):
 			return ch in self._endstext
 
 	def _text(self, addr):
+		if addr>=self.ivl.last:
+			return (Interval(addr, addr), addr+1)
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v&0x80 or self._textshouldend(v):
@@ -535,6 +516,8 @@ class Lexer(object):
 		return (Interval(addr, self.ivl.last), self.ivl.last+1)
 
 	def _quoted(self, addr):
+		if addr>=self.ivl.last:
+			return (Interval(addr, addr), addr+1)
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v==ord('"'):
@@ -544,6 +527,8 @@ class Lexer(object):
 		return (Interval(addr, self.ivl.last), self.ivl.last+1)
 
 	def _number(self, addr):
+		if addr>=self.ivl.last:
+			return (Interval(addr, addr), addr+1)
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v<ord('0') or v>ord('9'):
@@ -553,52 +538,231 @@ class Lexer(object):
 	def tokens(self):
 		addr = self.ivl.first
 
-		while addr!=self.ivl.last:
+		while addr<=self.ivl.last:
+			# the line link
 			link = self.mem.r16(addr)
-			yield LLToken(link)
+			yield U16Token(TokenType.LineLink, Interval(addr, addr+1), link)
 			if link&0xff00 == 0:
 				break
 			addr += 2
 
-			yield Token(TokenType.LineNumber, self.mem.r16(addr))
+			# the line number
+			yield U16Token(TokenType.LineNumber, Interval(addr, addr+1), self.mem.r16(addr))
 			addr += 2
 
-			while addr!=self.ivl.last:
+			while addr<=self.ivl.last:
 				v = self.mem.r8(addr)
 				if v==0:
 					addr += 1
-					yield Token(TokenType.LineEnd, 0)
+					yield Token(TokenType.LineEnd, Interval(addr))
+					self.remark = False
 					break
 				elif v&0x80: # command
 					addr += 1
-					yield CommandToken(v)
+					yield CommandToken(Interval(addr), v)
+					if v==0x8f: # REM
+						self.remark = True
 				elif v==ord('"'):
-					ret, addr = self._quoted(addr)
-					yield TextToken(TokenType.Quoted, mem, ret)
+					ivl, addr = self._quoted(addr)
+					yield Token(TokenType.Quoted, ivl)
 				elif not self.remark and v==ord(':'):
+					yield CharToken(TokenType.Colon, Interval(addr), v)
 					addr += 1
-					yield CharToken(TokenType.Colon, v)
 				elif not self.remark and v==ord(';'):
+					yield CharToken(TokenType.Semicolon, Interval(addr), v)
 					addr += 1
-					yield CharToken(TokenType.Semicolon, v)
 				elif not self.remark and v==ord(','):
+					yield CharToken(TokenType.Comma, Interval(addr), v)
 					addr += 1
-					yield CharToken(TokenType.Comma, v)
 				elif not self.remark and v==ord('('):
+					yield CharToken(TokenType.OpenBracket, Interval(addr), v)
 					addr += 1
-					yield CharToken(TokenType.OpenBracket, v)
 				elif not self.remark and v==ord(')'):
+					yield CharToken(TokenType.CloseBracket, Interval(addr), v)
 					addr += 1
-					yield CharToken(TokenType.CloseBracket, v)
 				elif not self.remark and v==ord(' '):
-					ret, addr = self._spaces(addr)
-					yield TextToken(TokenType.Spaces, mem, ret)
+					ivl, addr = self._spaces(addr)
+					yield Token(TokenType.Spaces, ivl)
 				elif not self.remark and v>=ord('0') and v<=ord('9'):
-					ret, addr = self._number(addr)
-					yield Token(TokenType.Number, v)
+					ivl, addr = self._number(addr)
+					yield Token(TokenType.Number, ivl)
 				else:
-					ret, addr = self._text(addr)
-					yield TextToken(TokenType.Text, mem, ret)
+					ivl, addr = self._text(addr)
+					yield Token(TokenType.Text, ivl)
+
+class Parser(object):
+	def __init__(self, mem, ivl):
+		self.lexer = Lexer(mem, ivl)
+		self.gen = self.lexer.tokens()
+
+	def _goto_or_gosub(self):
+		try:
+			tok = next(self.gen)
+			if tok.type==TokenType.LineEnd:
+				yield tok
+				return
+			# pass on spaces before the first line number
+			if tok.type==TokenType.Spaces:
+				yield tok
+				tok = next(self.gen)
+				if tok.type==TokenType.LineEnd:
+					yield tok
+					return
+
+			if tok.type!=TokenType.Number:
+				# we we're expecting a line number. Pass it on and bail.
+				yield tok
+			else:
+				# rewrite the type, it's a line number reference.
+				tok.type = TokenType.LineNumberReference
+				yield tok
+
+				# additional line numbers are separated by commas. There may
+				# also be whitespace on either side of the comma.
+				while True:
+					# space before the comma
+					tok = next(self.gen)
+					if tok.type==TokenType.LineEnd:
+						yield tok
+						return
+					if tok.type==TokenType.Spaces:
+						yield tok
+						tok = next(self.gen)
+						if tok.type==TokenType.LineEnd:
+							yield tok
+							return
+
+					# a comma
+					if tok.type!=TokenType.Comma:
+						# if more line numbers were coming this should have been a comma
+						# so pass it on and bail.
+						break
+					yield tok
+					tok = next(self.gen)
+					if tok.type==TokenType.LineEnd:
+						yield tok
+						return
+
+					# there could be more space after the comma
+					if tok.type==TokenType.Spaces:
+						yield tok
+						tok = next(self.gen)
+						if tok.type==TokenType.LineEnd:
+							yield tok
+							return
+
+					# the line number
+					if tok.type!=TokenType.Number:
+						break
+
+					# rewrite the type, it's a line number reference.
+					tok.type = TokenType.LineNumberReference
+					yield tok
+
+				yield tok
+		except StopIteration:
+			pass
+
+	def _then(self):
+		try:
+			tok = next(self.gen)
+			if tok.type==TokenType.LineEnd:
+				yield tok
+				return
+			# pass on spaces before the line number
+			if tok.type==TokenType.Spaces:
+				yield tok
+				tok = next(self.gen)
+				if tok.type==TokenType.LineEnd:
+					yield tok
+					return
+
+			if tok.type!=TokenType.Number:
+				# we we're expecting a line number. Pass it on and bail.
+				yield tok
+			else:
+				# rewrite the type, it's a line number reference.
+				tok.type = TokenType.LineNumberReference
+				yield tok
+		except StopIteration:
+			pass
+
+	def _list(self):
+		try:
+			tok = next(self.gen)
+			if tok.type==TokenType.LineEnd:
+				yield tok
+				return
+			# pass on spaces before the line numbers
+			if tok.type==TokenType.Spaces:
+				yield tok
+				tok = next(self.gen)
+				if tok.type==TokenType.LineEnd:
+					yield tok
+					return
+
+			if tok.type==TokenType.Number:
+				# rewrite the type, it's a line number reference.
+				tok.type = TokenType.LineNumberReference
+				yield tok
+
+				tok = next(self.gen)
+				if tok.type==TokenType.LineEnd:
+					yield tok
+					return
+				# pass on spaces after the number
+				if tok.type==TokenType.Spaces:
+					yield tok
+					tok = next(self.gen)
+					if tok.type==TokenType.LineEnd:
+						yield tok
+						return
+
+				if tok.type!=TokenType.Command or tok.value!=0xab: # $ab is MINUS
+					# we didn't get a minus sign here so we're done
+					yield tok
+					return
+			elif tok.type==TokenType.Command and tok.value==0xab: # $ab is MINUS
+				# it's a minus sign
+				yield tok
+			else:
+				# we were expecting a number or a minus sign. Pass token
+				# on and bail.
+				yield tok
+				return
+
+			tok = next(self.gen)
+			if tok.type==TokenType.LineEnd:
+				yield tok
+				return
+			if tok.type==TokenType.Spaces:
+				yield tok
+				tok = next(self.gen)
+				if tok.type==TokenType.LineEnd:
+					yield tok
+					return
+
+			if tok.type==TokenType.Number:
+				# rewrite the type, it's a line number reference.
+				tok.type = TokenType.LineNumberReference
+				yield tok
+		except StopIteration:
+			pass
+
+	def tokens(self):
+		for tok in self.gen:
+			if tok.type==TokenType.Command:
+				c = tok.value
+				if c==0x89 or c==0x8d: # GOTO or GOSUB
+					yield from self._goto_or_gosub()
+				elif c==0xa7: # THEN
+					yield from self._then()
+				elif c==0x9b: # LIST
+					yield from self._list()
+				else:
+					yield tok
+			else:
+				yield tok
 
 def line_tokens(mem, ivl, c64font=False):
 	mem = mem.view(ivl)
@@ -803,12 +967,14 @@ def line_to_address(mem, ivl, line):
 if __name__=='__main__':
 	from memory import *
 
-	with open("bm.prg", "rb") as f:
+	with open("list.prg", "rb") as f:
 		contents = f.read()
 		mem = Memory(contents)
 
-	lex = Lexer(mem, mem.range())
-	lex.remark_mode(False)
-	for token in lex.tokens():
-		print(token, end='')
+	p = Parser(mem, mem.range())
+	for token in p.tokens():
+		if token.type == TokenType.LineNumber:
+			print(token.type," ", token)
+		elif token.type == TokenType.LineNumberReference:
+			print(" : ", token)
 	print()
