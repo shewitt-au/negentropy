@@ -11,21 +11,21 @@ class BasicDecoder(decoders.Prefix):
 
 	def preprocess(self, ctx, ivl, cutter):
 		token = None
-		for livl in line_iterator(ctx.mem, ivl):
-			cutter.atomic(livl)
-			ctx.link_add_reachable(livl.first)
-
-			for token in line_tokens(ctx.mem, livl):
-				tp = token['type']
-				if tp=='line_ref':
-					addr = line_to_address(ctx.mem, ivl, token['val'])
-					ctx.link_add_referenced(addr)
-				elif tp=='address':
-					ctx.link_add_referenced(token['val'])
+		p = Parser(ctx.mem, ivl)
+		for token in p.tokens():
+			if token.type == TokenType.LineLink:
+				line_first = token.ivl.first
+				ctx.link_add_reachable(line_first)
+			elif token.type == TokenType.LineEnd:
+				cutter.atomic(Interval(line_first, token.ivl.last))
+			elif token.type == TokenType.LineNumberReference:
+				addr = int(ctx.mem.string(token.ivl.first, token.ivl.last))
+				addr = line_to_address(ctx.mem, ivl, addr)
+				ctx.link_add_referenced(addr)
 		cutter.done()
 
 		# return the non-processed part of the interval
-		unproc = Interval(token['ivl'].last+4, ivl.last) if token else ivl # +1 to NULL line term, +1 to skip it, +2 over link
+		unproc = Interval(token.ivl.last+1, ivl.last) if token else ivl
 		return unproc
 			
 	def decode(self, ctx, ivl, params=None):

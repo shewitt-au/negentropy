@@ -532,8 +532,8 @@ class Lexer(object):
 		for a in range(addr+1, self.ivl.last+1):
 			v = self.mem.r8(a)
 			if v<ord('0') or v>ord('9'):
-				return (self.mem.string(addr, a-1), a)
-		return (self.mem.string(addr, self.ivl.last), self.ivl.last+1)
+				return (Interval(addr, a-1), a)
+		return (Interval(addr, self.ivl.last), self.ivl.last+1)
 
 	def tokens(self):
 		addr = self.ivl.first
@@ -553,8 +553,8 @@ class Lexer(object):
 			while addr<=self.ivl.last:
 				v = self.mem.r8(addr)
 				if v==0:
-					addr += 1
 					yield Token(TokenType.LineEnd, Interval(addr))
+					addr += 1
 					self.remark = False
 					break
 				elif v&0x80: # command
