@@ -636,7 +636,8 @@ class Parser(object):
 					if tok.type!=TokenType.Comma:
 						# if more line numbers were coming this should have been a comma
 						# so pass it on and bail.
-						break
+						yield tok
+						return
 					yield tok
 					tok = next(self.gen)
 					if tok.type==TokenType.LineEnd:
@@ -653,13 +654,12 @@ class Parser(object):
 
 					# the line number
 					if tok.type!=TokenType.Number:
-						break
+						yield tok
+						return
 
 					# rewrite the type, it's a line number reference.
 					tok.type = TokenType.LineNumberReference
 					yield tok
-
-				yield tok
 		except StopIteration:
 			pass
 
@@ -722,6 +722,7 @@ class Parser(object):
 					# we didn't get a minus sign here so we're done
 					yield tok
 					return
+				yield tok # pass on the MINUS sign
 			elif tok.type==TokenType.Command and tok.value==0xab: # $ab is MINUS
 				# it's a minus sign
 				yield tok
@@ -977,6 +978,8 @@ if __name__=='__main__':
 	for token in p.tokens():
 		if token.type == TokenType.LineNumber:
 			print(token.type," ", token)
+		if token.type == TokenType.Command:
+			print(token)
 		elif token.type == TokenType.LineNumberReference:
 			print(" : ", token)
 	print()
