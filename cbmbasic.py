@@ -963,8 +963,11 @@ def line_tokens(mem, ivl, c64font=False):
 def line_to_address(mem, ivl, line):
 	mem = mem.view(ivl)
 	for livl in line_iterator(mem, ivl):
-		if mem.r16(livl.first+2)==line:
+		num = mem.r16(livl.first+2)
+		if num==line:
 			return livl.first
+		if num>line: # no point looking any further
+			break
 	return None
  
 if __name__=='__main__':
