@@ -731,6 +731,7 @@ class Parser(object):
 				yield tok
 				return
 
+			# spaces after the minus sign
 			tok = next(self.gen)
 			if tok.type==TokenType.LineEnd:
 				yield tok
@@ -745,7 +746,8 @@ class Parser(object):
 			if tok.type==TokenType.Number:
 				# rewrite the type, it's a line number reference.
 				tok.type = TokenType.LineNumberReference
-				yield tok
+
+			yield tok # pass it on if it's a number or not
 		except StopIteration:
 			pass
 
