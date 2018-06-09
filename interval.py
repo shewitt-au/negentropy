@@ -48,7 +48,7 @@ class Interval(object):
 		return self.first>self.last
 
 	def __iter__(self):
-		for v in range(self.first, self.last):
+		for v in range(self.first, self.last+1):
 			yield v
 
 	def __len__(self):

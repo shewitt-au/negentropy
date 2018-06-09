@@ -19,8 +19,7 @@ class BasicDecoder(decoders.Prefix):
 			elif token.type == TokenType.LineEnd:
 				cutter.atomic(Interval(line_first, token.ivl.last))
 			elif token.type == TokenType.LineNumberReference:
-				addr = int(ctx.mem.string(token.ivl.first, token.ivl.last))
-				addr = line_to_address(ctx.mem, ivl, addr)
+				addr = line_to_address(ctx.mem, ivl, token.value(ctx.mem))
 				ctx.link_add_referenced(addr)
 		cutter.done()
 

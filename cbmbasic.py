@@ -450,6 +450,9 @@ class Token(object):
 		self.type = type
 		self.ivl = ivl
 
+	def value(self):
+		return None
+
 	def __str__(self):
 		return "{}: {}".format(self.type, self.ivl)
 
@@ -458,16 +461,32 @@ class U16Token(Token):
 		super().__init__(type, ivl)
 		self.value = val
 
+	def value(self):
+		return self.value
+
 	def hexstr(self):
 		return "${:04x}".format(self.value)
 
 	def __str__(self):
 		return str(self.value)
 
+class NumberToken(Token):
+	def __init__(self, type, ivl):
+		super().__init__(type, ivl)
+
+	def value(self, mem):
+		n = 0
+		for a in self.ivl:
+			n = n*10+(mem.r8(a)-0x30)
+		return n
+
 class CommandToken(Token):
 	def __init__(self, ivl, val):
 		super().__init__(TokenType.Command, ivl)
 		self.value = val
+
+	def value(self):
+		return self.value
 
 	def __str__(self):
 		return command(self.value).name
@@ -476,6 +495,9 @@ class CharToken(Token):
 	def __init__(self, type, ivl, val):
 		super().__init__(type, ivl)
 		self.value = val
+
+	def value(self):
+		return self.value
 
 	def __str__(self):
 		return chr(self.value)
@@ -585,7 +607,7 @@ class Lexer(object):
 					yield Token(TokenType.Spaces, ivl)
 				elif not self.remark and v>=ord('0') and v<=ord('9'):
 					ivl, addr = self._number(addr)
-					yield Token(TokenType.Number, ivl)
+					yield NumberToken(TokenType.Number, ivl)
 				else:
 					ivl, addr = self._text(addr)
 					yield Token(TokenType.Text, ivl)
