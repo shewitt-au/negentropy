@@ -4,83 +4,82 @@ from collections import namedtuple
 import functools
 
 # $80 - $ca
-CommandInfo = namedtuple("CommandInfo", "name, num_lines, syscall")
 _commands = (
-	CommandInfo("END",		0,  False),		# $80
-	CommandInfo("FOR",		0,  False),		# $81
-	CommandInfo("NEXT",		0,  False),		# $82
-	CommandInfo("DATA",		0,  False),		# $83
-	CommandInfo("INPUT#",	0,  False),		# $84
-	CommandInfo("INPUT",	0,  False),		# $85
-	CommandInfo("DIM",		0,  False),		# $86
-	CommandInfo("READ",		0,  False),		# $87
-	CommandInfo("LET",		0,  False),		# $88
-	CommandInfo("GOTO",		-1, False),		# $89
-	CommandInfo("RUN",		1,  False),		# $8a
-	CommandInfo("IF",		0,  False),		# $8b
-	CommandInfo("RESTORE",	0,  False),		# $8c
-	CommandInfo("GOSUB",	-1, False),		# $8d
-	CommandInfo("RETURN",	0,  False),		# $8e
-	CommandInfo("REM",		0,  False),		# $8f
-	CommandInfo("STOP",		0,  False),		# $90
-	CommandInfo("ON",		0,  False),		# $91
-	CommandInfo("WAIT",		0,  False),		# $92
-	CommandInfo("LOAD",		0,  False),		# $93
-	CommandInfo("SAVE",		0,  False),		# $94
-	CommandInfo("VERIFY",	0,  False),		# $95
-	CommandInfo("DEF",		0,  False),		# $96
-	CommandInfo("POKE",		0,  False),		# $97
-	CommandInfo("PRINT#",	0,  False),		# $98
-	CommandInfo("PRINT",	0,  False),		# $99
-	CommandInfo("CONT",		0,  False),		# $9a
-	CommandInfo("LIST",		-1, False),		# $9b
-	CommandInfo("CLR",		0,  False),		# $9c
-	CommandInfo("CMD",		0,  False),		# $9d
-	CommandInfo("SYS",		0,  True),		# $9e
-	CommandInfo("OPEN",		0,  False),		# $9f
-	CommandInfo("CLOSE",	0,  False),		# $a0
-	CommandInfo("GET",		0,  False),		# $a1
-	CommandInfo("NEW",		0,  False),		# $a2
-	CommandInfo("TAB(",		0,  False),		# $a3
-	CommandInfo("TO",		0,  False),		# $a4
-	CommandInfo("FN",		0,  False),		# $a5
-	CommandInfo("SPC(",		0,  False),		# $a6
-	CommandInfo("THEN",		1,  False),		# $a7
-	CommandInfo("NOT",		0,  False),		# $a8
-	CommandInfo("STEP",		0,  False),		# $a9
-	CommandInfo("+",		0,  False),		# $aa
-	CommandInfo("-",		0,  False),		# $ab
-	CommandInfo("*",		0,  False),		# $ac
-	CommandInfo("/",		0,  False),		# $ad
-	CommandInfo("↑",		0,  False),		# $ae
-	CommandInfo("AND",		0,  False),		# $af
-	CommandInfo("OR",		0,  False),		# $b0
-	CommandInfo(">",		0,  False),		# $b1
-	CommandInfo("=",		0,  False),		# $b2
-	CommandInfo("<",		0,  False),		# $b3
-	CommandInfo("SGN",		0,  False),		# $b4
-	CommandInfo("INT",		0,  False),		# $b5
-	CommandInfo("ABS",		0,  False),		# $b6
-	CommandInfo("USR",		0,  False),		# $b7
-	CommandInfo("FRE",		0,  False),		# $b7
-	CommandInfo("POS",		0,  False),		# $b9
-	CommandInfo("SQR",		0,  False),		# $ba
-	CommandInfo("RND",		0,  False),		# $bb
-	CommandInfo("LOG",		0,  False),		# $bc
-	CommandInfo("EXP",		0,  False),		# $bd
-	CommandInfo("COS",		0,  False),		# $be
-	CommandInfo("SIN",		0,  False),		# $bf
-	CommandInfo("TAN",		0,  False),		# $c0
-	CommandInfo("ATN",		0,  False),		# $c1
-	CommandInfo("PEEK",		0,  False),		# $c2
-	CommandInfo("LEN",		0,  False),		# $c3
-	CommandInfo("STR$",		0,  False),		# $c4
-	CommandInfo("VAL",		0,  False),		# $c5
-	CommandInfo("ASC",		0,  False),		# $c6
-	CommandInfo("CHR$",		0,  False),		# $c7
-	CommandInfo("LEFT$",	0,  False),		# $c8
-	CommandInfo("RIGHT$",	0,  False),		# $c9
-	CommandInfo("MID$",		0,  False)		# $ca
+	"END",		# $80
+	"FOR",		# $81
+	"NEXT",		# $82
+	"DATA",		# $83
+	"INPUT#",	# $84
+	"INPUT",	# $85
+	"DIM",		# $86
+	"READ",		# $87
+	"LET",		# $88
+	"GOTO",		# $89
+	"RUN",		# $8a
+	"IF",		# $8b
+	"RESTORE",	# $8c
+	"GOSUB",	# $8d
+	"RETURN",	# $8e
+	"REM",		# $8f
+	"STOP",		# $90
+	"ON",		# $91
+	"WAIT",		# $92
+	"LOAD",		# $93
+	"SAVE",		# $94
+	"VERIFY",	# $95
+	"DEF",		# $96
+	"POKE",		# $97
+	"PRINT#",	# $98
+	"PRINT",	# $99
+	"CONT",		# $9a
+	"LIST",		# $9b
+	"CLR",		# $9c
+	"CMD",		# $9d
+	"SYS",		# $9e
+	"OPEN",		# $9f
+	"CLOSE",	# $a0
+	"GET",		# $a1
+	"NEW",		# $a2
+	"TAB(",		# $a3
+	"TO",		# $a4
+	"FN",		# $a5
+	"SPC(",		# $a6
+	"THEN",		# $a7
+	"NOT",		# $a8
+	"STEP",		# $a9
+	"+",		# $aa
+	"-",		# $ab
+	"*",		# $ac
+	"/",		# $ad
+	"↑",		# $ae
+	"AND",		# $af
+	"OR",		# $b0
+	">",		# $b1
+	"=",		# $b2
+	"<",		# $b3
+	"SGN",		# $b4
+	"INT",		# $b5
+	"ABS",		# $b6
+	"USR",		# $b7
+	"FRE",		# $b7
+	"POS",		# $b9
+	"SQR",		# $ba
+	"RND",		# $bb
+	"LOG",		# $bc
+	"EXP",		# $bd
+	"COS",		# $be
+	"SIN",		# $bf
+	"TAN",		# $c0
+	"ATN",		# $c1
+	"PEEK",		# $c2
+	"LEN",		# $c3
+	"STR$",		# $c4
+	"VAL",		# $c5
+	"ASC",		# $c6
+	"CHR$",		# $c7
+	"LEFT$",	# $c8
+	"RIGHT$",	# $c9
+	"MID$",		# $ca
 	#
 	#CommandInfo("\u03C0)",		0,  False)		# $ff PI symmol
 )
@@ -89,9 +88,9 @@ def command(token):
 	if token>=0x80 and token<=0xca:
 		return _commands[token-0x80]
 	elif token==0xff:
-		return CommandInfo("\u03C0", 0,  False)		# $ff PI symmol
+		return "\u03C0"
 	else:
-		return CommandInfo("?", 0, False)
+		return "?"
 
 # From cbmcodecs: https://pypi.org/project/cbmcodecs/
 _decoding_table = (
@@ -499,10 +498,10 @@ class CommandToken(Token):
 		self._value = val
 
 	def value(self, mem):
-		return command(self._value).name
+		return command(self._value)
 
 	def __str__(self):
-		return command(self._value).name
+		return command(self._value)
 
 class CharToken(Token):
 	def __init__(self, type, ivl, val):
