@@ -30,30 +30,30 @@ class BasicDecoder(decoders.Prefix):
 		unproc = Interval(token.ivl.last+1, ivl.last) if token else ivl
 		return unproc
 
+	_tt2name = {
+		#TokenType.LineLink: "",
+		TokenType.LineNumber: "line_num",
+		TokenType.Command: "command",
+		TokenType.Quoted: "quoted",
+		TokenType.Colon: "text",
+		TokenType.Semicolon: "text",
+		TokenType.Comma: "text",
+		TokenType.OpenBracket: "text",
+		TokenType.CloseBracket: "text",
+		TokenType.Spaces: "text",
+		TokenType.Number: "text",
+		TokenType.Text: "text",
+		TokenType.LineNumberReference: "line_ref",
+		TokenType.Address: "address"
+		#TokenType.LineEnd: ""
+		}
+
 	def decode(self, ctx, ivl, params=None):
 		def lines():
 			def line_tokens():
-				tt2name = {
-					#TokenType.LineLink: "",
-					TokenType.LineNumber: "line_num",
-					TokenType.Command: "command",
-					TokenType.Quoted: "quoted",
-					TokenType.Colon: "text",
-					TokenType.Semicolon: "text",
-					TokenType.Comma: "text",
-					TokenType.OpenBracket: "text",
-					TokenType.CloseBracket: "text",
-					TokenType.Spaces: "text",
-					TokenType.Number: "text",
-					TokenType.Text: "text",
-					TokenType.LineNumberReference: "line_ref",
-					TokenType.Address: "address"
-					#TokenType.LineEnd: ""
-					}
-
 				line_parser = Line(gen)
 				for line_token in line_parser.tokens():
-					tts = tt2name.get(line_token.type, None)
+					tts = self._tt2name.get(line_token.type, None)
 					if not tts is None:
 						if line_token.type == TokenType.LineNumberReference:
 							target = line_to_address(ctx.mem, ivl, line_token.value(ctx.mem))
