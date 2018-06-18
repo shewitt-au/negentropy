@@ -442,6 +442,7 @@ class TokenType(Enum):
 	Number = auto()
 	Text = auto()
 	LineNumberReference = auto()
+	Address = auto()
 	LineEnd = auto()
 
 
@@ -780,6 +781,29 @@ class Parser(object):
 		except StopIteration:
 			pass
 
+	def _sys(self):
+		try:
+			tok = next(self.gen)
+			if tok.type==TokenType.LineEnd:
+				yield tok
+				return
+			# pass on spaces before the line number
+			if tok.type==TokenType.Spaces:
+				yield tok
+				tok = next(self.gen)
+				if tok.type==TokenType.LineEnd:
+					yield tok
+					return
+
+			if tok.type!=TokenType.Number:
+				# we we're expecting a line number. Pass it on and bail.
+				yield tok
+			else:
+				# rewrite the type, it's an address
+				yield NumberToken(TokenType.Address, tok.ivl)
+		except StopIteration:
+			pass
+
 	def tokens(self):
 		for tok in self.gen:
 			if tok.type==TokenType.Command:
@@ -793,6 +817,9 @@ class Parser(object):
 				elif c==0x9b: # LIST
 					yield tok
 					yield from self._list()
+				elif c==0x9e: # SYS
+					yield tok
+					yield from self._sys()
 				else:
 					yield tok
 			else:

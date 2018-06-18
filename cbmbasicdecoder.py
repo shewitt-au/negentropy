@@ -21,6 +21,9 @@ class BasicDecoder(decoders.Prefix):
 			elif token.type == TokenType.LineNumberReference:
 				addr = line_to_address(ctx.mem, ivl, token.value(ctx.mem))
 				ctx.link_add_referenced(addr)
+			elif token.type == TokenType.Address:
+				addr = token.value(ctx.mem)
+				ctx.link_add_referenced(addr)
 		cutter.done()
 
 		# return the non-processed part of the interval
@@ -74,6 +77,7 @@ class BasicDecoder(decoders.Prefix):
 					TokenType.Number: "text",
 					TokenType.Text: "text",
 					TokenType.LineNumberReference: "line_ref",
+					TokenType.Address: "address"
 					#TokenType.LineEnd: ""
 					}
 
@@ -81,8 +85,12 @@ class BasicDecoder(decoders.Prefix):
 				for line_token in line_parser.tokens():
 					tts = tt2name.get(line_token.type, None)
 					if not tts is None:
-						if line_token.type==TokenType.LineNumberReference:
+						if line_token.type == TokenType.LineNumberReference:
 							target = line_to_address(ctx.mem, ivl, line_token.value(ctx.mem))
+							link_info['is_source'] = ctx.is_destination(target)
+							link_info['target'] = target
+						elif line_token.type == TokenType.Address:
+							target = line_token.value(ctx.mem)
 							link_info['is_source'] = ctx.is_destination(target)
 							link_info['target'] = target
 						else:
