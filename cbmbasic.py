@@ -1,6 +1,5 @@
 from interval import Interval
 from enum import Enum, unique, auto
-from collections import namedtuple
 import functools
 
 # $80 - $ca
