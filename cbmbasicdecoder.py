@@ -51,7 +51,7 @@ class BasicDecoder(decoders.Prefix):
 					#TokenType.LineEnd: ""
 					}
 
-				line_parser = Parser(ctx.mem, Interval(token.ivl.first, token.value(ctx.mem)-1))
+				line_parser = Line(gen)
 				for line_token in line_parser.tokens():
 					tts = tt2name.get(line_token.type, None)
 					if not tts is None:
@@ -72,9 +72,9 @@ class BasicDecoder(decoders.Prefix):
 							**link_info
 						}
 
-			p = Parser(ctx.mem, ivl)
+			gen = Parser(ctx.mem, ivl).tokens()
 			target_already_exits = params['target_already_exits']
-			for token in p.tokens():
+			for token in gen:
 				if token.type==TokenType.LineLink:
 					yield {
 						'type': 'line',

@@ -843,3 +843,13 @@ def line_tokens(mem, ivl, c64font=False):
 		'type': 'line_num',
 		'ivl': Interval(ivl.first+2, ivl.first+3),
 		'val': mem.r16(ivl.first+2)}
+
+class Line(object):
+	def __init__(self, gen):
+		self.gen = gen
+
+	def tokens(self):
+		for token in self.gen:
+			yield token
+			if token.type==TokenType.LineEnd:
+				break
