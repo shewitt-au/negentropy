@@ -48,10 +48,62 @@ class BasicDecoder(decoders.Prefix):
 					'type': 'line',
 					'address': livl.first,
 					'tokens': annotated_tokens(),
-					'is_destination': (not target_already_exits) and (ctx.is_destination(livl.first)),
-					'address': livl.first
+					'is_destination': (not target_already_exits) and (ctx.is_destination(livl.first))
 				}
 				target_already_exits = False
+
+		return {
+			'type': self.name,
+			'lines': lines()
+		}
+
+	def decode(self, ctx, ivl, params=None):
+		def lines():
+			def line_tokens():
+				tt2name = {
+					#TokenType.LineLink: "",
+					TokenType.LineNumber: "line_num",
+					TokenType.Command: "command",
+					TokenType.Quoted: "quoted",
+					TokenType.Colon: "text",
+					TokenType.Semicolon: "text",
+					TokenType.Comma: "text",
+					TokenType.OpenBracket: "text",
+					TokenType.CloseBracket: "text",
+					TokenType.Spaces: "text",
+					TokenType.Number: "text",
+					TokenType.Text: "text",
+					TokenType.LineNumberReference: "line_ref",
+					#TokenType.LineEnd: ""
+					}
+
+				line_parser = Parser(ctx.mem, Interval(token.ivl.first, token.value(ctx.mem)-1))
+				for line_token in line_parser.tokens():
+					tts = tt2name.get(line_token.type, None)
+					if not tts is None:
+						if line_token.type==TokenType.LineNumberReference:
+							target = line_to_address(ctx.mem, ivl, line_token.value(ctx.mem))
+							link_info['is_source'] = ctx.is_destination(target)
+							link_info['target'] = target
+						else:
+							link_info = {}
+						yield {
+							'type': tts,
+							'ivl': line_token.ivl,
+							'val': line_token.value(ctx.mem),
+							**link_info
+						}
+
+			p = Parser(ctx.mem, ivl)
+			target_already_exits = params['target_already_exits']
+			for token in p.tokens():
+				if token.type==TokenType.LineLink:
+					yield {
+						'type': 'line',
+						'address': token.ivl.first,
+						'tokens': line_tokens(),
+						'is_destination': (not target_already_exits) and (ctx.is_destination(token.ivl.first))
+					}
 
 		return {
 			'type': self.name,

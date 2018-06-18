@@ -450,7 +450,7 @@ class Token(object):
 		self.type = type
 		self.ivl = ivl
 
-	def value(self):
+	def value(self, mem):
 		return None
 
 	def __str__(self):
@@ -459,16 +459,16 @@ class Token(object):
 class U16Token(Token):
 	def __init__(self, type, ivl, val):
 		super().__init__(type, ivl)
-		self.value = val
+		self._value = val
 
-	def value(self):
-		return self.value
+	def value(self, mem):
+		return self._value
 
 	def hexstr(self):
-		return "${:04x}".format(self.value)
+		return "${:04x}".format(self._value)
 
 	def __str__(self):
-		return str(self.value)
+		return str(self._value)
 
 class NumberToken(Token):
 	def __init__(self, type, ivl):
@@ -483,24 +483,34 @@ class NumberToken(Token):
 class CommandToken(Token):
 	def __init__(self, ivl, val):
 		super().__init__(TokenType.Command, ivl)
-		self.value = val
+		self._value = val
 
-	def value(self):
-		return self.value
+	def value(self, mem):
+		return command(self._value).name
 
 	def __str__(self):
-		return command(self.value).name
+		return command(self._value).name
 
 class CharToken(Token):
 	def __init__(self, type, ivl, val):
 		super().__init__(type, ivl)
-		self.value = val
+		self._value = val
 
-	def value(self):
-		return self.value
+	def value(self, mem):
+		return chr(self._value)
 
 	def __str__(self):
-		return chr(self.value)
+		return chr(self._value)
+
+class TextToken(Token):
+	def __init__(self, type, ivl):
+		super().__init__(type, ivl)
+
+	def value(self, mem):
+		return mem.string(self.ivl.first, self.ivl.last)
+
+	def __str__(self):
+		return "{string: {}}", self.ivl
 
 class Lexer(object):
 	def __init__(self, mem, ivl):
@@ -586,7 +596,7 @@ class Lexer(object):
 						self.remark = True
 				elif v==ord('"'):
 					ivl, addr = self._quoted(addr)
-					yield Token(TokenType.Quoted, ivl)
+					yield TextToken(TokenType.Quoted, ivl)
 				elif not self.remark and v==ord(':'):
 					yield CharToken(TokenType.Colon, Interval(addr), v)
 					addr += 1
@@ -604,13 +614,13 @@ class Lexer(object):
 					addr += 1
 				elif not self.remark and v==ord(' '):
 					ivl, addr = self._spaces(addr)
-					yield Token(TokenType.Spaces, ivl)
+					yield TextToken(TokenType.Spaces, ivl)
 				elif not self.remark and v>=ord('0') and v<=ord('9'):
 					ivl, addr = self._number(addr)
 					yield NumberToken(TokenType.Number, ivl)
 				else:
 					ivl, addr = self._text(addr)
-					yield Token(TokenType.Text, ivl)
+					yield TextToken(TokenType.Text, ivl)
 
 class Parser(object):
 	def __init__(self, mem, ivl):
@@ -636,8 +646,7 @@ class Parser(object):
 				yield tok
 			else:
 				# rewrite the type, it's a line number reference.
-				tok.type = TokenType.LineNumberReference
-				yield tok
+				yield NumberToken(TokenType.LineNumberReference, tok.ivl)
 
 				# additional line numbers are separated by commas. There may
 				# also be whitespace on either side of the comma.
@@ -680,8 +689,7 @@ class Parser(object):
 						return
 
 					# rewrite the type, it's a line number reference.
-					tok.type = TokenType.LineNumberReference
-					yield tok
+					yield NumberToken(TokenType.LineNumberReference, tok.ivl)
 		except StopIteration:
 			pass
 
@@ -704,8 +712,7 @@ class Parser(object):
 				yield tok
 			else:
 				# rewrite the type, it's a line number reference.
-				tok.type = TokenType.LineNumberReference
-				yield tok
+				yield NumberToken(TokenType.LineNumberReference, tok.ivl)
 		except StopIteration:
 			pass
 
@@ -725,8 +732,7 @@ class Parser(object):
 
 			if tok.type==TokenType.Number:
 				# rewrite the type, it's a line number reference.
-				tok.type = TokenType.LineNumberReference
-				yield tok
+				yield NumberToken(TokenType.LineNumberReference, tok.ivl)
 
 				tok = next(self.gen)
 				if tok.type==TokenType.LineEnd:
@@ -768,21 +774,24 @@ class Parser(object):
 
 			if tok.type==TokenType.Number:
 				# rewrite the type, it's a line number reference.
-				tok.type = TokenType.LineNumberReference
-
-			yield tok # pass it on if it's a number or not
+				yield NumberToken(TokenType.LineNumberReference, tok.ivl)
+			else:
+				yield tok # pass it on if it's a number or not
 		except StopIteration:
 			pass
 
 	def tokens(self):
 		for tok in self.gen:
 			if tok.type==TokenType.Command:
-				c = tok.value
+				c = tok._value
 				if c==0x89 or c==0x8d: # GOTO or GOSUB
+					yield tok
 					yield from self._goto_or_gosub()
 				elif c==0xa7: # THEN
+					yield tok
 					yield from self._then()
 				elif c==0x9b: # LIST
+					yield tok
 					yield from self._list()
 				else:
 					yield tok
