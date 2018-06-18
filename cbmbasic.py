@@ -1,6 +1,7 @@
 from interval import Interval
 from enum import Enum, unique, auto
 from collections import namedtuple
+import functools
 
 # $80 - $ca
 CommandInfo = namedtuple("CommandInfo", "name, num_lines, syscall")
@@ -427,6 +428,7 @@ def line_iterator(mem, ivl):
 		yield Interval(addr, link-1)
 		addr = link
 
+@functools.lru_cache()
 def line_to_address(mem, ivl, line):
 	mem = mem.view(ivl)
 	for livl in line_iterator(mem, ivl):

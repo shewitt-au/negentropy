@@ -105,6 +105,9 @@ class Interval(object):
 		else:
 			return NotImplemented
 
+	def __hash__(self):
+		return hash((self.first, self.last))
+
 	def __str__(self):
 		if self.is_empty():
 			return "{Empty}"
