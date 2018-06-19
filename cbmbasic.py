@@ -80,7 +80,7 @@ _commands = (
 	"RIGHT$",	# $c9
 	"MID$",		# $ca
 	#
-	#CommandInfo("\u03C0)",		0,  False)		# $ff PI symmol
+	#"\u03C0"   # $ff PI symmol
 )
 
 def command(token):
