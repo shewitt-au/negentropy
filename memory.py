@@ -1,6 +1,7 @@
 import errors
 from interval import Interval
 import copy
+import cbmcodec
 
 class Bytes16(bytes):
 	def __len__(self):
@@ -74,7 +75,7 @@ class Memory(object):
 	def string(self, b, e):
 		sz = e-b+1
 		ma = self._map(b, sz)
-		return self.data[ma:ma+sz].decode("iso-8859-1")
+		return self.data[ma:ma+sz].decode("petscii")
 
 	def __len__(self):
 		return len(self.ivl)

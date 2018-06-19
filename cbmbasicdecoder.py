@@ -2,6 +2,13 @@ import decoders
 from cbmbasic import *
 from interval import Interval
 
+class TokenDecoder(object):
+	def __init__(self, mem):
+		self.mem = mem
+
+	def value(self, token):
+		return token.value(self.mem)
+
 class BasicDecoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
@@ -68,10 +75,11 @@ class BasicDecoder(decoders.Prefix):
 						yield {
 							'type': tts,
 							'ivl': line_token.ivl,
-							'val': line_token.value(ctx.mem),
+							'val': td.value(line_token),
 							**link_info
 						}
 
+			td = TokenDecoder(ctx.mem)
 			gen = Parser(ctx.mem, ivl).tokens()
 			target_already_exits = params['target_already_exits']
 			for token in gen:

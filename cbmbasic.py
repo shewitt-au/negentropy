@@ -351,8 +351,6 @@ _decoding_table = (
 	'\u03c0'    #  0xFF -> GREEK SMALL LETTER PI
 )
 
-_p2sadjust = [0x80, 0x00, -0X40, 0X40, 0X40, -0X40, -0X80, 0X00]
-
 _control_char_names = {
 	0x03:	"{run/stop}",
 	0x05:	"{white}",
@@ -396,21 +394,8 @@ _control_char_names = {
 	0x9f:	"{cyan}"
 }
 
-def pettoscreen(c):
-	return c+_p2sadjust[c>>5]
-
 def pettoascii(c):
 	return _control_char_names.get(c, _decoding_table[c])
-
-def c64fontmapper(c):
-	if c>=0x01 and c<=0x1f:
-		c += 0x80
-	elif c>=0x80 and c<=0x9f:
-		c += 0x40
-	else:
-		c = pettoscreen(c)
-
-	return chr(0xee00+c)
 
 def line_iterator(mem, ivl):
 	mem = mem.view(ivl)
