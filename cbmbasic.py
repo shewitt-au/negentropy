@@ -140,7 +140,7 @@ class Token(object):
 		self.type = type
 		self.ivl = ivl
 
-	def value(self, mem):
+	def value(self, **kwargs):
 		return None
 
 	def __str__(self):
@@ -151,7 +151,7 @@ class U16Token(Token):
 		super().__init__(type, ivl)
 		self._value = val
 
-	def value(self, mem):
+	def value(self, **kwargs):
 		return self._value
 
 	def hexstr(self):
@@ -164,8 +164,9 @@ class NumberToken(Token):
 	def __init__(self, type, ivl):
 		super().__init__(type, ivl)
 
-	def value(self, mem):
+	def value(self, **kwargs):
 		n = 0
+		mem = kwargs['mem']
 		for a in self.ivl:
 			n = n*10+(mem.r8(a)-0x30)
 		return n
@@ -175,7 +176,7 @@ class CommandToken(Token):
 		super().__init__(TokenType.Command, ivl)
 		self._value = val
 
-	def value(self, mem):
+	def value(self, **kwargs):
 		return command(self._value)
 
 	def __str__(self):
@@ -186,7 +187,7 @@ class CharToken(Token):
 		super().__init__(type, ivl)
 		self._value = val
 
-	def value(self, mem):
+	def value(self, **kwargs):
 		return chr(self._value)
 
 	def __str__(self):
@@ -196,8 +197,8 @@ class TextToken(Token):
 	def __init__(self, type, ivl):
 		super().__init__(type, ivl)
 
-	def value(self, mem):
-		return mem.string(self.ivl, "petscii")
+	def value(self, **kwargs):
+		return kwargs['mem'].string(self.ivl, kwargs['codec'])
 
 	def __str__(self):
 		return "{string: {}}", self.ivl

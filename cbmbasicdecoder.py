@@ -3,11 +3,12 @@ from cbmbasic import *
 from interval import Interval
 
 class TokenDecoder(object):
-	def __init__(self, mem):
+	def __init__(self, mem, codec):
 		self.mem = mem
+		self.codec = codec
 
 	def value(self, token):
-		return token.value(self.mem)
+		return token.value(mem=self.mem, codec=self.codec)
 
 class BasicDecoder(decoders.Prefix):
 	def __init__(self, name):
@@ -26,7 +27,7 @@ class BasicDecoder(decoders.Prefix):
 			elif token.type == TokenType.LineEnd:
 				cutter.atomic(Interval(line_first, token.ivl.last))
 			elif token.type == TokenType.LineNumberReference:
-				addr = line_to_address(ctx.mem, ivl, token.value(ctx.mem))
+				addr = line_to_address(ctx.mem, ivl, token.value(mem=ctx.mem))
 				ctx.link_add_referenced(addr)
 			elif token.type == TokenType.Address:
 				addr = token.value(ctx.mem)
@@ -63,7 +64,7 @@ class BasicDecoder(decoders.Prefix):
 					tts = self._tt2name.get(line_token.type, None)
 					if not tts is None:
 						if line_token.type == TokenType.LineNumberReference:
-							target = line_to_address(ctx.mem, ivl, line_token.value(ctx.mem))
+							target = line_to_address(ctx.mem, ivl, line_token.value(mem=ctx.mem))
 							link_info['is_source'] = ctx.is_destination(target)
 							link_info['target'] = target
 						elif line_token.type == TokenType.Address:
@@ -79,7 +80,7 @@ class BasicDecoder(decoders.Prefix):
 							**link_info
 						}
 
-			td = TokenDecoder(ctx.mem)
+			td = TokenDecoder(ctx.mem, "petscii")
 			gen = Parser(ctx.mem, ivl).tokens()
 			target_already_exits = params['target_already_exits']
 			for token in gen:
