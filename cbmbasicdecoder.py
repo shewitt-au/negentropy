@@ -80,7 +80,7 @@ class BasicDecoder(decoders.Prefix):
 							**link_info
 						}
 
-			td = TokenDecoder(ctx.mem, "c64font" if "c64font" in ctx.flags else "petscii")
+			td = TokenDecoder(ctx.mem, "c64font" if "c64font" in ctx.flags else "petscii-ctrl")
 			gen = Parser(ctx.mem, ivl).tokens()
 			target_already_exits = params['target_already_exits']
 			for token in gen:

@@ -3,7 +3,7 @@ import codecs
 # Codec example here: https://github.com/dj51d/cbmcodecs/blob/develop/cbmcodecs/petscii_c64en_uc.py
 # More stuff here: https://pymotw.com/3/codecs/
 
-_decoding_table = (
+_petscii_decoding_table = (
 	'\ufffe'    #  0x00 -> UNDEFINED
 	'\ufffe'    #  0x01 -> UNDEFINED
 	'\ufffe'    #  0x02 -> UNDEFINED
@@ -262,6 +262,10 @@ _decoding_table = (
 	'\u03c0'    #  0xFF -> GREEK SMALL LETTER PI
 )
 
+# 'charmap_build' is undocumented and somewhat contentious.
+# TODO: PERHAPS WE SHOULD NOT BE USING THIS?!?!
+_petscii_encoding_table = codecs.charmap_build(_petscii_decoding_table)
+
 _control_char_names = {
 	0x03:	"{run/stop}",
 	0x05:	"{white}",
@@ -306,70 +310,9 @@ _control_char_names = {
 }
 
 def pettoascii(c):
-	return _control_char_names.get(c, _decoding_table[c])
+	return _control_char_names.get(c, _petscii_decoding_table[c])
 
-class Codec(codecs.Codec):
-	encode = None
-
-	def decode(self, input, errors='strict'):
-		return ("".join(map(pettoascii, input)), len(input))
-
-class IncrementalDecoder(codecs.IncrementalDecoder):
-	def decode(self, input, final=False):
-		return pettoascii(input)
-
-class StreamWriter(Codec, codecs.StreamWriter):
-	pass
-
-class StreamReader(Codec, codecs.StreamReader):
-	pass
-
-def getregentry():
-	return codecs.CodecInfo(
-		name='petscii',
-		encode=Codec().encode,
-		decode=Codec().decode,
-		incrementalencoder=None,
-		incrementaldecoder=IncrementalDecoder,
-		streamreader=StreamReader,
-		streamwriter=StreamWriter,
-	)
-
-#############################################################
-
-class C64FontCodec(codecs.Codec):
-	def encode(self, input, errors='strict'):
-		return codecs.charmap_encode(input, errors, c64promonostyle_encoding_table)
-
-	def decode(self, input, errors='strict'):
-		return codecs.charmap_decode(input, errors, c64promonostyle_decoding_table)
-
-class C64FontIncrementalEncoder(codecs.IncrementalEncoder):
-	def encode(self, input, final=False):
-		return codecs.charmap_encode(input, self.errors, c64promonostyle_encoding_table)[0]
-
-class C64FontIncrementalDecoder(codecs.IncrementalDecoder):
-	def decode(self, input, final=False):
-		return codecs.charmap_decode(input, self.errors, c64promonostyle_decoding_table)[0]
-
-class C64FontStreamWriter(C64FontCodec, codecs.StreamWriter):
-	pass
-
-class C64FontStreamReader(C64FontCodec, codecs.StreamReader):
-	pass
-
-def C64Fontgetregentry():
-	return codecs.CodecInfo(
-		name='c64font',
-		encode=C64FontCodec().encode,
-		decode=C64FontCodec().decode,
-		incrementalencoder=C64FontIncrementalEncoder,
-		incrementaldecoder=C64FontIncrementalDecoder,
-		streamreader=C64FontStreamReader,
-		streamwriter=C64FontStreamWriter,
-	)
-
-c64promonostyle_decoding_table = (
+_c64promonostyle_decoding_table = (
 	'\uee80'
 	'\uee81'
 	'\uee82'
@@ -630,17 +573,119 @@ c64promonostyle_decoding_table = (
 
 # 'charmap_build' is undocumented and somewhat contentious.
 # TODO: PERHAPS WE SHOULD NOT BE USING THIS?!?!
-c64promonostyle_encoding_table = codecs.charmap_build(c64promonostyle_decoding_table)
+_c64promonostyle_encoding_table = codecs.charmap_build(_c64promonostyle_decoding_table)
+
+###############################################################################
+
+class PetsciiCodec(codecs.Codec):
+	def encode(self, input, errors='strict'):
+		return codecs.charmap_encode(input, errors, _petscii_encoding_table)
+
+	def decode(self, input, errors='strict'):
+		return codecs.charmap_decode(input, errors, _petscii_decoding_table)
+
+class PetsciiIncrementalEncoder(codecs.IncrementalEncoder):
+	def encode(self, input, final=False):
+		return codecs.charmap_encode(input, self.errors, _petscii_encoding_table)[0]
+
+class PetsciiIncrementalDecoder(codecs.IncrementalDecoder):
+	def decode(self, input, final=False):
+		return codecs.charmap_decode(input, self.errors, _petscii_decoding_table)[0]
+
+class PetsciiStreamWriter(PetsciiCodec, codecs.StreamWriter):
+	pass
+
+class PetsciiStreamReader(PetsciiCodec, codecs.StreamReader):
+	pass
+
+def petscii_getregentry():
+	return codecs.CodecInfo(
+		name='petscii',
+		encode=PetsciiCodec().encode,
+		decode=PetsciiCodec().decode,
+		incrementalencoder=PetsciiIncrementalEncoder,
+		incrementaldecoder=PetsciiIncrementalDecoder,
+		streamreader=PetsciiStreamWriter,
+		streamwriter=PetsciiStreamReader,
+	)
+
+###############################################################################
+
+class PetsciiCtrlCodec(codecs.Codec):
+	encode = None
+
+	def decode(self, input, errors='strict'):
+		return ("".join(map(pettoascii, input)), len(input))
+
+class PetsciiCtrlIncrementalDecoder(codecs.IncrementalDecoder):
+	def decode(self, input, final=False):
+		return pettoascii(input)
+
+class PetsciiCtrlStreamWriter(PetsciiCtrlCodec, codecs.StreamWriter):
+	pass
+
+class PetsciiCtrlStreamReader(PetsciiCtrlCodec, codecs.StreamReader):
+	pass
+
+def petsciisctrl_getregentry():
+	return codecs.CodecInfo(
+		name='petscii-ctrl',
+		encode=PetsciiCtrlCodec().encode,
+		decode=PetsciiCtrlCodec().decode,
+		incrementalencoder=None,
+		incrementaldecoder=PetsciiCtrlIncrementalDecoder,
+		streamreader=PetsciiCtrlStreamWriter,
+		streamwriter=PetsciiCtrlStreamReader,
+	)
+
+###############################################################################
+
+class C64FontCodec(codecs.Codec):
+	def encode(self, input, errors='strict'):
+		return codecs.charmap_encode(input, errors, _c64promonostyle_encoding_table)
+
+	def decode(self, input, errors='strict'):
+		return codecs.charmap_decode(input, errors, _c64promonostyle_decoding_table)
+
+class C64FontIncrementalEncoder(codecs.IncrementalEncoder):
+	def encode(self, input, final=False):
+		return codecs.charmap_encode(input, self.errors, _c64promonostyle_encoding_table)[0]
+
+class C64FontIncrementalDecoder(codecs.IncrementalDecoder):
+	def decode(self, input, final=False):
+		return codecs.charmap_decode(input, self.errors, _c64promonostyle_decoding_table)[0]
+
+class C64FontStreamWriter(C64FontCodec, codecs.StreamWriter):
+	pass
+
+class C64FontStreamReader(C64FontCodec, codecs.StreamReader):
+	pass
+
+def c64font_getregentry():
+	return codecs.CodecInfo(
+		name='c64font',
+		encode=C64FontCodec().encode,
+		decode=C64FontCodec().decode,
+		incrementalencoder=C64FontIncrementalEncoder,
+		incrementaldecoder=C64FontIncrementalDecoder,
+		streamreader=C64FontStreamReader,
+		streamwriter=C64FontStreamWriter,
+	)
+
+###############################################################################
 
 _codecs = {
-	'c64font': C64Fontgetregentry(),
-	'petscii': getregentry()
+	'c64font': c64font_getregentry(),
+	'petscii': petscii_getregentry(),
+	'petscii-ctrl': petsciisctrl_getregentry()
 	}
 
 def _search_fn(encoding):
 	return _codecs.get(encoding, None)
 
 codecs.register(_search_fn)
+
+###############################################################################
 
 if __name__=='__main__':
 	b = b'abc'
@@ -661,7 +706,7 @@ if __name__=='__main__':
 #
 #		return chr(0xee00+c)
 #
-#	print ("c64promonostyle_decoding_table = (")
+#	print ("_c64promonostyle_decoding_table = (")
 #	for c in range(0, 256):
 #		print("\t'\\u{:04x}'".format(ord(c64fontmapper(c))))
 #	print("\t)")
