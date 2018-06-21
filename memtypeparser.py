@@ -5,9 +5,25 @@ from antlrparser.memmapListener import memmapListener
 import memmap
 
 class Listener(memmapListener):
-	def __init__(self, ctx, regions):
+	def __init__(self, ctx, regions, fname):
+		self._ok = False
+		if not fname:
+			return
 		self.ctx = ctx
 		self.regions = regions
+
+		input = FileStream(fname)
+		lexer = memmapLexer(input)
+		stream = CommonTokenStream(lexer)
+		parser = memmapParser(stream)
+		tree = parser.r()
+
+		if not parser.getNumberOfSyntaxErrors():
+			walker = ParseTreeWalker()
+			walker.walk(self, tree)
+
+	def got_data(self):
+		return self._ok
 
 	def enterDatasource(self, ctx:memmapParser.DatasourceContext):
 		print("datasource ", end="")
@@ -42,6 +58,8 @@ class Listener(memmapListener):
 						lt[1:],
 						{}
 						))
+
+				self._ok = True
 				#############
 
 
