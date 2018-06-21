@@ -2,8 +2,13 @@ from antlr4 import *
 from antlrparser.memmapLexer import memmapLexer
 from antlrparser.memmapParser import memmapParser
 from antlrparser.memmapListener import memmapListener
+import memmap
 
 class Listener(memmapListener):
+	def __init__(self, ctx, regions):
+		self.ctx = ctx
+		self.regions = regions
+
 	def enterDatasource(self, ctx:memmapParser.DatasourceContext):
 		print("datasource ", end="")
 		print(ctx.dsname().getText())
@@ -22,8 +27,24 @@ class Listener(memmapListener):
 		if body:
 			print("{")
 			for ent in body.mmentry():
+
+				## DOES STUFF
 				print("\t"+ent.mmrange().mmfirst().getText()+"-"+ent.mmrange().mmlast().getText(), end="")
 				print(" "+ent.mmdecoder().getText(), end="")
+
+				ft = ent.mmrange().mmfirst().getText()
+				lt = ent.mmrange().mmlast().getText()
+				dt = ent.mmdecoder().getText()
+
+				self.regions.append(memmap.MemRegion(
+						self.ctx.decoders[ent.mmdecoder().getText()],
+						ft[1:],
+						lt[1:],
+						{}
+						))
+				#############
+
+
 				if not ent.mmfrom() is None:
 					print(" < "+ent.mmfrom().getText(), end="")
 				print()
@@ -42,18 +63,3 @@ class Listener(memmapListener):
 								print(",".join([v.getText() for v in l.variant()]))
 					print("\t}")
 			print("}")
-
-if __name__=='__main__':
-	input = FileStream('in.txt')
-	lexer = memmapLexer(input)
-	stream = CommonTokenStream(lexer)
-	parser = memmapParser(stream)
-	#parser._errHandler = BailErrorStrategy()
-	tree = parser.r()
-
-	if not parser.getNumberOfSyntaxErrors():
-		l = Listener()
-		walker = ParseTreeWalker()
-		walker.walk(l, tree)
-
-	print()

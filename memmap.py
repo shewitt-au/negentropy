@@ -5,6 +5,11 @@ import copy
 from interval import Interval
 import decoders
 
+from antlr4 import *
+from antlrparser.memmapLexer import memmapLexer
+from antlrparser.memmapParser import memmapParser
+from memtypeparser import *
+
 class BaseRegion(object):
 	def __init__(self, first=None, last=None):
 		self.ivl = Interval(first, last)
@@ -173,6 +178,30 @@ class MemType(object):
 
 		# Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
 		self.map.sort()
+
+	def __init__(self, ctx, fname, default_decoder=None):
+		self.map = [] # A list of 'MemRegion's
+		if default_decoder:
+			self.default_decoder = ctx.decoders[default_decoder]
+		else:
+			self.default_decoder = None
+
+		try:
+			input = FileStream(fname)
+			lexer = memmapLexer(input)
+			stream = CommonTokenStream(lexer)
+			parser = memmapParser(stream)
+			tree = parser.r()
+
+			if not parser.getNumberOfSyntaxErrors():
+				l = Listener(ctx, self.map)
+				walker = ParseTreeWalker()
+				walker.walk(l, tree)
+
+		except FileNotFoundError:
+			if self.default_decoder is None:
+				self.default_decoder = ctx.decoders['data']
+			self.map.append(MemRegion(self.default_decoder, ctx.mem_range.first, ctx.mem_range.last, {}))
 
 	def __len__(self):
 		return len(self.map)
