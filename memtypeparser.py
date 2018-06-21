@@ -51,20 +51,25 @@ class Listener(memmapListener):
 				ft = ent.mmrange().mmfirst().getText()
 				lt = ent.mmrange().mmlast().getText()
 				dt = ent.mmdecoder().getText()
+				fromt = ent.mmfrom()
+				if not fromt is None:
+					fromt = ent.mmfrom().getText()
+					if fromt=='*':
+						fromt = None
+				print(fromt)
 
 				self.regions.append(memmap.MemRegion(
 						self.ctx.decoders[ent.mmdecoder().getText()],
 						ft[1:],
 						lt[1:],
-						{}
+						{},
+						None if fromt is None else int(fromt[1:], 16)
 						))
 
 				self._ok = True
 				#############
 
 
-				if not ent.mmfrom() is None:
-					print(" < "+ent.mmfrom().getText(), end="")
 				print()
 				props = ent.properties()
 				if props:

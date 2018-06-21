@@ -36,12 +36,21 @@ class BaseRegion(object):
 # Represents a region of memory (C64's) and associates it with a specific decoder.
 # Handles splitting the region into smaller ones at labels and comments.
 class MemRegion(BaseRegion):
-	def __init__(self, decoder, first, last=None, params=None):
+	def __init__(self, decoder, first, last=None, params=None, at=None):
 		super().__init__(first, last)
 		self.decoder = decoder
 		self.params = params
+		self.at = at
 		self.is_hole = False
 		self.subregions = []
+
+	def context(self, ctx):
+		if self.at is None:
+			return ctx
+		else:
+			cpy = copy.copy(ctx)
+			cpy.mem = ctx.mem.view(self.ivl, self.at)
+			return cpy
 
 	def _region_iterator(self, ctx):
 		return self.ivl.cut_left_iter(
@@ -49,6 +58,7 @@ class MemRegion(BaseRegion):
 			)
 
 	def preprocess(self, ctx):
+		ctx = self.context(ctx)
 		cp = self.decoder.cutting_policy()
 		if cp==decoders.CuttingPolicy.Automatic:
 			self.subregions.extend(self._region_iterator(ctx))
@@ -63,6 +73,7 @@ class MemRegion(BaseRegion):
 		return remains
 
 	def items(self, ctx):
+		ctx = self.context(ctx)
 		i = self.decoder.intro(ctx, self)
 		if not i is None:
 			yield i
@@ -218,7 +229,9 @@ class MemType(object):
 	def preprocess(self, ctx, ivl):
 		new_map = []				
 
-		for region, is_hole in self._region_iter(ivl):
+		for region in self:
+			is_hole = False
+		#for region, is_hole in selfself._region_iter(ivl):
 			if  is_hole:
 				# we found a hole and we've got a default decoder
 				ctx.holes += 1
@@ -252,7 +265,7 @@ class MemType(object):
 
 	def items(self, ctx, ivl):
 		hole_idx = 0
-		for region in self.overlapping(ivl):
+		for region in self:#self.overlapping(ivl):
 			if region.is_hole:
 				# we found a hole and we've got a default decoder
 				yield {
