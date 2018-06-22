@@ -28,18 +28,20 @@ class Listener(memmapListener):
 		return self._ok
 
 	def enterDatasource(self, ctx:memmapParser.DatasourceContext):
-		print("datasource ", end="")
-		print(ctx.dsname().getText())
-		print("{")
-		print("\tfile = "+ctx.dsentry().dsfile().getText())
-		print("}")
+		#print("datasource ", end="")
+		#print(ctx.dsname().getText())
+		#print("{")
+		#print("\tfile = "+ctx.dsentry().dsfile().getText())
+		#print("}")
+		pass
 
 	def enterMemmap(self, ctx:memmapParser.MemmapContext):
-		print("\nmemmap ", end="")
-		print(ctx.mmname().getText(), end="")
-		src = ctx.mmdatasource()
-		if src:
-			print("("+src.getText()+")")
+		#print("\nmemmap ", end="")
+		#print(ctx.mmname().getText(), end="")
+		#src = ctx.mmdatasource()
+		#if src:
+		#	print("("+src.getText()+")")
+		pass
 
 		def getValue(n):
 			def var2Type(v):
@@ -62,7 +64,6 @@ class Listener(memmapListener):
 
 		body = ctx.mmbody()
 		if body:
-			print("{")
 			for ent in body.mmentry():
 				self._ok = True
 
