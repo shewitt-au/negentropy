@@ -75,13 +75,9 @@ class Context(object):
 		 		 addr in self.links_referenced_addresses)
 
 	def preprocess(self, ivl=None):
-		if not ivl:
-			ivl = self.mem_range
 		self.memtype.preprocess(self, ivl)
 
 	def items(self, ivl=None):
-		if not ivl:
-			ivl = self.mem_range
 		return self.memtype.items(self, ivl)
 
 class Prefix(object):

@@ -232,9 +232,12 @@ class MemType(object):
 		return Interval.envelope(ivl, Interval(self[0].ivl.first, self[-1].ivl.last))
 
 	def preprocess(self, ctx, ivl):
-		new_map = []				
+		new_map = []
 
-		ivl = self.envelope(ivl)
+		if ivl is None:
+			ivl = ctx.mem_range
+			ivl = self.envelope(ivl)
+
 		for region, is_hole in self._region_iter(ivl):
 			if  is_hole:
 				# we found a hole and we've got a default decoder
@@ -269,7 +272,11 @@ class MemType(object):
 
 	def items(self, ctx, ivl):
 		hole_idx = 0
-		ivl = self.envelope(ivl)
+
+		if ivl is None:
+			ivl = ctx.mem_range
+			ivl = self.envelope(ivl)
+
 		for region in self.overlapping(ivl):
 			if region.is_hole:
 				# we found a hole and we've got a default decoder
