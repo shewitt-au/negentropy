@@ -226,12 +226,16 @@ class MemType(object):
 		else:
 			return fake_with_holes(ivl, self.overlapping(ivl))
 
+	def envelope(self, ivl):
+		if len(self)<1:
+			return ivl
+		return Interval.envelope(ivl, Interval(self[0].ivl.first, self[-1].ivl.last))
+
 	def preprocess(self, ctx, ivl):
 		new_map = []				
 
-		for region in self:
-			is_hole = False
-		#for region, is_hole in selfself._region_iter(ivl):
+		ivl = self.envelope(ivl)
+		for region, is_hole in self._region_iter(ivl):
 			if  is_hole:
 				# we found a hole and we've got a default decoder
 				ctx.holes += 1
@@ -265,7 +269,8 @@ class MemType(object):
 
 	def items(self, ctx, ivl):
 		hole_idx = 0
-		for region in self:#self.overlapping(ivl):
+		ivl = self.envelope(ivl)
+		for region in self.overlapping(ivl):
 			if region.is_hole:
 				# we found a hole and we've got a default decoder
 				yield {

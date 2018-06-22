@@ -161,6 +161,15 @@ class Interval(object):
 			assert cls.friendly(first, second), "Can't make a union of separated intervals"
 			return cls(min(first.first, second.first), max(first.last, second.last))
 
+	@classmethod
+	def envelope(cls, first, second):
+		if first.is_empty():
+			return second
+		elif second.is_empty():
+			return first
+		else:
+			return cls(min(first.first, second.first), max(first.last, second.last))
+
 	def cut_left(self, pos):
 		return (
 			Interval(self.first, min(pos-1, self.last)),
