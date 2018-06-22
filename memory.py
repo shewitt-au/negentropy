@@ -43,8 +43,8 @@ class Memory(object):
 
 		print("Loaded: {}".format(self.ivl))
 
-	def view(self, ivl, source=None):
-		dataivl = ivl if source is None else Interval(source, size=len(ivl))
+	def view(self, ivl, data_addr=None):
+		dataivl = ivl if data_addr is None else Interval(data_addr, size=len(ivl))
 
 		if not self.ivl.contains(dataivl):
 			raise errors.MemoryException("Attempt to map view that's not in range", self.ivl, ivl)
