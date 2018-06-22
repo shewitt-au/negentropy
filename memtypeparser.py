@@ -41,7 +41,6 @@ class Listener(memmapListener):
 		#src = ctx.mmdatasource()
 		#if src:
 		#	print("("+src.getText()+")")
-		pass
 
 		def getValue(n):
 			def var2Type(v):
