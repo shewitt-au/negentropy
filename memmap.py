@@ -193,7 +193,7 @@ class MemType(object):
 		else:
 			self.default_decoder = None
 
-		l = Listener(ctx, self.map, fname)
+		l = Listener(ctx, self, fname)
 		if not l.got_data():
 			if self.default_decoder is None:
 				self.default_decoder = ctx.decoders['data']

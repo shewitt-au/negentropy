@@ -6,12 +6,12 @@ import memmap
 from interval import Interval
 
 class Listener(memmapListener):
-	def __init__(self, ctx, regions, fname):
+	def __init__(self, ctx, map, fname):
 		self._ok = False
 		if not fname:
 			return
 		self.ctx = ctx
-		self.regions = regions
+		self.mem = map
 		self.data_address = None
 
 		input = FileStream(fname)
@@ -41,14 +41,30 @@ class Listener(memmapListener):
 		if src:
 			print("("+src.getText()+")")
 
+		def getValue(n):
+			def var2Type(v):
+				if v.number():
+					ns = v.number().getText()
+					return int(ns[1:], 16) if ns[0]=='$' else int(ns)
+				elif v.string_():
+					return v.string_().getText()[1:-1]
+				elif v.boolean_():
+					return v.boolean_().getText()=='True'
+
+			pval = pe.propval()
+			v = pval.variant()
+			if v:
+				return var2Type(v)
+			else:
+				l = pval.list_()
+				if l:
+					return [var2Type(e) for e in l.variant()]
+
 		body = ctx.mmbody()
 		if body:
 			print("{")
 			for ent in body.mmentry():
-
-				## DOES STUFF
-				print("\t"+ent.mmrange().mmfirst().getText()+"-"+ent.mmrange().mmlast().getText(), end="")
-				print(" "+ent.mmdecoder().getText(), end="")
+				self._ok = True
 
 				ft = ent.mmrange().mmfirst().getText()
 				lt = ent.mmrange().mmlast().getText()
@@ -61,34 +77,20 @@ class Listener(memmapListener):
 					else:
 						self.data_address = int(dataaddrt[1:], 16)
 
-				self.regions.append(memmap.MemRegion(
+				props = {}
+				props_node = ent.properties()
+				if props_node:
+					for pe in props_node.propentry():
+						name = pe.propname().getText()
+						props[name] = getValue(pe.propval())
+
+				self.mem.map.append(memmap.MemRegion(
 						self.ctx.decoders[ent.mmdecoder().getText()],
 						ft[1:],
 						lt[1:],
-						{},
+						props,
 						self.data_address
 						))
 
 				if not self.data_address is None:
 					self.data_address += len(Interval(ft[1:], lt[1:]))
-
-				self._ok = True
-				#############
-
-
-				print()
-				props = ent.properties()
-				if props:
-					print("\t{")
-					for pe in props.propentry():
-						print("\t\t"+pe.propname().getText()+" = ", end="")
-						pval = pe.propval()
-						v = pval.variant()
-						if v:
-							print(v.getText())
-						else:
-							l = pval.list_()
-							if l:
-								print(",".join([v.getText() for v in l.variant()]))
-					print("\t}")
-			print("}")

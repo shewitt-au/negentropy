@@ -24,15 +24,18 @@ properties : '{' propentry* '}' ;
 propentry : propname '=' propval ;
 propname : NAME ;
 propval : (variant | list_) ;
+variant : NAME | number | string_ | boolean_ ;
 number : DECIMAL | HEXNUM ;
-variant : NAME | number | QUOTED ;
+string_ : QUOTED ;
+boolean_ : BOOLEAN_ ;
 list_ : variant (',' variant)*  ;
 
 // ------- LEXER ------- //
 
 DATASOURCE : 'datasource' ;
 FILE : 'file' ;
-MEMMAP: 'memmap' ;
+MEMMAP : 'memmap' ;
+BOOLEAN_ : 'True' | 'False' ;
 
 DECIMAL : [0-9]+ ;
 HEXNUM : '$' [0-9a-fA-F]+ ;

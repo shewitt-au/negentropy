@@ -27,7 +27,7 @@ class CharDecoder(decoders.Prefix):
 			bm.save(fn)
 			return fn
 
-		c = ctx.cmts.by_address.get(ivl.first)
+		c = ctx.cmts[0].by_address.get(ivl.first)
 		target_already_exits = params['target_already_exits']
 		params['first_number'] = (first_char+num_chars)&~0xf
 		params['first_char'] = first_char+num_chars
