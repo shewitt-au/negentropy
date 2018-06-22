@@ -3,6 +3,7 @@ from antlrparser.memmapLexer import memmapLexer
 from antlrparser.memmapParser import memmapParser
 from antlrparser.memmapListener import memmapListener
 import memmap
+from interval import Interval
 
 class Listener(memmapListener):
 	def __init__(self, ctx, regions, fname):
@@ -11,6 +12,7 @@ class Listener(memmapListener):
 			return
 		self.ctx = ctx
 		self.regions = regions
+		self.data_address = None
 
 		input = FileStream(fname)
 		lexer = memmapLexer(input)
@@ -55,16 +57,20 @@ class Listener(memmapListener):
 				if not fromt is None:
 					fromt = ent.mmfrom().getText()
 					if fromt=='*':
-						fromt = None
-				print(fromt)
+						self.data_address = None
+					else:
+						self.data_address = int(fromt[1:], 16)
 
 				self.regions.append(memmap.MemRegion(
 						self.ctx.decoders[ent.mmdecoder().getText()],
 						ft[1:],
 						lt[1:],
 						{},
-						None if fromt is None else int(fromt[1:], 16)
+						self.data_address
 						))
+
+				if not self.data_address is None:
+					self.data_address += len(Interval(ft[1:], lt[1:]))
 
 				self._ok = True
 				#############
