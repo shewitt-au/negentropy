@@ -53,13 +53,13 @@ class Listener(memmapListener):
 				ft = ent.mmrange().mmfirst().getText()
 				lt = ent.mmrange().mmlast().getText()
 				dt = ent.mmdecoder().getText()
-				fromt = ent.mmfrom()
-				if not fromt is None:
-					fromt = ent.mmfrom().getText()
-					if fromt=='*':
+				dataaddr = ent.mmdataaddr()
+				if not dataaddr is None:
+					dataaddrt = dataaddr.getText()
+					if dataaddrt=='*':
 						self.data_address = None
 					else:
-						self.data_address = int(fromt[1:], 16)
+						self.data_address = int(dataaddrt[1:], 16)
 
 				self.regions.append(memmap.MemRegion(
 						self.ctx.decoders[ent.mmdecoder().getText()],
