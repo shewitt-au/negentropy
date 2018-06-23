@@ -18,6 +18,27 @@ def add_dispatcher(env, filter_name, markup):
 		return context.vars[markup.format(tag)](*args, **kwargs)
 	env.filters[filter_name] = dispatch
 
+_mdescape = {
+	'\\' :  '\\\\',
+	'`'  :  '\\`',
+	'*'  :  '\\*',
+	'_'  :  '\\_',
+	'{' :  '\\{',
+	'[' :  '\\[',
+	'(' :  '\\(',
+	'}' :  '\\}',
+	']' :  '\\]',
+	')' :  '\\)',
+	'#'  :  '\\#',
+	'+'  :  '\\+',
+	'-'  :  '\\-',
+	'.'  :  '\\.',
+	'!'  :  '\\!'
+	}
+_bdecsapetrans = str.maketrans(_mdescape)
+def mdescape(s, *args, **kwargs):
+	return s.translate(_bdecsapetrans)
+
 def sequence_to_string(it, pat, **kwargs):
 	sep = kwargs.get("s")
 	if sep is None or isinstance(sep, str):
@@ -70,6 +91,7 @@ def run(args):
 	env.globals['have_holes'] = bd.holes>0
 	env.globals['flags'] = args.flag
 	env.filters['seq2str'] = sequence_to_string
+	env.filters['mdescape'] = mdescape
 	add_dispatcher(env, "dispatch", "{}_handler")
 	add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")
 

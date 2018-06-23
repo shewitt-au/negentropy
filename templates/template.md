@@ -7,7 +7,7 @@ title: {{title}}
 {%- macro comment_before(i) -%}
 {%- if i.comment_before -%}
 {%- for line in i.comment_before.splitlines() -%}
-; {{line}}  
+; {{line | mdescape}}  
 {% endfor -%}
 {%- endif -%}
 {%- endmacro -%}
@@ -15,20 +15,20 @@ title: {{title}}
 {%- macro comment_after(i) -%}
 {%- if i.comment_after -%}
 {%- for line in i.comment_after.splitlines() -%}
-; {{line}}  
+; {{line | mdescape}}  
 {% endfor -%}
 {%- endif -%}
 {%- endmacro -%}
 
 {%- macro comment_inline(i) -%}
 {%- if i.comment -%}
- ; {{i.comment}}  
+; {{i.comment | mdescape}}  
 {%- endif -%}
 {%- endmacro -%}
 
 {%- macro label(i) -%}
 {%- if i.label -%}
-**{{i.label}}**  
+**{{i.label | mdescape}}**  
 {% endif -%}
 {%- endmacro -%}
 
@@ -44,7 +44,7 @@ title: {{title}}
 {%- macro tabs() %}   {% endmacro -%}
 
 {%- macro operand(i) -%}
-{{i.instruction.operand-}}
+{{i.instruction.operand | mdescape-}}
 {{-i.instruction.op_adjust}}
 {%- endmacro -%}
 
