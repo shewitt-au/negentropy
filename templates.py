@@ -73,7 +73,8 @@ def run(args):
 	add_dispatcher(env, "dispatch", "{}_handler")
 	add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")
 
-	s = render(env, 'template.html')
+	template = "template.{0}".format(args.format)
+	s = render(env, template)
 	with open(args.output, "w", encoding='utf-8') as of:
 		of.write(s)
 
