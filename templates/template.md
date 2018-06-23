@@ -81,17 +81,17 @@ title: {{title}}
 {%- endmacro -%}
 
 {#- ----------------ptr16---------------- -#}
-{%- macro ptr16_handler(section) -%}
-{%- for i in section.lines -%}
-|{{address(i)}}    |
+{%- macro ptr16_handler(section) %}
+{% for i in section.lines -%}
+{{address(i)}}    |
 {%- for v in i.vals -%}
-|{%- if v.is_source -%}[{%- endif -%}
-{{v.val}}
-{%- if v.is_source -%}]({{"{:04x}".format(v.target)}})
-{%- endif -%}
-{%- endfor -%}
-{% endfor -%}
-{%- endmacro -%}
+{%- if v.is_source -%}[{%- endif -%}
+{{- v.val -}}
+{%- if v.is_source -%}]({{"{:04x}".format(v.target)}}){%- endif -%}
+|
+{%- endfor %}  
+{% endfor %}
+{% endmacro -%}
 
 {#- ----------------chars---------------- -#}
 {%- macro chars_handler(section) -%}
