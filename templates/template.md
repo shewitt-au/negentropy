@@ -34,6 +34,7 @@ title: {{title}}
 
 {%- macro anchor(i) -%}
 {%- if i.is_destination -%}
+<a name="{{"{:04x}".format(i.address)}}"></a>
 {%- endif -%}
 {%- endmacro -%}
 
@@ -43,9 +44,15 @@ title: {{title}}
 
 {%- macro tabs() %}   {% endmacro -%}
 
-{%- macro operand(i) -%}
-{{i.instruction.operand | mdescape-}}
-{{-i.instruction.op_adjust}}
+{%-macro operand(i)-%}
+{%-if i.instruction.is_source-%}
+[
+{%-endif-%}
+{{-i.instruction.operand | mdescape-}}
+{%-if i.instruction.is_source-%}
+](#{{"{:04x}".format(i.instruction.target)}})
+{{-i.instruction.op_adjust-}}
+{%-endif-%}
 {%- endmacro -%}
 
 {%- macro instruction(i) -%}
@@ -87,7 +94,7 @@ title: {{title}}
 {%- for v in i.vals -%}
 {%- if v.is_source -%}[{%- endif -%}
 {{- v.val -}}
-{%- if v.is_source -%}]({{"{:04x}".format(v.target)}}){%- endif -%}
+{%- if v.is_source -%}](#{{"{:04x}".format(v.target)}}){%- endif -%}
 |
 {%- endfor %}  
 {% endfor %}
