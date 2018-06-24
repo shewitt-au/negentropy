@@ -100,6 +100,47 @@ title: {{title}}
 {% endfor %}
 {% endmacro -%}
 
+{#- ----------------basic---------------- -#}
+{%- macro basic_handler(section) -%}
+{%- for ln in section.lines -%}
+{{- anchor(ln) -}}
+{%- for tkn in ln.tokens -%}
+{{- tkn.type|cbmbasic_dispatch(tkn) -}}
+{%- endfor %}  
+{% endfor -%}
+{%- endmacro -%}
+
+{%- macro cbmbasic_line_num_handler(tkn) -%}
+{{ tkn.val }} {% endmacro -%}
+
+{%- macro cbmbasic_text_handler(tkn) -%}
+{{ tkn.val }}
+{%- endmacro -%}
+
+{%- macro cbmbasic_command_handler(tkn) -%}
+{{ tkn.val }}
+{%- endmacro -%}
+
+{%- macro cbmbasic_quoted_handler(tkn) -%}
+{{ tkn.val }}
+{%- endmacro -%}
+
+{%- macro cbmbasic_line_ref_handler(tkn) -%}
+{%- if tkn.is_source %}[{% endif -%}
+{{- tkn.val -}}
+{%- if tkn.is_source -%}
+](#{{"{:04x}".format(tkn.target)}})
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro cbmbasic_address_handler(tkn) -%}
+{%- if tkn.is_source %}[{% endif -%}
+{{- tkn.val -}}
+{%- if tkn.is_source -%}
+](#{{"{:04x}".format(tkn.target)}})
+{%- endif -%}
+{%- endmacro -%}
+
 {#- ----------------chars---------------- -#}
 {%- macro chars_handler(section) -%}
 **{{"{:04x}".format(section.address)}}**  
