@@ -10,22 +10,22 @@
 	 src: url("C64_Pro_Mono-STYLE.woff2") format("woff2");
 }
 {%- endif -%}
-.container {
+.disass_container {
 	font-family: monospace;
 }
-.comment {
+.disass_comment {
 	font-family: inherit;
 	white-space: pre;
 	color : blue;
 }
-.code {
+.disass_code {
 	font-family: inherit;
 	white-space: pre;
 }
-.hole {
+.disass_hole {
 	border: 2px solid red;
 }
-.basic {
+.disass_basic {
 {%- if 'c64font' in flags -%}
 	font: normal 8pt "C64 Pro Mono Local", verdana, helvetica, sans-serif;
 	letter-spacing: 0px;
@@ -34,10 +34,10 @@
 {%- endif -%}
 	white-space: pre;
 }
-.notinterested {
+.disass_notinterested {
 	background-color: orange;
 }
-.intro {
+.disass_intro {
 	background-color: lightgreen;
 }
 </style>

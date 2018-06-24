@@ -1,6 +1,6 @@
 {%- macro comment_before(i) -%}
 {% if i.comment_before %}
-<div class="comment">
+<div class="disass_comment">
 {%- for line in i.comment_before.splitlines() -%}
 ; {{line}}
 {% endfor -%}
@@ -10,7 +10,7 @@
 
 {%- macro comment_after(i) -%}
 {% if i.comment_after %}
-<div class="comment">
+<div class="disass_comment">
 {%- for line in i.comment_after.splitlines() -%}
 ; {{line}}
 {% endfor -%}
@@ -20,7 +20,7 @@
 
 {%- macro comment_inline(i) -%}
 {%- if i.comment -%}
-<span class="comment"> ; {{i.comment}}</span>
+<span class="disass_comment"> ; {{i.comment}}</span>
 {%- endif -%}
 {%- endmacro -%}
 
@@ -65,7 +65,7 @@
 
 {#- ----------------intro---------------- -#}
 {%- macro intro_handler(section) -%}
-<div class="intro">
+<div class="disass_intro">
 {{section.section_type}} section @
 {{-address_range(section)-}} 
 </div>
@@ -85,7 +85,7 @@
 
 {#- ----------------code---------------- -#}
 {%- macro code_handler(section) -%}
-<div class="code">
+<div class="disass_code">
 {%- for i in section.lines -%}
 {{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}",w=8)}}{{tabs()}}{{instruction(i)-}}
 {{-comment_inline(i)}}
@@ -95,7 +95,7 @@
 
 {#- ----------------data---------------- -#}
 {%- macro data_handler(section) -%}
-<div class="code">
+<div class="disass_code">
 {%- for i in section.lines -%}
 {{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}
 {% endfor -%}
@@ -131,7 +131,7 @@
 {#- ----------------hole---------------- -#}
 {%- macro hole_handler(section) -%}
 <a name="{{section.name}}"></a>
-<div class="hole">
+<div class="disass_hole">
 {% if section.next %}<a href="#{{section.next}}">Next hole</a><br/><br/>{% endif %}
 {%- for r in section.contents -%}
 {{ r.type|dispatch(r) }}
@@ -141,7 +141,7 @@
 
 {#- ----------------basic---------------- -#}
 {%- macro basic_handler(section) -%}
-<div class="basic">
+<div class="disass_basic">
 {%- for ln in section.lines -%}
 {{- anchor(ln) }}{#{{address(ln)}}{{tabs() -}}-#}
 {%- for tkn in ln.tokens -%}
@@ -188,14 +188,14 @@
 
 {#- ----------------dontcare---------------- -#}
 {%- macro dontcare_handler(section) -%}
-<div class="notinterested">
+<div class="disass_notinterested">
 {{address_range(section)}} : {{section.title}}<br/>
 </div>
 {%- endmacro -%}
 
 {#- ********************************BODY******************************** #}
 
-<div class="container">
+<div class="disass_container">
 {%- if title %}<h1>{{title}}</h1><br/>{% endif -%}
 
 {#- ----------------first hole link---------------- -#}
