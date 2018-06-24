@@ -1,3 +1,5 @@
+import glob
+import os
 import jinja2
 import webbrowser
 import decoders
@@ -95,7 +97,7 @@ def run(args):
 	add_dispatcher(env, "dispatch", "{}_handler")
 	add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")
 
-	template = "template.{0}".format(args.format)
+	template = os.path.basename(glob.glob("templates/{}.*".format(args.format))[0])
 	s = render(env, template)
 	with open(args.output, "w", encoding='utf-8') as of:
 		of.write(s)
