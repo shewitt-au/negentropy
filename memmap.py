@@ -66,7 +66,7 @@ class MemRegion(BaseRegion):
 				rgn = next(regions)
 				self.subregions.append(rgn)
 				remains = self.decoder.preprocess(ctx, rgn)
-			except:
+			except StopIteration:
 				remains = self.ivl
 			else:
 				for rgn in regions:
