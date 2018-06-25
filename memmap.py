@@ -61,9 +61,18 @@ class MemRegion(BaseRegion):
 		ctx = self.context(ctx)
 		cp = self.decoder.cutting_policy()
 		if cp==decoders.CuttingPolicy.Automatic:
-			self.subregions.extend(self._region_iterator(ctx))
-			for rgn in self.subregions:
+			regions = self._region_iterator(ctx)
+			try:
+				rgn = next(regions)
+				self.subregions.append(rgn)
 				remains = self.decoder.preprocess(ctx, rgn)
+			except:
+				remains = self.ivl
+			else:
+				for rgn in regions:
+					assert remains.is_empty(), "Cutting error! Consider using a guided cutter"
+					self.subregions.append(rgn)
+					remains = self.decoder.preprocess(ctx, rgn)
 		elif cp==decoders.CuttingPolicy.Guided:
 			cutter = decoders.GuidedCutter(ctx, self.ivl, self.subregions)
 			remains = self.decoder.preprocess(ctx, self.ivl, cutter)
