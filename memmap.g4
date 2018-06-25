@@ -32,6 +32,9 @@ list_ : variant (',' variant)*  ;
 
 // ------- LEXER ------- //
 
+LINECOMMENT : '//' ~[\r\n]* -> skip ;
+BLOCKCOMMENT : '/*' .*? '*/' -> skip ;
+
 DATASOURCE : 'datasource' ;
 FILE : 'file' ;
 MEMMAP : 'memmap' ;
@@ -46,6 +49,6 @@ NAME : NAMEFIRST NAMEREST* ;
 
 fragment SQUOTED : '\'' (~['\r\n])* '\'' ;
 fragment DQUOTED : '"' (~["\r\n])* '"' ;
-QUOTED: SQUOTED | DQUOTED ;
+QUOTED : SQUOTED | DQUOTED ;
 
 WS : [ \t\r\n]+ -> skip ;
