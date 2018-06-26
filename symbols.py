@@ -48,6 +48,8 @@ symbols_re = re.compile(r"al(i)?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
 def read_symbols(fns):
 	symbols = SymbolTable()
 
+	fo = open("newsyms.txt", "w")
+
 	if not fns is None:
 		for fn in fns:
 			with open(fn, "r") as f:
@@ -57,6 +59,11 @@ def read_symbols(fns):
 					m = re.match(symbols_re, line)
 					if m:
 						symbols.add((int(m[2], 16), m[3], m[1]=='i'))
+						#
+						idx = "     "
+						if m[1]=='i':
+							idx = " (i) "
+						fo.write("$"+m[2]+idx+m[3]+"\n")
 
 	return symbols
 

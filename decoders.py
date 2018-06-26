@@ -4,6 +4,7 @@ import memory as memmod
 import memmap
 import symbols as symmod
 from interval import Interval
+from memtypeparser import *
 
 @unique
 class CuttingPolicy(Enum):
@@ -60,9 +61,12 @@ class Context(object):
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
 		self.holes = 0
-		self.memtype = memmap.MemType(self, memtype, default_decoder)
+		self.memtype = memmap.MemType(self, default_decoder)
 		self.flags = flags
 		self.authoring_info = authoring_info
+
+		# parse
+		l = Listener(self, memtype)
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)

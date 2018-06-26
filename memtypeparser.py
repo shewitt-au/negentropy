@@ -6,7 +6,7 @@ import memmap
 from interval import Interval
 
 class Listener(memmapListener):
-	def __init__(self, ctx, map, fname):
+	def __init__(self, ctx, fname):
 		self._ok = False
 		if not fname:
 			return
@@ -61,6 +61,8 @@ class Listener(memmapListener):
 				if l:
 					return [var2Type(e) for e in l.variant()]
 
+		self.ctx.memtype.parse_begin(self.ctx)
+
 		body = ctx.mmbody()
 		if body:
 			for ent in body.mmentry():
@@ -84,13 +86,21 @@ class Listener(memmapListener):
 						name = pe.propname().getText()
 						props[name] = getValue(pe.propval())
 
-				self.mem.map.append(memmap.MemRegion(
+				self.ctx.memtype.parse_add(
+						Interval(ft[1:], lt[1:]),
 						self.ctx.decoders[ent.mmdecoder().getText()],
-						ft[1:],
-						lt[1:],
 						props,
 						self.data_address
-						))
+						)
 
 				if not self.data_address is None:
 					self.data_address += len(Interval(ft[1:], lt[1:]))
+
+		self.ctx.memtype.parse_end(self.ctx)
+
+	def enterLabel(self, ctx:memmapParser.LabelContext):
+		print("{} = {} {}".format(
+			ctx.laddress().getText(),
+			ctx.lname().getText(),
+			[f.getText() for f in ctx.lflags()]
+			))

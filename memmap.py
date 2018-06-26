@@ -4,7 +4,6 @@ from heapq import merge
 import copy
 from interval import Interval
 import decoders
-from memtypeparser import *
 
 class BaseRegion(object):
 	def __init__(self, first=None, last=None):
@@ -162,53 +161,25 @@ memtype_re = re.compile(r"\s*([^\s]+)\s*([0-9A-Fa-f]{4})\s*([0-9A-Fa-f]{4})\s*^(
 
 # A representation of the MemType.txt file. A collection of 'MemRegion's.
 class MemType(object):
-	def __init__(self, ctx, fname, default_decoder=None):
+	def __init__(self, ctx, default_decoder=None):
 		self.map = [] # A list of 'MemRegion's
 		if default_decoder:
 			self.default_decoder = ctx.decoders[default_decoder]
 		else:
 			self.default_decoder = None
 
-		txt = None
-		if fname:
-			with open(fname, "r") as f:
-				txt = f.read()
+	def parse_begin(self, ctx):
+		self.got_parse_data = False
 
-		if txt:
-			pos, endpos = 0, len(txt)
-			while pos!=endpos:
-				m = memtype_re.match(txt, pos, endpos)
-				if m is None:
-					raise ValueError("Error in memtype file")
+	def parse_add(self, ivl, decoder, props, data_addr):
+		self.map.append(MemRegion(decoder, ivl.first, ivl.last, props, data_addr))
+		self.got_parse_data = True
 
-				# Poor man's configuration parser
-				params = {}
-				if m[4]:
-					params = eval(m[4], {})
-
-				self.map.append(MemRegion(ctx.decoders[m[1]], m[2], m[3], params))
-				pos = m.end()
-		else:
+	def parse_end(self, ctx):
+		if not self.got_parse_data:
 			if self.default_decoder is None:
 				self.default_decoder = ctx.decoders['data']
 			self.map.append(MemRegion(self.default_decoder, ctx.mem_range.first, ctx.mem_range.last, {}))
-
-		# Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
-		self.map.sort()
-
-	def __init__(self, ctx, fname, default_decoder=None):
-		self.map = [] # A list of 'MemRegion's
-		if default_decoder:
-			self.default_decoder = ctx.decoders[default_decoder]
-		else:
-			self.default_decoder = None
-
-		l = Listener(ctx, self, fname)
-		if not l.got_data():
-			if self.default_decoder is None:
-				self.default_decoder = ctx.decoders['data']
-			self.map.append(MemRegion(self.default_decoder, ctx.mem_range.first, ctx.mem_range.last, {}))
-
 		# Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
 		self.map.sort()
 
