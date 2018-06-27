@@ -1,3 +1,4 @@
+from inspect import cleandoc
 from antlr4 import *
 from antlrparser.memmapLexer import memmapLexer
 from antlrparser.memmapParser import memmapParser
@@ -57,7 +58,7 @@ class Listener(memmapListener):
 				if l:
 					return [var2Type(e) for e in l.variant()]
 
-		self.ctx.memtype.parse_begin(self.ctx)
+		self.ctx.memtype.parse_begin()
 
 		body = ctx.mmbody()
 		if body:
@@ -92,14 +93,47 @@ class Listener(memmapListener):
 
 		self.ctx.memtype.parse_end(self.ctx)
 
-	def enterLabels(self, ctx:memmapParser.LabelsContext):
+	def enterAnnotate(self, ctx:memmapParser.AnnotateContext):
 		self.ctx.syms.parse_begin(self.ctx)
 
 	def enterLabel(self, ctx:memmapParser.LabelContext):
-		addr = int(ctx.laddress().getText()[1:], 16)
+		addr = int(ctx.aaddress().getText()[1:], 16)
 		name = ctx.lname().getText()
 		in_index = 'i' in [f.getText() for f in ctx.lflags()]
 		self.ctx.syms.parse_add(addr, name, in_index)
 
-	def exitLabels(self, ctx:memmapParser.LabelsContext):
+	def enterComment(self, ctx:memmapParser.CommentContext):
+		# TODO: This is a mess. Make a comments class
+		addr = int(ctx.aaddress().getText()[1:], 16)
+		cmt = self.ctx.cmts[0].by_address.get(addr, ("", "", ""))
+		txt = ctx.ctext().getText()
+		pos = ctx.cpos()
+		if pos is None:
+			pos = '^'
+		else:
+			pos = pos.getText()
+		if txt[:3]=="'''":
+			if pos=='v':
+				self.ctx.cmts[0].add((addr, cmt[1], cleandoc(txt.strip("'''"))))
+			elif pos=='^':
+				self.ctx.cmts[0].add((addr, cleandoc(txt.strip("'''")), cmt[2]))
+			elif pos=='>':
+				self.ctx.cmts[1].add((addr, cleandoc(txt.strip("'''"))))
+		elif txt[:1]=="'":
+			if pos=='v':
+				self.ctx.cmts[0].add((addr, cmt[1], txt.strip("'")))
+			elif pos=='^':
+				self.ctx.cmts[0].add((addr, txt.strip("'"), cmt[2]))
+			elif pos=='>':
+				self.ctx.cmts[1].add((addr, txt.strip("'")))
+		elif txt[:1]=='"':
+			if pos=='v':
+				self.ctx.cmts[0].add((addr, cmt[1], txt.strip('"')))
+			elif pos=='^':
+				self.ctx.cmts[0].add((addr, txt.strip('"'), cmt[2]))
+			elif pos=='>':
+				self.ctx.cmts[1].add((addr, txt.strip("'")))
+
+
+	def exitAnnotate(self, ctx:memmapParser.AnnotateContext):
 		self.ctx.syms.parse_end(self.ctx)

@@ -168,7 +168,7 @@ class MemType(object):
 		else:
 			self.default_decoder = None
 
-	def parse_begin(self, ctx):
+	def parse_begin(self):
 		self.got_parse_data = False
 
 	def parse_add(self, ivl, decoder, props, data_addr):

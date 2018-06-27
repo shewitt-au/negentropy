@@ -1,6 +1,6 @@
 grammar memmap ;
 
-r : (datasource|memmap|labels)* EOF ;
+r : (datasource|memmap|annotate)* EOF ;
 
 datasource : DATASOURCE dsname '{' dsentry '}' ;
 dsname : NAME ;
@@ -30,11 +30,14 @@ string_ : QUOTED ;
 boolean_ : BOOLEAN_ ;
 list_ : variant (',' variant)*  ;
 
-labels : LABELS '{' label* '}' ;
-label :  laddress ('(' lflags+ ')')? lname lflags* ;
+annotate : ANNOTATE '{' (label | comment)* '}' ;
+label :  aaddress ('(' lflags+ ')')? lname lflags* ;
 lflags : 'i' ;
 laddress : HEXNUM ;
 lname : NAME ;
+comment : aaddress cpos? ctext;
+cpos : '^' | 'v' | '>' ;
+ctext : QUOTED | TQUOTED;
 
 // ------- LEXER ------- //
 
@@ -44,7 +47,7 @@ BLOCKCOMMENT : '/*' .*? '*/' -> skip ;
 DATASOURCE : 'datasource' ;
 FILE : 'file' ;
 MEMMAP : 'memmap' ;
-LABELS : 'labels' ;
+ANNOTATE : 'annotate' ;
 
 BOOLEAN_ : 'True' | 'False' ;
 DECIMAL : [0-9]+ ;
@@ -57,5 +60,6 @@ NAME : NAMEFIRST NAMEREST* ;
 fragment SQUOTED : '\'' (~['\r\n])* '\'' ;
 fragment DQUOTED : '"' (~["\r\n])* '"' ;
 QUOTED : SQUOTED | DQUOTED ;
+TQUOTED : '\'\'\'' .*? '\'\'\'' ;
 
 WS : [ \t\r\n]+ -> skip ;

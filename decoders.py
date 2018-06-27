@@ -57,7 +57,10 @@ class Context(object):
 			self.mem = memmod.Memory(contents, address)
 		self.mem_range = self.mem.range()
 		self.syms = symmod.SymbolTable()
-		self.cmts = symmod.read_comments(comments)
+		#self.cmts = symmod.read_comments(comments)
+		# TODO: This is a mess. Make a comments class
+		self.cmts = (symmod.DictWithRange(), symmod.DictWithRange())
+		#
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
 		self.holes = 0
