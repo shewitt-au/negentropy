@@ -56,7 +56,7 @@ class Context(object):
 			contents = f.read()
 			self.mem = memmod.Memory(contents, address)
 		self.mem_range = self.mem.range()
-		self.syms = symmod.read_symbols(symbols)
+		self.syms = symmod.SymbolTable()
 		self.cmts = symmod.read_comments(comments)
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()

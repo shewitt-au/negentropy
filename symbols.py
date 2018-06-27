@@ -29,6 +29,15 @@ class SymbolTable(multiindex.MultiIndex):
 		self.add_index("sorted_address", list, multiindex.sorted_list_indexer, (lambda k: k[0])) # list sorted by address
 		self.add_index("sorted_name", list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
 
+	def parse_begin(self, ctx):
+		pass
+
+	def parse_add(self, addr, name, in_index):
+		self.add((addr, name, in_index))
+
+	def parse_end(self, ctx):
+		pass
+
 	def items_in_range(self, ivl):
 		b = bisect.bisect_left(self.sorted_address, self.sorted_address_compare(ivl.first))
 		e = bisect.bisect_right(self.sorted_address, self.sorted_address_compare(ivl.last), b)
@@ -42,30 +51,6 @@ class SymbolTable(multiindex.MultiIndex):
 	def values_in_range(self, ivl):
 		for v in self.items_in_range(ivl):
 			yield v[1]
-
-symbols_re = re.compile(r"al(i)?\s*C:([0-9A-Fa-f]{4})\s*([^\s]*)")
-
-def read_symbols(fns):
-	symbols = SymbolTable()
-
-	fo = open("newsyms.txt", "w")
-
-	if not fns is None:
-		for fn in fns:
-			with open(fn, "r") as f:
-				for line in f:
-					if line=="":
-						continue
-					m = re.match(symbols_re, line)
-					if m:
-						symbols.add((int(m[2], 16), m[3], m[1]=='i'))
-						#
-						idx = "     "
-						if m[1]=='i':
-							idx = " (i) "
-						fo.write("$"+m[2]+idx+m[3]+"\n")
-
-	return symbols
 
 comments_re = re.compile(r"([0-9A-Fa-f]{4})\s*(.*)")
 

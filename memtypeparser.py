@@ -7,7 +7,6 @@ from interval import Interval
 
 class Listener(memmapListener):
 	def __init__(self, ctx, fname):
-		self._ok = False
 		if not fname:
 			return
 		self.ctx = ctx
@@ -23,9 +22,6 @@ class Listener(memmapListener):
 		if not parser.getNumberOfSyntaxErrors():
 			walker = ParseTreeWalker()
 			walker.walk(self, tree)
-
-	def got_data(self):
-		return self._ok
 
 	def enterDatasource(self, ctx:memmapParser.DatasourceContext):
 		#print("datasource ", end="")
@@ -66,8 +62,6 @@ class Listener(memmapListener):
 		body = ctx.mmbody()
 		if body:
 			for ent in body.mmentry():
-				self._ok = True
-
 				ft = ent.mmrange().mmfirst().getText()
 				lt = ent.mmrange().mmlast().getText()
 				dt = ent.mmdecoder().getText()
@@ -98,9 +92,14 @@ class Listener(memmapListener):
 
 		self.ctx.memtype.parse_end(self.ctx)
 
+	def enterLabels(self, ctx:memmapParser.LabelsContext):
+		self.ctx.syms.parse_begin(self.ctx)
+
 	def enterLabel(self, ctx:memmapParser.LabelContext):
-		print("{} = {} {}".format(
-			ctx.laddress().getText(),
-			ctx.lname().getText(),
-			[f.getText() for f in ctx.lflags()]
-			))
+		addr = int(ctx.laddress().getText()[1:], 16)
+		name = ctx.lname().getText()
+		in_index = 'i' in [f.getText() for f in ctx.lflags()]
+		self.ctx.syms.parse_add(addr, name, in_index)
+
+	def exitLabels(self, ctx:memmapParser.LabelsContext):
+		self.ctx.syms.parse_end(self.ctx)
