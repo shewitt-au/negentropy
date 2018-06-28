@@ -66,6 +66,7 @@ def sequence_to_string(it, pat, **kwargs):
 
 def run(args):
 	bd = decoders.Context(
+				args,
 				decoders = {
 					"bitmap" : gfx.CharDecoder("chars"),
 					"data" : data.BytesDecoder("data", 16),
@@ -73,16 +74,8 @@ def run(args):
 					"code" : M6502decoder.M6502Decoder("code"),
 					"basic" : cbmbasicdecoder.BasicDecoder("basic"),
 					"dontcare" : dontcaredecoder.DontCareDecoder("dontcare")
-					},
-				default_decoder = args.defaultdecoder,
-				address = args.origin,
-				memory = args.input,
-				memtype = args.memtype,
-				symbols = args.labels,
-				comments = args.comments,
-				authoring_info = args.info,
-				flags = args.flag
-		)
+					}
+				)
 	bd.preprocess()
 
 	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))

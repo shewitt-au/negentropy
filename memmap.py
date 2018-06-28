@@ -108,10 +108,10 @@ class CompoundMemRegion(BaseRegion):
 
 	def add(self, r):
 		self.contents.append(r)
-		if self.is_empty():
-			self.assign(r)
+		if self.ivl.is_empty():
+			self.ivl.assign(r.ivl)
 		else:
-			self.assign(Interval.union(self, r))
+			self.ivl.assign(Interval.union(self.ivl, r.ivl))
 
 	def items(self, ctx):
 		for r in self.contents:
@@ -226,7 +226,7 @@ class MemType(object):
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
 				remains = dr.preprocess(ctx)
 				if remains.is_empty():
-					dr.is_hole = True
+					dr.is_hole = ctx.gaps
 					new_map.append(dr)
 				else:
 					cr = CompoundMemRegion()
@@ -235,7 +235,7 @@ class MemType(object):
 					mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
 					mr.preprocess(ctx)
 					cr.add(mr)
-					cr.is_hole = True
+					cr.is_hole = ctx.gaps
 					new_map.append(cr)
 			else:
 				remains = region.preprocess(ctx)

@@ -43,7 +43,7 @@ def main():
 					)
 	parser.add_argument(
 					"-d", "--defaultdecoder",
-					help="default decoder if address is not in MEMTYPE file (implies --gaps)"
+					help="default decoder if address is not in MEMTYPE file"
 					)
 	parser.add_argument(
 					"-t", "--title",

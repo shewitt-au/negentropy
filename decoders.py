@@ -48,13 +48,11 @@ class GuidedCutter(object):
 			self.coll.append(self.current)
 
 class Context(object):
-	def __init__(self, decoders, address, memory, 
-				memtype, default_decoder, symbols,
-				comments, flags, authoring_info):
+	def __init__(self, args, decoders):
 		self.decoders = decoders
-		with open(memory, "rb") as f:
+		with open(args.input, "rb") as f:
 			contents = f.read()
-			self.mem = memmod.Memory(contents, address)
+			self.mem = memmod.Memory(contents, args.origin)
 		self.mem_range = self.mem.range()
 		self.syms = symmod.SymbolTable()
 		#self.cmts = symmod.read_comments(comments)
@@ -63,13 +61,14 @@ class Context(object):
 		#
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
+		self.memtype = memmap.MemType(self, args.defaultdecoder)
+		self.flags = args.flag
+		self.authoring_info = args.info
+		self.gaps = args.gaps
 		self.holes = 0
-		self.memtype = memmap.MemType(self, default_decoder)
-		self.flags = flags
-		self.authoring_info = authoring_info
 
 		# parse
-		l = Listener(self, memtype)
+		l = Listener(self, self.memtype)
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)
