@@ -1,17 +1,18 @@
 grammar memmap ;
 
-r : (datasource|memmap|annotate)* EOF ;
+r : WS* (toplevel (WS+ toplevel)*)? WS* EOF ;
+toplevel : datasource|memmap|annotate ;
 
-datasource : DATASOURCE dsname '{' dsentry '}' ;
+datasource : DATASOURCE WS+ dsname WS* '{' WS* dsentry WS* '}' ;
 dsname : NAME ;
-dsentry : FILE '=' dsfile ;
+dsentry : FILE WS* '=' WS* dsfile ;
 dsfile : QUOTED ;
 
-memmap : MEMMAP mmname ('(' mmdatasource ')')? mmbody? ;
+memmap : MEMMAP WS+ mmname WS* ('(' WS* mmdatasource WS* ')')? WS* mmbody? ;
 mmname : NAME ;
 mmdatasource : NAME ;
-mmbody : '{' mmentry* '}' ;
-mmentry : mmrange mmdecoder ('<' mmdataaddr)? properties? ;
+mmbody : '{' WS* (mmentry (WS+ mmentry)*)? WS* '}' ;
+mmentry : mmrange WS+ mmdecoder (WS* '<' mmdataaddr)? WS* properties? ;
 mmrange : mmfirst '-' mmlast ;
 mmdataaddr : mmfromaddr | mmfromreset;
 mmfromaddr : number ;
@@ -20,24 +21,25 @@ mmdecoder : NAME ;
 mmfirst : number ;
 mmlast : number ;
 
-properties : '{' propentry* '}' ;
-propentry : propname '=' propval ;
+properties : '{' WS* (propentry (WS+ propentry)*)? WS* '}' ;
+propentry : propname WS* '=' WS* propval ;
 propname : NAME ;
 propval : (variant | list_) ;
 variant : NAME | number | string_ | boolean_ ;
 number : DECIMAL | HEXNUM ;
 string_ : QUOTED ;
 boolean_ : BOOLEAN_ ;
-list_ : variant (',' variant)*  ;
+list_ : variant WS* (',' WS* variant)*  ;
 
-annotate : ANNOTATE '{' (label | comment)* '}' ;
-label :  aaddress ('(' lflags+ ')')? lname lflags* ;
+annotate : ANNOTATE WS* '{' WS* (atoplevel (WS+ atoplevel)*)? WS* '}' ;
+atoplevel : label | comment ;
+label :  aaddress WS* ('(' lflags+ ')')? WS+ lname ;
 lflags : 'i' ;
-laddress : HEXNUM ;
+aaddress : HEXNUM ;
 lname : NAME ;
-comment : aaddress cpos? ctext;
+comment : aaddress WS* cpos? WS* ctext;
 cpos : '^' | 'v' | '>' ;
-ctext : QUOTED | TQUOTED;
+ctext : QUOTED | TQUOTED ;
 
 // ------- LEXER ------- //
 
@@ -62,4 +64,4 @@ fragment DQUOTED : '"' (~["\r\n])* '"' ;
 QUOTED : SQUOTED | DQUOTED ;
 TQUOTED : '\'\'\'' .*? '\'\'\'' ;
 
-WS : [ \t\r\n]+ -> skip ;
+WS : [ \t\r\n] ;
