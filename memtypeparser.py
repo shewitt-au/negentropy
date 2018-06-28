@@ -1,12 +1,44 @@
-from inspect import cleandoc
 from antlr4 import *
 from antlrparser.memmapLexer import memmapLexer
 from antlrparser.memmapParser import memmapParser
 from antlrparser.memmapListener import memmapListener
 import memmap
 from interval import Interval
+from inspect import cleandoc
 
-class Listener(memmapListener):
+def parse(ctx, fname):
+	_Listener(ctx, fname)
+
+def _getVariantValue(pe):
+	def var2Type(v):
+		if v.number():
+			ns = v.number().getText()
+			return int(ns[1:], 16) if ns[0]=='$' else int(ns)
+		elif v.string_():
+			return v.string_().getText()[1:-1]
+		elif v.boolean_():
+			return v.boolean_().getText()=='True'
+
+	pval = pe.propval()
+	v = pval.variant()
+	if v:
+		return var2Type(v)
+	else:
+		l = pval.list_()
+		if l:
+			return [var2Type(e) for e in l.variant()]
+
+def _unpack_string(txt):
+	if txt[:3]=="'''":
+		return cleandoc(txt.strip("'''"))
+	elif txt[:1]=="'":
+		return txt.strip("'")
+	elif txt[:1]=='"':
+		txt.strip('"')
+	else:
+		assert False, "Unexpected!"
+
+class _Listener(memmapListener):
 	def __init__(self, ctx, fname):
 		if not fname:
 			return
@@ -20,44 +52,11 @@ class Listener(memmapListener):
 		parser = memmapParser(stream)
 		tree = parser.r()
 
-		if not parser.getNumberOfSyntaxErrors():
+		if parser.getNumberOfSyntaxErrors()==0:
 			walker = ParseTreeWalker()
 			walker.walk(self, tree)
 
-	def enterDatasource(self, ctx:memmapParser.DatasourceContext):
-		#print("datasource ", end="")
-		#print(ctx.dsname().getText())
-		#print("{")
-		#print("\tfile = "+ctx.dsentry().dsfile().getText())
-		#print("}")
-		pass
-
 	def enterMemmap(self, ctx:memmapParser.MemmapContext):
-		#print("\nmemmap ", end="")
-		#print(ctx.mmname().getText(), end="")
-		#src = ctx.mmdatasource()
-		#if src:
-		#	print("("+src.getText()+")")
-
-		def getValue(n):
-			def var2Type(v):
-				if v.number():
-					ns = v.number().getText()
-					return int(ns[1:], 16) if ns[0]=='$' else int(ns)
-				elif v.string_():
-					return v.string_().getText()[1:-1]
-				elif v.boolean_():
-					return v.boolean_().getText()=='True'
-
-			pval = pe.propval()
-			v = pval.variant()
-			if v:
-				return var2Type(v)
-			else:
-				l = pval.list_()
-				if l:
-					return [var2Type(e) for e in l.variant()]
-
 		self.ctx.memtype.parse_begin()
 
 		body = ctx.mmbody()
@@ -79,11 +78,11 @@ class Listener(memmapListener):
 				if props_node:
 					for pe in props_node.propentry():
 						name = pe.propname().getText()
-						props[name] = getValue(pe.propval())
+						props[name] = _getVariantValue(pe)
 
 				self.ctx.memtype.parse_add(
 						Interval(ft[1:], lt[1:]),
-						self.ctx.decoders[ent.mmdecoder().getText()],
+						self.ctx.decoders[dt],
 						props,
 						self.data_address
 						)
@@ -114,25 +113,25 @@ class Listener(memmapListener):
 			pos = pos.getText()
 		if txt[:3]=="'''":
 			if pos=='v':
-				self.ctx.cmts[0].add((addr, cmt[1], cleandoc(txt.strip("'''"))))
+				self.ctx.cmts[0].add((addr, cmt[1], _unpack_string(txt)))
 			elif pos=='^':
-				self.ctx.cmts[0].add((addr, cleandoc(txt.strip("'''")), cmt[2]))
+				self.ctx.cmts[0].add((addr, _unpack_string(txt), cmt[2]))
 			elif pos=='>':
-				self.ctx.cmts[1].add((addr, cleandoc(txt.strip("'''"))))
+				self.ctx.cmts[1].add((addr, _unpack_string(txt)))
 		elif txt[:1]=="'":
 			if pos=='v':
-				self.ctx.cmts[0].add((addr, cmt[1], txt.strip("'")))
+				self.ctx.cmts[0].add((addr, cmt[1], _unpack_string(txt)))
 			elif pos=='^':
-				self.ctx.cmts[0].add((addr, txt.strip("'"), cmt[2]))
+				self.ctx.cmts[0].add((addr, _unpack_string(txt), cmt[2]))
 			elif pos=='>':
-				self.ctx.cmts[1].add((addr, txt.strip("'")))
+				self.ctx.cmts[1].add((addr, _unpack_string(txt)))
 		elif txt[:1]=='"':
 			if pos=='v':
-				self.ctx.cmts[0].add((addr, cmt[1], txt.strip('"')))
+				self.ctx.cmts[0].add((addr, cmt[1], _unpack_string(txt)))
 			elif pos=='^':
-				self.ctx.cmts[0].add((addr, txt.strip('"'), cmt[2]))
+				self.ctx.cmts[0].add((addr, _unpack_string(txt), cmt[2]))
 			elif pos=='>':
-				self.ctx.cmts[1].add((addr, txt.strip("'")))
+				self.ctx.cmts[1].add((addr, _unpack_string(txt)))
 
 
 	def exitAnnotate(self, ctx:memmapParser.AnnotateContext):
