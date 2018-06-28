@@ -201,8 +201,8 @@ class MemType(object):
 		for idx in range(b, e):
 			yield self[idx]&ivl
 
-	def _region_iter(self, ivl):
-		if self.default_decoder:
+	def _region_iter(self, ctx, ivl):
+		if ctx.args.gaps:
 			return with_holes(ivl, self.overlapping(ivl))
 		else:
 			return fake_with_holes(ivl, self.overlapping(ivl))
@@ -219,7 +219,7 @@ class MemType(object):
 			ivl = ctx.mem_range
 			ivl = self.envelope(ivl)
 
-		for region, is_hole in self._region_iter(ivl):
+		for region, is_hole in self._region_iter(ctx, ivl):
 			if  is_hole:
 				# we found a hole and we've got a default decoder
 				if ctx.args.gaps:
