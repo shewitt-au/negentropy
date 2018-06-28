@@ -49,6 +49,7 @@ class GuidedCutter(object):
 
 class Context(object):
 	def __init__(self, args, decoders):
+		self.args = args
 		self.decoders = decoders
 		with open(args.input, "rb") as f:
 			contents = f.read()
@@ -62,9 +63,6 @@ class Context(object):
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
 		self.memtype = memmap.MemType(self, args.defaultdecoder)
-		self.flags = args.flag
-		self.authoring_info = args.info
-		self.gaps = args.gaps
 		self.holes = 0
 
 		# parse
@@ -88,7 +86,7 @@ class Context(object):
 
 class Prefix(object):
 	def intro(self, ctx, memtype):
-		if ctx.authoring_info:
+		if ctx.args.info:
 			return {
 				'type': "intro",
 				'ivl': memtype.ivl,

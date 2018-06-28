@@ -84,7 +84,7 @@ def run(args):
 	env.globals['has_index'] = index.has_index(bd)
 	env.globals['index'] = index.get_index(bd)
 	env.globals['have_holes'] = bd.holes>0
-	env.globals['flags'] = args.flag
+	env.globals['flags'] = args.flags
 	env.filters['seq2str'] = sequence_to_string
 	env.filters['mdescape'] = mdescape
 	add_dispatcher(env, "dispatch", "{}_handler")

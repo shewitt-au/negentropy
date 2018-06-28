@@ -34,6 +34,8 @@ def main():
 					help="file used to inject comments into the disassembly")
 	parser.add_argument(
 					"-f", "--flag",
+					dest="flags",
+					default=[],
 					action="append",
 					help="set various flags")
 	parser.add_argument(
@@ -70,9 +72,6 @@ def main():
 	# post-processing
 	if args.gaps is True and args.defaultdecoder is None:
 		args.defaultdecoder = "data"
-	if args.flag is None:
-		args.flag = []
-	
 	templates.run(args)
 
 	elapsed_time_secs = time.time() - start_time

@@ -222,11 +222,12 @@ class MemType(object):
 		for region, is_hole in self._region_iter(ivl):
 			if  is_hole:
 				# we found a hole and we've got a default decoder
-				ctx.holes += 1
+				if ctx.args.gaps:
+					ctx.holes += 1
 				dr = MemRegion(self.default_decoder, region.first, region.last, {})
 				remains = dr.preprocess(ctx)
 				if remains.is_empty():
-					dr.is_hole = ctx.gaps
+					dr.is_hole = ctx.args.gaps
 					new_map.append(dr)
 				else:
 					cr = CompoundMemRegion()
@@ -235,7 +236,7 @@ class MemType(object):
 					mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
 					mr.preprocess(ctx)
 					cr.add(mr)
-					cr.is_hole = ctx.gaps
+					cr.is_hole = ctx.args.gaps
 					new_map.append(cr)
 			else:
 				remains = region.preprocess(ctx)
