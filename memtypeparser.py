@@ -34,7 +34,7 @@ def _unpack_string(txt):
 	elif txt[:1]=="'":
 		return txt.strip("'")
 	elif txt[:1]=='"':
-		txt.strip('"')
+		return txt.strip('"')
 	else:
 		assert False, "Unexpected!"
 
