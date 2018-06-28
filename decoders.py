@@ -66,7 +66,7 @@ class Context(object):
 		self.holes = 0
 
 		# parse
-		l = Listener(self, self.memtype)
+		l = Listener(self, self.args.memtype)
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)
