@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+import time
+from datetime import timedelta
 from argparse import ArgumentParser
 import templates
 
 def main():
+	start_time = time.time()
+
 	parser = ArgumentParser(
 					description="Disassemble a C64 image."
 					)
@@ -70,5 +74,9 @@ def main():
 		args.flag = []
 	
 	templates.run(args)
+
+	elapsed_time_secs = time.time() - start_time
+	msg = "Execution took: %s secs" % timedelta(seconds=round(elapsed_time_secs))
+	print(msg)
 
 main()
