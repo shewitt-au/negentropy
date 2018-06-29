@@ -41,7 +41,7 @@ def main():
 	parser.add_argument(
 					"-g", "--gaps",
 					action="store_true",
-					help="show gaps in memtype file (implies '--defaultdecoder data' if no decoder specified)"
+					help="highlight gaps in memtype file (implies '--defaultdecoder data' if no decoder specified)"
 					)
 	parser.add_argument(
 					"-d", "--defaultdecoder",
