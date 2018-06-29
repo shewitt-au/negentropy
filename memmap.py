@@ -202,7 +202,7 @@ class MemType(object):
 			yield self[idx]&ivl
 
 	def _region_iter(self, ctx, ivl):
-		if ctx.args.gaps:
+		if self.default_decoder:
 			return with_holes(ivl, self.overlapping(ivl))
 		else:
 			return fake_with_holes(ivl, self.overlapping(ivl))
