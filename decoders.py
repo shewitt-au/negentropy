@@ -68,8 +68,12 @@ class Context(object):
 			configparser.parse(self, fn)
 
 		# read the file
-		input = self.datasource_props.get('file', args.input)
-		origin = self.datasource_props.get('origin', args.origin)
+		if not args.input:
+			input = self.datasource_props.get('file', args.input)
+			origin = self.datasource_props.get('origin', args.origin)
+		else:
+			input = args.input
+			origin = args.origin
 		with open(input, "rb") as f:
 			contents = f.read()
 			self.mem = memmod.Memory(contents, origin)
