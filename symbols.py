@@ -32,7 +32,8 @@ class SymbolTable(multiindex.MultiIndex):
 	def parse_begin(self, ctx):
 		pass
 
-	def parse_add(self, addr, name, in_index):
+	def parse_add(self, ctx, addr, name, in_index):
+		ctx.have_indexables |= in_index
 		self.add((addr, name, in_index))
 
 	def parse_end(self, ctx):

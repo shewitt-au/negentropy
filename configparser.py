@@ -110,7 +110,7 @@ class _Listener(configListener):
 		addr = int(ctx.aaddress().getText()[1:], 16)
 		name = ctx.lname().getText()
 		in_index = 'i' in [f.getText() for f in ctx.lflags()]
-		self.ctx.syms.parse_add(addr, name, in_index)
+		self.ctx.syms.parse_add(self.ctx, addr, name, in_index)
 
 	def enterComment(self, ctx:configParser.CommentContext):
 		# TODO: This is a mess. Make a comments class

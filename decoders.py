@@ -61,6 +61,7 @@ class Context(object):
 		self.memtype = memmap.MemType(self, args.defaultdecoder)
 		self.holes = 0
 		self.datasource_props = {}
+		self.have_indexables = False
 
 		# parse
 		for fn in self.args.config:
