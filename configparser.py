@@ -38,6 +38,15 @@ def _unpack_string(txt):
 	else:
 		assert False, "Unexpected!"
 
+def _propperties(node):
+	props = {}
+	props_node = node.properties()
+	if props_node:
+		for pe in props_node.propentry():
+			name = pe.propname().getText()
+			props[name] = _getVariantValue(pe)
+	return props
+
 class _Listener(configListener):
 	def __init__(self, ctx, fname):
 		if not fname:
@@ -56,6 +65,13 @@ class _Listener(configListener):
 			walker = ParseTreeWalker()
 			walker.walk(self, tree)
 
+	def enterDatasource(self, ctx:configParser.DatasourceContext):
+		n = ctx.dsname()
+		if n:
+			n = name.getText()
+		props = _propperties(ctx)
+		self.ctx.parse_datasource(n, props)
+
 	def enterMemmap(self, ctx:configParser.MemmapContext):
 		self.ctx.memtype.parse_begin()
 
@@ -73,12 +89,7 @@ class _Listener(configListener):
 					else:
 						self.data_address = int(dataaddrt[1:], 16)
 
-				props = {}
-				props_node = ent.properties()
-				if props_node:
-					for pe in props_node.propentry():
-						name = pe.propname().getText()
-						props[name] = _getVariantValue(pe)
+				props = _propperties(ent)
 
 				self.ctx.memtype.parse_add(
 						Interval(ft[1:], lt[1:]),

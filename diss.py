@@ -13,6 +13,7 @@ def main():
 					)
 	parser.add_argument(
 					"input",
+					nargs='?',
 					metavar="IN",
 					help="the binary file to disassemble"
 					)

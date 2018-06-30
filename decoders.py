@@ -51,10 +51,6 @@ class Context(object):
 	def __init__(self, args, decoders):
 		self.args = args
 		self.decoders = decoders
-		with open(args.input, "rb") as f:
-			contents = f.read()
-			self.mem = memmod.Memory(contents, args.origin)
-		self.mem_range = self.mem.range()
 		self.syms = symmod.SymbolTable()
 		#self.cmts = symmod.read_comments(comments)
 		# TODO: This is a mess. Make a comments class
@@ -64,10 +60,25 @@ class Context(object):
 		self.links_reachable_addresses = set()
 		self.memtype = memmap.MemType(self, args.defaultdecoder)
 		self.holes = 0
+		self.datasource_props = {}
 
 		# parse
 		for fn in self.args.config:
 			configparser.parse(self, fn)
+
+		# read the file
+		input = self.datasource_props.get('file', args.input)
+		origin = self.datasource_props.get('origin', args.origin)
+		with open(input, "rb") as f:
+			contents = f.read()
+			self.mem = memmod.Memory(contents, origin)
+
+		self.mem_range = self.mem.range()
+
+	def parse_datasource(self, name, props):
+		assert not name, "datasource names not supported"
+		self.datasource_props = props
+
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)

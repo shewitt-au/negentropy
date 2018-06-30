@@ -3,10 +3,8 @@ grammar config ;
 r : WS* (toplevel (WS+ toplevel)*)? WS* EOF ;
 toplevel : datasource|memmap|annotate ;
 
-datasource : DATASOURCE WS+ dsname WS* '{' WS* dsentry WS* '}' ;
+datasource : DATASOURCE WS+ dsname? WS* properties? ;
 dsname : NAME ;
-dsentry : FILE WS* '=' WS* dsfile ;
-dsfile : QUOTED ;
 
 memmap : MEMMAP WS+ mmname WS* ('(' WS* mmdatasource WS* ')')? WS* mmbody? ;
 mmname : NAME ;
@@ -33,7 +31,7 @@ list_ : variant WS* (',' WS* variant)*  ;
 
 annotate : ANNOTATE WS* '{' WS* (atoplevel (WS+ atoplevel)*)? WS* '}' ;
 atoplevel : label | comment ;
-label :  aaddress WS* ('(' lflags+ ')')? WS+ lname ;
+label :  aaddress WS* ('(' lflags+ ')')? WS+ lname WS* ;
 lflags : 'i' ;
 aaddress : HEXNUM ;
 lname : NAME ;
@@ -47,7 +45,6 @@ LINECOMMENT : '//' ~[\r\n]* -> skip ;
 BLOCKCOMMENT : '/*' .*? '*/' -> skip ;
 
 DATASOURCE : 'datasource' ;
-FILE : 'file' ;
 MEMMAP : 'memmap' ;
 ANNOTATE : 'annotate' ;
 
@@ -55,7 +52,7 @@ BOOLEAN_ : 'True' | 'False' ;
 DECIMAL : [0-9]+ ;
 HEXNUM : '$' [0-9a-fA-F]+ ;
 
-fragment NAMEFIRST : [a-zA-Z\-_] ;
+fragment NAMEFIRST : [a-zA-Z_] ;
 fragment NAMEREST : [0-9a-zA-Z\-_] ;
 NAME : NAMEFIRST NAMEREST* ;
 
