@@ -1,4 +1,4 @@
-grammar memmap ;
+grammar config ;
 
 r : WS* (toplevel (WS+ toplevel)*)? WS* EOF ;
 toplevel : datasource|memmap|annotate ;

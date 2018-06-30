@@ -1,6 +1,6 @@
 cls
-call antlr4 -o javaantlrparser memmap.g4
-javac javaantlrparser/memmap*.java
+call antlr4 -o javaantlrparser config.g4
+javac javaantlrparser/config*.java
 cd javaantlrparser
-call grun memmap r ../MemType.txt -gui
+call grun config r ../MemType.txt -gui
 cd ..

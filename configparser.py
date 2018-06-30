@@ -1,7 +1,7 @@
 from antlr4 import *
-from antlrparser.memmapLexer import memmapLexer
-from antlrparser.memmapParser import memmapParser
-from antlrparser.memmapListener import memmapListener
+from antlrparser.configLexer import configLexer
+from antlrparser.configParser import configParser
+from antlrparser.configListener import configListener
 import memmap
 from interval import Interval
 from inspect import cleandoc
@@ -38,7 +38,7 @@ def _unpack_string(txt):
 	else:
 		assert False, "Unexpected!"
 
-class _Listener(memmapListener):
+class _Listener(configListener):
 	def __init__(self, ctx, fname):
 		if not fname:
 			return
@@ -47,16 +47,16 @@ class _Listener(memmapListener):
 		self.data_address = None
 
 		input = FileStream(fname)
-		lexer = memmapLexer(input)
+		lexer = configLexer(input)
 		stream = CommonTokenStream(lexer)
-		parser = memmapParser(stream)
+		parser = configParser(stream)
 		tree = parser.r()
 
 		if parser.getNumberOfSyntaxErrors()==0:
 			walker = ParseTreeWalker()
 			walker.walk(self, tree)
 
-	def enterMemmap(self, ctx:memmapParser.MemmapContext):
+	def enterMemmap(self, ctx:configParser.MemmapContext):
 		self.ctx.memtype.parse_begin()
 
 		body = ctx.mmbody()
@@ -92,16 +92,16 @@ class _Listener(memmapListener):
 
 		self.ctx.memtype.parse_end(self.ctx)
 
-	def enterAnnotate(self, ctx:memmapParser.AnnotateContext):
+	def enterAnnotate(self, ctx:configParser.AnnotateContext):
 		self.ctx.syms.parse_begin(self.ctx)
 
-	def enterLabel(self, ctx:memmapParser.LabelContext):
+	def enterLabel(self, ctx:configParser.LabelContext):
 		addr = int(ctx.aaddress().getText()[1:], 16)
 		name = ctx.lname().getText()
 		in_index = 'i' in [f.getText() for f in ctx.lflags()]
 		self.ctx.syms.parse_add(addr, name, in_index)
 
-	def enterComment(self, ctx:memmapParser.CommentContext):
+	def enterComment(self, ctx:configParser.CommentContext):
 		# TODO: This is a mess. Make a comments class
 		addr = int(ctx.aaddress().getText()[1:], 16)
 		cmt = self.ctx.cmts[0].by_address.get(addr, ("", "", ""))
@@ -134,5 +134,5 @@ class _Listener(memmapListener):
 				self.ctx.cmts[1].add((addr, _unpack_string(txt)))
 
 
-	def exitAnnotate(self, ctx:memmapParser.AnnotateContext):
+	def exitAnnotate(self, ctx:configParser.AnnotateContext):
 		self.ctx.syms.parse_end(self.ctx)
