@@ -66,7 +66,8 @@ class Context(object):
 		self.holes = 0
 
 		# parse
-		memtypeparser.parse(self, self.args.memtype)
+		for fn in self.args.config:
+			memtypeparser.parse(self, fn)
 
 	def link_add_referenced(self, addr):
 		self.links_referenced_addresses.add(addr)

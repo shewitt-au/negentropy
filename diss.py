@@ -22,16 +22,10 @@ def main():
 					help="file to write the disassembly to"
 					)
 	parser.add_argument(
-					"-m", "--memtype",
-					help="file that describes what kind of data address ranges contain"
-					)
-	parser.add_argument(
-					"-l", "--labels",
+					"-c", "--config",
 					action="append",
-					help="file for mapping addresses to symbolic names (labels)")
-	parser.add_argument(
-					"-c", "--comments",
-					help="file used to inject comments into the disassembly")
+					help="specify configuration file (can be used multiple times)"
+					)
 	parser.add_argument(
 					"-f", "--flag",
 					dest="flags",
