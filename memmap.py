@@ -2,6 +2,7 @@ import re
 import bisect
 from heapq import merge
 import copy
+import numbers
 from interval import Interval
 import decoders
 
@@ -35,13 +36,17 @@ class BaseRegion(object):
 # Represents a region of memory (C64's) and associates it with a specific decoder.
 # Handles splitting the region into smaller ones at labels and comments.
 class MemRegion(BaseRegion):
-	def __init__(self, decoder, first, last=None, params=None, at=None, symbol_bypass=None):
+	def __init__(self, decoder, first, last=None, params=None, at=None):
 		super().__init__(first, last)
 		self.decoder = decoder
 		self.params = params
 		self.at = at
 		self.is_hole = False
 		self.subregions = []
+		self.black_list = params.get('symbol_bypass')
+		if self.black_list is not None:
+			if isinstance(self.black_list, numbers.Number):
+				self.black_list = [self.black_list]
 
 	def context(self, ctx):
 		if self.at is None:
@@ -83,6 +88,7 @@ class MemRegion(BaseRegion):
 
 	def items(self, ctx):
 		ctx = self.context(ctx)
+		ctx.syms.black_list = self.black_list
 		i = self.decoder.intro(ctx, self)
 		if not i is None:
 			yield i
@@ -94,6 +100,7 @@ class MemRegion(BaseRegion):
 			if not clipped_interval.is_empty():
 				yield self.decoder.prefix(ctx, clipped_interval, params)
 				yield self.decoder.decode(ctx, clipped_interval, params)
+		ctx.syms.black_list = None
 
 	def __str__(self):
 		return "{}: decoder={}".format(self.ivl, self.decoder)

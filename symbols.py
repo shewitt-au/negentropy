@@ -28,6 +28,7 @@ class SymbolTable(multiindex.MultiIndex):
 		self.add_index("by_address", dict, multiindex.dict_indexer, (lambda k: k[0])) # dict keyed on address
 		self.add_index("sorted_address", list, multiindex.sorted_list_indexer, (lambda k: k[0])) # list sorted by address
 		self.add_index("sorted_name", list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
+		self.black_list = None
 
 	def parse_begin(self, ctx):
 		pass
@@ -54,8 +55,10 @@ class SymbolTable(multiindex.MultiIndex):
 			yield v[1]
 
 	def lookup(self, addr):
+		if self.black_list is not None and addr in self.black_list:
+			return None
 		return self.by_address.get(addr)
 
 	def format(self, addr):
-		s = self.by_address.get(addr)
+		s = self.lookup(addr)
 		return "{:04x}".format(addr) if s is None else s[1]
