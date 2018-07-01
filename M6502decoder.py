@@ -36,12 +36,12 @@ class M6502Decoder(decoders.Prefix):
 				if ii.target:
 					# If we have a target look it up. If we don't find it try the address
 					# before (we'll tack on a '+1').
-					s = ctx.syms.by_address.get(ii.target)
+					s = ctx.syms.lookup(ii.target)
 					if s:
 						one_before = False
 						target = ii.target
 					else:
-						s = ctx.syms.by_address.get(ii.target-1)
+						s = ctx.syms.lookup(ii.target-1)
 						one_before = s is not None
 						target = ii.target-1 if one_before else ii.target
 

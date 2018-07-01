@@ -35,7 +35,7 @@ class BaseRegion(object):
 # Represents a region of memory (C64's) and associates it with a specific decoder.
 # Handles splitting the region into smaller ones at labels and comments.
 class MemRegion(BaseRegion):
-	def __init__(self, decoder, first, last=None, params=None, at=None):
+	def __init__(self, decoder, first, last=None, params=None, at=None, symbol_bypass=None):
 		super().__init__(first, last)
 		self.decoder = decoder
 		self.params = params

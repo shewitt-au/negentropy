@@ -52,3 +52,10 @@ class SymbolTable(multiindex.MultiIndex):
 	def values_in_range(self, ivl):
 		for v in self.items_in_range(ivl):
 			yield v[1]
+
+	def lookup(self, addr):
+		return self.by_address.get(addr)
+
+	def format(self, addr):
+		s = self.by_address.get(addr)
+		return "{:04x}".format(addr) if s is None else s[1]

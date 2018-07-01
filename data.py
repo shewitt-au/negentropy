@@ -55,9 +55,7 @@ class PointerDecoder(decoders.Prefix):
 
 		def value(addr):
 			v = mem.r16(addr)
-			s = ctx.syms.by_address.get(v)
-			val = "{:04x}".format(v) if s is None else s[1]
-			return {"val": val, "is_source": ctx.is_destination(v), "target": v}
+			return {"val": ctx.syms.format(v), "is_source": ctx.is_destination(v), "target": v}
 
 		def lines(self):
 			bpl = 2*self.linelen
