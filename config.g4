@@ -10,8 +10,7 @@ memmap : MEMMAP WS+ mmname WS* ('(' WS* mmdatasource WS* ')')? WS* mmbody? ;
 mmname : NAME ;
 mmdatasource : NAME ;
 mmbody : '{' WS* (mmentry (WS+ mmentry)*)? WS* '}' ;
-mmentry : mmrange WS+ mmdecoder (WS* '<' mmdataaddr)? WS* properties? ;
-mmrange : mmfirst '-' mmlast ;
+mmentry : range_ WS+ mmdecoder (WS* '<' mmdataaddr)? WS* properties? ;
 mmdataaddr : mmfromaddr | mmfromreset;
 mmfromaddr : number ;
 mmfromreset : '*' ;
@@ -31,13 +30,18 @@ list_ : variant WS* (',' WS* variant)*  ;
 
 annotate : ANNOTATE WS* '{' WS* (atoplevel (WS+ atoplevel)*)? WS* '}' ;
 atoplevel : label | comment ;
-label :  aaddress WS* ('(' lflags+ ')')? WS+ lname WS* ;
+label :  range_ WS* ('(' lflags+ ')')? WS+ lname WS* ;
 lflags : 'i' ;
-aaddress : HEXNUM ;
 lname : NAME ;
 comment : aaddress WS* cpos? WS* ctext;
+aaddress : range_ ;
 cpos : '^' | 'v' | '>' ;
 ctext : QUOTED | TQUOTED ;
+
+range_ : (range_single) | (range_first WS* '-' WS* range_last) | (range_first WS* '-') | ('-' WS* range_last) ;
+range_single : number ;
+range_first : number ;
+range_last : number ;
 
 // ------- LEXER ------- //
 

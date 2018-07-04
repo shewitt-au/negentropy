@@ -58,7 +58,7 @@ class MemRegion(BaseRegion):
 
 	def _region_iterator(self, ctx):
 		return self.ivl.cut_left_iter(
-			merge(ctx.syms.keys_in_range(self.ivl), ctx.cmts[0].keys_in_range(self.ivl))
+			merge(ctx.syms.left_edges(self.ivl), ctx.cmts[0].keys_in_range(self.ivl))
 			)
 
 	def preprocess(self, ctx):

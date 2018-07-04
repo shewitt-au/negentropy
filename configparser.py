@@ -78,8 +78,9 @@ class _Listener(configListener):
 		body = ctx.mmbody()
 		if body:
 			for ent in body.mmentry():
-				ft = ent.mmrange().mmfirst().getText()
-				lt = ent.mmrange().mmlast().getText()
+				_range = ent.range_()
+				ft = _range.range_first().getText()
+				lt = _range.range_last().getText()
 				dt = ent.mmdecoder().getText()
 				dataaddr = ent.mmdataaddr()
 				if not dataaddr is None:
@@ -107,7 +108,12 @@ class _Listener(configListener):
 		self.ctx.syms.parse_begin(self.ctx)
 
 	def enterLabel(self, ctx:configParser.LabelContext):
-		addr = int(ctx.aaddress().getText()[1:], 16)
+		_range = ctx.range_()
+		single = _range.range_single()
+		if single is not None:
+			addr = int(single.getText()[1:], 16)
+		else:
+			raise NotImplementedError
 		name = ctx.lname().getText()
 		in_index = 'i' in [f.getText() for f in ctx.lflags()]
 		self.ctx.syms.parse_add(self.ctx, addr, name, in_index)
