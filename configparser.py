@@ -128,27 +128,13 @@ class _Listener(configListener):
 			pos = '^'
 		else:
 			pos = pos.getText()
-		if txt[:3]=="'''":
-			if pos=='v':
-				self.ctx.cmts[0].add((addr, cmt[1], _unpack_string(txt)))
-			elif pos=='^':
-				self.ctx.cmts[0].add((addr, _unpack_string(txt), cmt[2]))
-			elif pos=='>':
-				self.ctx.cmts[1].add((addr, _unpack_string(txt)))
-		elif txt[:1]=="'":
-			if pos=='v':
-				self.ctx.cmts[0].add((addr, cmt[1], _unpack_string(txt)))
-			elif pos=='^':
-				self.ctx.cmts[0].add((addr, _unpack_string(txt), cmt[2]))
-			elif pos=='>':
-				self.ctx.cmts[1].add((addr, _unpack_string(txt)))
-		elif txt[:1]=='"':
-			if pos=='v':
-				self.ctx.cmts[0].add((addr, cmt[1], _unpack_string(txt)))
-			elif pos=='^':
-				self.ctx.cmts[0].add((addr, _unpack_string(txt), cmt[2]))
-			elif pos=='>':
-				self.ctx.cmts[1].add((addr, _unpack_string(txt)))
+		s = _unpack_string(txt)
+		if pos=='v':
+			self.ctx.cmts[0].add((addr, cmt[1], s))
+		elif pos=='^':
+			self.ctx.cmts[0].add((addr, s, cmt[2]))
+		elif pos=='>':
+			self.ctx.cmts[1].add((addr, s))
 
 
 	def exitAnnotate(self, ctx:configParser.AnnotateContext):
