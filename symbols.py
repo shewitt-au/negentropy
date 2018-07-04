@@ -65,7 +65,7 @@ class SymbolTable(multiindex.MultiIndex):
 		return ent
 
 	def lookup(self, addr):
-		r = self.get_entry(addr)
-		if r is None:
+		e = self.get_entry(addr)
+		if e is None:
 			return None
-		return r[1]
+		return e[1]

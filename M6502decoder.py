@@ -46,7 +46,7 @@ class M6502Decoder(decoders.Prefix):
 						target = ii.target-1 if one_before else ii.target
 
 					if s:
-						operand_body = s[1]
+						operand_body = s
 					else:
 						operand_body = format_numerical_operand(ii.target)
 				else:

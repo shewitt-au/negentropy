@@ -136,6 +136,5 @@ class _Listener(configListener):
 		elif pos=='>':
 			self.ctx.cmts[1].add((addr, s))
 
-
 	def exitAnnotate(self, ctx:configParser.AnnotateContext):
 		self.ctx.syms.parse_end(self.ctx)
