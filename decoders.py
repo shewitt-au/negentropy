@@ -64,7 +64,7 @@ class Context(object):
 		self.have_indexables = False
 
 		# parse
-		if  self.args.config is not None:
+		if self.args.config is not None:
 			for fn in self.args.config:
 				configparser.parse(self, fn)
 

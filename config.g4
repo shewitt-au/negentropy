@@ -38,7 +38,10 @@ aaddress : range_ ;
 cpos : '^' | 'v' | '>' ;
 ctext : QUOTED | TQUOTED ;
 
-range_ : (range_single) | (range_first WS* '-' WS* range_last) | (range_first WS* '-') | ('-' WS* range_last) ;
+range_ :
+	(range_single) | 
+	(range_first WS* '-' WS* range_last)
+	;
 range_single : number ;
 range_first : number ;
 range_last : number ;

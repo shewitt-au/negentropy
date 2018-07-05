@@ -33,9 +33,9 @@ class SymbolTable(multiindex.MultiIndex):
 	def parse_begin(self, ctx):
 		pass
 
-	def parse_add(self, ctx, addr, name, in_index):
+	def parse_add(self, ctx, ivl, name, in_index):
 		ctx.have_indexables |= in_index
-		self.add((Interval(addr), name, in_index))
+		self.add((ivl, name, in_index))
 
 	def parse_end(self, ctx):
 		pass
@@ -44,7 +44,6 @@ class SymbolTable(multiindex.MultiIndex):
 		b = bisect.bisect_left(self.sorted_address, self.sorted_address_compare(ivl.first))
 		e = bisect.bisect_right(self.sorted_address, self.sorted_address_compare(ivl.last), b)
 		for i in range(b, e):
-			assert self.sorted_address[i][0].is_singular(), "must be singular"
 			yield self.sorted_address[i]
 
 	def left_edges(self, ivl):
@@ -60,7 +59,7 @@ class SymbolTable(multiindex.MultiIndex):
 		if i==len(self.sorted_address):
 			return None
 		ent = self.sorted_address[i]
-		if ent[0].first!=addr or (self.black_list is not None and addr in self.black_list):
+		if not ent[0].contains(addr) or (self.black_list is not None and addr in self.black_list):
 			return None
 		return ent
 

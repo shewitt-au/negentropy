@@ -111,12 +111,14 @@ class _Listener(configListener):
 		_range = ctx.range_()
 		single = _range.range_single()
 		if single is not None:
-			addr = int(single.getText()[1:], 16)
+			ivl = Interval(single.getText()[1:])
 		else:
-			raise NotImplementedError
+			f = _range.range_first().getText()
+			l = _range.range_last().getText()
+			ivl = Interval(f[1:], l[1:])
 		name = ctx.lname().getText()
 		in_index = 'i' in [f.getText() for f in ctx.lflags()]
-		self.ctx.syms.parse_add(self.ctx, addr, name, in_index)
+		self.ctx.syms.parse_add(self.ctx, ivl, name, in_index)
 
 	def enterComment(self, ctx:configParser.CommentContext):
 		# TODO: This is a mess. Make a comments class

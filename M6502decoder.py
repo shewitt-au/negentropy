@@ -33,24 +33,19 @@ class M6502Decoder(decoders.Prefix):
 						return "${:02x}".format(v)
 
 				target = None
+				offset = 0
 				if ii.target:
 					# If we have a target look it up. If we don't find it try the address
 					# before (we'll tack on a '+1').
-					s = ctx.syms.lookup(ii.target)
-					if s:
-						one_before = False
+					e = ctx.syms.get_entry(ii.target)
+					if e is not None:
+						offset = ii.target-e[0].first
+						target = ii.target-offset
+						operand_body = e[1]
+					else:
 						target = ii.target
-					else:
-						s = ctx.syms.lookup(ii.target-1)
-						one_before = s is not None
-						target = ii.target-1 if one_before else ii.target
-
-					if s:
-						operand_body = s
-					else:
 						operand_body = format_numerical_operand(ii.target)
 				else:
-					one_before = False
 					operand_body = format_numerical_operand(ii.operand)
 
 				c = ctx.cmts[1].by_address.get(ii.ivl.first)
@@ -65,7 +60,7 @@ class M6502Decoder(decoders.Prefix):
 						'pre': ii.mode_info.pre,
 						'post': ii.mode_info.post,
 						'operand': operand_body,
-						'op_adjust': '+1' if one_before else '',
+						'op_adjust': '+${:x}'.format(offset) if offset!=0 else '',
 						'is_source' : ctx.is_destination(target),
 						'target' : target
 						}
