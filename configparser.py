@@ -104,9 +104,6 @@ class _Listener(configListener):
 
 		self.ctx.memtype.parse_end(self.ctx)
 
-	def enterAnnotate(self, ctx:configParser.AnnotateContext):
-		self.ctx.syms.parse_begin(self.ctx)
-
 	def enterLabel(self, ctx:configParser.LabelContext):
 		_range = ctx.range_()
 		single = _range.range_single()
@@ -131,12 +128,11 @@ class _Listener(configListener):
 		else:
 			pos = pos.getText()
 		s = _unpack_string(txt)
+		if len(s)==0:
+			s = " "
 		if pos=='v':
 			self.ctx.cmts[0].add((addr, cmt[1], s))
 		elif pos=='^':
 			self.ctx.cmts[0].add((addr, s, cmt[2]))
 		elif pos=='>':
 			self.ctx.cmts[1].add((addr, s))
-
-	def exitAnnotate(self, ctx:configParser.AnnotateContext):
-		self.ctx.syms.parse_end(self.ctx)

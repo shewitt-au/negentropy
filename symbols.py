@@ -30,15 +30,9 @@ class SymbolTable(multiindex.MultiIndex):
 		self.add_index("sorted_name", list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
 		self.black_list = None
 
-	def parse_begin(self, ctx):
-		pass
-
 	def parse_add(self, ctx, ivl, name, in_index):
 		ctx.have_indexables |= in_index
 		self.add((ivl, name, in_index))
-
-	def parse_end(self, ctx):
-		pass
 
 	def items_in_range(self, ivl):
 		b = bisect.bisect_left(self.sorted_address, self.sorted_address_compare(ivl.first))
@@ -62,7 +56,6 @@ class SymbolTable(multiindex.MultiIndex):
 		if not ent[0].contains(addr) or (self.black_list is not None and addr in self.black_list):
 			return None
 		return ent
-
 
 	def lookup(self, addr):
 		e = self.get_entry(addr)
