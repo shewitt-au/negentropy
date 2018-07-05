@@ -10,7 +10,7 @@ memmap : MEMMAP WS+ mmname WS* ('(' WS* mmdatasource WS* ')')? WS* mmbody? ;
 mmname : NAME ;
 mmdatasource : NAME ;
 mmbody : '{' WS* (mmentry (WS+ mmentry)*)? WS* '}' ;
-mmentry : range_ WS+ mmdecoder (WS* '<' mmdataaddr)? WS* properties? ;
+mmentry : range_ WS+ mmdecoder (WS* '<' WS* mmdataaddr)? WS* properties? ;
 mmdataaddr : mmfromaddr | mmfromreset;
 mmfromaddr : number ;
 mmfromreset : '*' ;

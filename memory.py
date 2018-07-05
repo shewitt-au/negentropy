@@ -48,7 +48,7 @@ class Memory(object):
 
 		if not self.ivl.contains(dataivl):
 			raise errors.MemoryException("Attempt to map view that's not in range", self.ivl, ivl)
-			
+
 		cpy = copy.copy(self)
 		cpy.data = self.data[dataivl.first-self.ivl.first:]
 		cpy.ivl = ivl.copy() # go for safety
