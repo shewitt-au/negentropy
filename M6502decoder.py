@@ -47,6 +47,10 @@ class M6502Decoder(decoders.Prefix):
 						operand_body = format_numerical_operand(ii.target)
 				else:
 					operand_body = format_numerical_operand(ii.operand)
+				if offset==0:
+					op_adjust = ''
+				else:
+					op_adjust = '+${:x}'.format(offset) if offset>=9 else '+{}'.format(offset)
 
 				c = ctx.cmts[1].by_address.get(ii.ivl.first)
 
@@ -60,7 +64,7 @@ class M6502Decoder(decoders.Prefix):
 						'pre': ii.mode_info.pre,
 						'post': ii.mode_info.post,
 						'operand': operand_body,
-						'op_adjust': '+${:x}'.format(offset) if offset!=0 else '',
+						'op_adjust': op_adjust,
 						'is_source' : ctx.is_destination(target),
 						'target' : target
 						}

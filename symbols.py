@@ -63,8 +63,15 @@ class SymbolTable(multiindex.MultiIndex):
 			return None
 		return ent
 
+
 	def lookup(self, addr):
 		e = self.get_entry(addr)
 		if e is None:
 			return None
 		return e[1]
+
+	def name(self, addr):
+		n = self.lookup(addr)
+		if n is None:
+			return "${:04x}".format(addr)
+		return n
