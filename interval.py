@@ -41,13 +41,6 @@ class Interval(object):
 		self.first = other.first
 		self.last = other.last
 
-	def _get(self):
-		return (self.first, self.last)
-	def _set(self, ivl):
-		self.first = ivl[0]
-		self.last = ivl[1]
-	value = property(_get, _set)
-
 	def is_empty(self):
 		return self.first>self.last
 
