@@ -84,7 +84,7 @@ class _Listener(configListener):
 				_range = ent.range_()
 				dt = ent.mmdecoder().getText()
 				dataaddr = ent.mmdataaddr()
-				if not dataaddr is None:
+				if dataaddr is not None:
 					dataaddrt = dataaddr.getText()
 					if dataaddrt=='*':
 						self.data_address = None
@@ -100,7 +100,7 @@ class _Listener(configListener):
 						self.data_address
 						)
 
-				if not self.data_address is None:
+				if self.data_address is not None:
 					self.data_address += len(Interval.conjure(_range.getText()))
 
 		self.ctx.memtype.parse_end(self.ctx)

@@ -90,7 +90,7 @@ class MemRegion(BaseRegion):
 		ctx = self.context(ctx)
 		ctx.syms.black_list = self.black_list
 		i = self.decoder.intro(ctx, self)
-		if not i is None:
+		if i is not None:
 			yield i
 		params = self.params.copy()
 		for ivl in self.subregions:

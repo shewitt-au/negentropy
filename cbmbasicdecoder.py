@@ -62,7 +62,7 @@ class BasicDecoder(decoders.Prefix):
 				line_parser = Line(gen)
 				for line_token in line_parser.tokens():
 					tts = self._tt2name.get(line_token.type, None)
-					if not tts is None:
+					if tts is not None:
 						if line_token.type == TokenType.LineNumberReference:
 							target = line_to_address(ctx.mem, ivl, line_token.value(mem=ctx.mem))
 							link_info['is_source'] = ctx.is_destination(target)
