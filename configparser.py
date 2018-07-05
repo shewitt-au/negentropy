@@ -1,10 +1,11 @@
+from inspect import cleandoc
 from antlr4 import *
 from antlrparser.configLexer import configLexer
 from antlrparser.configParser import configParser
 from antlrparser.configListener import configListener
+import errors
 import memmap
 from interval import Interval
-from inspect import cleandoc
 
 def parse(ctx, fname):
 	_Listener(ctx, fname)
@@ -61,9 +62,11 @@ class _Listener(configListener):
 		parser = configParser(stream)
 		tree = parser.r()
 
-		if parser.getNumberOfSyntaxErrors()==0:
-			walker = ParseTreeWalker()
-			walker.walk(self, tree)
+		if parser.getNumberOfSyntaxErrors()!=0:
+			raise errors.ParserException("Error parsing '{}'".format(fname))
+	
+		walker = ParseTreeWalker()
+		walker.walk(self, tree)
 
 	def enterDatasource(self, ctx:configParser.DatasourceContext):
 		n = ctx.dsname()

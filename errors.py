@@ -12,6 +12,10 @@ class MemoryException(Dis64Exception):
 		bs += "\n\tenvelope: {}\n\tsubset  : {}".format(self.envelope, self.subset)
 		return bs
 
+class ParserException(Dis64Exception):
+	def __init__(self, msg):
+		super().__init__(msg)
+
 #TODO: this is on death row!
 class UnprocessedData(Dis64Exception):
 	def __init__(self, msg, region=None, ivl=None):
