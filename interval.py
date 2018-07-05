@@ -2,33 +2,37 @@ import numbers
 import copy
 import itertools
 
+def parse_number(s):
+	s = s.strip()
+	if s[0]=='$':
+		return int(s[1:], 16)
+	else:
+		return int(s)
+
 class Interval(object):
-	# Interval(): an empty Interval
-	# Interval((f, l)): an Interval from f to l (inclusive)
-	# Interval(f, l): an Interval from f to l (inclusive)
-	def __init__(self, first=None, last=None, size=None):
-		if isinstance(first, str):
-			first = int(first, 16)
-		if isinstance(last, str):
-			last = int(last, 16)
-
-		if size is not None:
-			last = first+size-1
-
-		if first is None and last is None:
-			# an empty interval
+	def __init__(self, first=None, last=None, size=1):
+		if first is None:
 			self.first = 1
 			self.last = 0
-		elif last is None:
-			if isinstance(first, tuple):
-				self.first = first[0]
-				self.last = first[1]
+		else:
+			if last is None:
+				self.first = first
+				self.last = first+size-1
 			else:
 				self.first = first
-				self.last = first
-		else:
-			self.first = first
-			self.last = last
+				self.last = last
+
+	# Make an Interval from near anything
+	@classmethod
+	def conjure(cls, first=None, last=None, size=1):
+		if isinstance(first, str):
+			parts = first.split('-')
+			if len(parts)!=1:
+				return cls(parse_number(parts[0]), parse_number(parts[1]))
+			first = parse_number(first)
+		if isinstance(last, str):
+			last = parse_number(last)
+		return cls(first, last, size)
 
 	def copy(self):
 		return copy.copy(self)
@@ -114,6 +118,8 @@ class Interval(object):
 	def __str__(self):
 		if self.is_empty():
 			return "{Empty}"
+		elif self.is_singular():
+			return "${:04x}".format(self.first)
 		else:
 			return "${:04x}-${:04x}".format(self.first, self.last)
 

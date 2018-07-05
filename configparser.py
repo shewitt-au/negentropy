@@ -82,8 +82,6 @@ class _Listener(configListener):
 		if body:
 			for ent in body.mmentry():
 				_range = ent.range_()
-				ft = _range.range_first().getText()
-				lt = _range.range_last().getText()
 				dt = ent.mmdecoder().getText()
 				dataaddr = ent.mmdataaddr()
 				if not dataaddr is None:
@@ -96,14 +94,14 @@ class _Listener(configListener):
 				props = _propperties(ent)
 
 				self.ctx.memtype.parse_add(
-						Interval(ft[1:], lt[1:]),
+						Interval.conjure(_range.getText()),
 						self.ctx.decoders[dt],
 						props,
 						self.data_address
 						)
 
 				if not self.data_address is None:
-					self.data_address += len(Interval(ft[1:], lt[1:]))
+					self.data_address += len(Interval.conjure(_range.getText()))
 
 		self.ctx.memtype.parse_end(self.ctx)
 
@@ -111,11 +109,9 @@ class _Listener(configListener):
 		_range = ctx.range_()
 		single = _range.range_single()
 		if single is not None:
-			ivl = Interval(single.getText()[1:])
+			ivl = Interval.conjure(single.getText())
 		else:
-			f = _range.range_first().getText()
-			l = _range.range_last().getText()
-			ivl = Interval(f[1:], l[1:])
+			ivl = Interval.conjure(_range.getText())
 		name = ctx.lname().getText()
 		in_index = 'i' in [f.getText() for f in ctx.lflags()]
 		self.ctx.syms.parse_add(self.ctx, ivl, name, in_index)
