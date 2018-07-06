@@ -36,7 +36,7 @@
 
 {%- macro label(i) -%}
 {% if i.label %}
-<b>{{i.label}}</b>
+<b>{{i.label}}</b><br/>
 {%- endif %}
 {%- endmacro -%}
 
@@ -124,7 +124,7 @@
 
 {#- ----------------chars---------------- -#}
 {%- macro chars_handler(section) -%}
-<br/><b>{{"{:04x}".format(section.address)}}</b><br/>
+<b>{{"{:04x}".format(section.address)}}</b><br/>
 <img src="{{section.generate()}}"/><br/>
 {%- endmacro -%}
 
