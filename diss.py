@@ -4,6 +4,7 @@ import time
 from datetime import timedelta
 from argparse import ArgumentParser
 import templates
+import errors
 
 def main():
 	start_time = time.time()
@@ -67,7 +68,10 @@ def main():
 	# post-processing
 	if args.gaps is True and args.defaultdecoder is None:
 		args.defaultdecoder = "data"
-	templates.run(args)
+	try:
+		templates.run(args)
+	except errors.Dis64Exception as e:
+		print(e)
 
 	elapsed_time_secs = time.time() - start_time
 	msg = "Execution took: %s secs" % timedelta(seconds=round(elapsed_time_secs))

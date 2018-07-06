@@ -1,4 +1,5 @@
 from inspect import cleandoc
+from textwrap import indent
 from antlr4 import *
 from antlr4.error.ErrorListener import ErrorListener
 from antlrparser.configLexer import configLexer
@@ -80,7 +81,8 @@ class _Listener(configListener):
 		tree = parser.r()
 
 		if parser.getNumberOfSyntaxErrors()!=0:
-			raise errors.ParserException("Error parsing '{}:\n{}'".format(fname, errs))
+			etext = indent(str(errs), "   ")
+			raise errors.ParserException("Error parsing '{}:\n{}'".format(fname, etext))
 	
 		walker = ParseTreeWalker()
 		walker.walk(self, tree)
