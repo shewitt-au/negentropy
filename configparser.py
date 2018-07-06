@@ -1,10 +1,10 @@
 from inspect import cleandoc
 from antlr4 import *
+from antlr4.error.ErrorListener import ErrorListener
 from antlrparser.configLexer import configLexer
 from antlrparser.configParser import configParser
 from antlrparser.configListener import configListener
 import errors
-import memmap
 from interval import Interval
 
 def parse(ctx, fname):
@@ -48,6 +48,20 @@ def _propperties(node):
 			props[name] = _getVariantValue(pe)
 	return props
 
+class ErrorCollector(ErrorListener):
+	def __init__(self):
+		self.errors = []
+
+	def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+		err = "line " + str(line) + ":" + str(column) + " " + msg
+		self.errors.append(err)
+
+	def __str__(self):
+		if self.errors:
+			return "\n".join(self.errors)
+		else:
+			return "No errors"
+
 class _Listener(configListener):
 	def __init__(self, ctx, fname):
 		if not fname:
@@ -60,10 +74,13 @@ class _Listener(configListener):
 		lexer = configLexer(input)
 		stream = CommonTokenStream(lexer)
 		parser = configParser(stream)
+		errs = ErrorCollector()
+		parser.removeErrorListeners()
+		parser.addErrorListener(errs)
 		tree = parser.r()
 
 		if parser.getNumberOfSyntaxErrors()!=0:
-			raise errors.ParserException("Error parsing '{}'".format(fname))
+			raise errors.ParserException("Error parsing '{}:\n{}'".format(fname, errs))
 	
 		walker = ParseTreeWalker()
 		walker.walk(self, tree)
