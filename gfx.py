@@ -47,6 +47,24 @@ class ModeClassifier(object):
 	def __call__(self, ch):
 		return self.mode(ch)
 
+class Palette(object):
+	def __init__(self, params=None):
+		self.palette = params.get('palette')
+		self.mcmpalette = params.get('mcmpalette')
+		if self.palette is None and self.mcmpalette is None:
+			self.palette = [0, 1]
+			self.mcmpalette = [0, 2, 3, 9]
+		elif self.palette is None:
+			self.palette = [self.mcmpalette[0], self.mcmpalette[3]&3]
+		elif self.palette is None:
+			self.mcmpalette = [self.palette[0], 1, 2, self.palette[1]]
+
+	def std(self):
+		return self.palette
+
+	def mcm(self):
+		return self.mcmpalette
+
 class CharDecoder(decoders.Prefix):
 	def __init__(self, name):
 		self.name = name
@@ -63,7 +81,7 @@ class CharDecoder(decoders.Prefix):
 
 		mc = ModeClassifier(params)
 
-		palette = params.get('palette', [0, 0, 0, 1])
+		palette = Palette(params)
 		first_number = params.get('first_number', 0)
 		first_char_at = params.get('first_char_at', None)
 		if first_char_at is None:
@@ -74,9 +92,9 @@ class CharDecoder(decoders.Prefix):
 			fn = "{:04x}.png".format(ivl.first)
 			bm = C64Bitmap.genset(
 							mem.r8m(ivl.first, len(ivl)),
+							palette,
 							num_chars,
 							mc,
-							palette,
 							first_number,
 							first_char_at
 							);
@@ -132,7 +150,7 @@ class C64Bitmap(object):
 		return (cx, cy)
 
 	@classmethod
-	def genset(cls, data, num_chars=256, mode_fn=mode_standard, palette=[0, 0, 0, 1], first_number=0, first_char_at=0):
+	def genset(cls, data, palette, num_chars=256, mode_fn=mode_standard, first_number=0, first_char_at=0):
 		assert (first_char_at>=first_number), "first_char_at too small!"
 		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char_at)
 		instance = cls(cls.charset_size(cx, cy))
@@ -265,9 +283,9 @@ class C64Bitmap(object):
 				num_chars -= 1
 				mcm = mode_fn(char+first_number)==Mode.MCM
 				if mcm:
-					self.setcharmcm(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), palette, self.zoom)
+					self.setcharmcm(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), palette.mcm(), self.zoom)
 				else:
-					self.setchar(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), palette[3], self.zoom)
+					self.setchar(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), palette.std()[1], self.zoom)
 				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), mcm, 11, self.zoom)
 
 if __name__ == '__main__':
