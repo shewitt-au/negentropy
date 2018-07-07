@@ -82,7 +82,7 @@ class SymbolTable(multiindex.MultiIndex):
 					print("Symbol clash:\n\t{} @ {}\n\t{} @ {}".format(ps[1], ps[0], s[1], s[0]))
 					clashes += 1
 					if clashes==7:
-						print("Stopping clash search\n")
+						print("***Stopping clash search***\n")
 						break
 				ps = s
 
