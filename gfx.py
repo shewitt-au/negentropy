@@ -1,6 +1,51 @@
+from enum import Enum, unique, auto
 from PIL import Image, ImageFont, ImageDraw
 import decoders
 from interval import Interval
+import errors
+
+@unique
+class Mode(Enum):
+	Standard = auto()
+	MCM  = auto()
+
+def mode_standard(ch):
+	return Mode.Standard
+
+def mode_mcm(ch):
+	return Mode.mode_mcm
+
+class ModeClassifier(object):
+	def __init__(self, params):
+		self.default = Mode.Standard
+
+		mcm = params.get('mcm')
+		standard = params.get('standard')
+
+		if standard is None and mcm is None:
+			self.mode = self._mode_always_default
+		elif mcm is True:
+			self.default = Mode.MCM
+			if not standard:
+				self.mode = self._mode_always_default
+			else:
+				self.other = Mode.Standard
+				self.others = {o for o in standard}
+		else:
+			self.default = Mode.Standard
+			if not mcm:
+				self.mode = self._mode_always_default
+			else:
+				self.other = Mode.MCM
+				self.others = {o for o in mcm}
+
+	def _mode_always_default(self, ch):
+		return self.default
+	def mode(self, ch):
+		return self.other if ch in self.others else self.default
+
+	def __call__(self, ch):
+		return self.mode(ch)
 
 class CharDecoder(decoders.Prefix):
 	def __init__(self, name):
@@ -15,22 +60,33 @@ class CharDecoder(decoders.Prefix):
 	def decode(self, ctx, ivl, params):
 		mem = ctx.mem.view(ivl)
 		num_chars = len(ivl)//8
-		mcm = params.get('mcm', False)
-		pallet = params.get('pallet', 1)
+
+		mc = ModeClassifier(params)
+
+		palette = params.get('palette', [0, 0, 0, 1])
 		first_number = params.get('first_number', 0)
-		first_char = params.get('first_char', 0)
-		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char)
+		first_char_at = params.get('first_char_at', None)
+		if first_char_at is None:
+			first_char_at = first_number
+		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char_at)
 
 		def generate():
 			fn = "{:04x}.png".format(ivl.first)
-			bm = C64Bitmap.genset(mem.r8m(ivl.first, len(ivl)), num_chars, mcm, pallet, first_number, first_char);
+			bm = C64Bitmap.genset(
+							mem.r8m(ivl.first, len(ivl)),
+							num_chars,
+							mc,
+							palette,
+							first_number,
+							first_char_at
+							);
 			bm.save(fn)
 			return fn
 
 		c = ctx.cmts[0].by_address.get(ivl.first)
 		target_already_exits = params['target_already_exits']
-		params['first_number'] = (first_char+num_chars)&~0xf
-		params['first_char'] = first_char+num_chars
+		params['first_number'] = (first_char_at+num_chars)&~0xf
+		params['first_char_at'] = first_char_at+num_chars
 
 		return {
 				'type'   : self.name,
@@ -69,18 +125,18 @@ class C64Bitmap(object):
 		self.pixels = self.image.load()
 
 	@staticmethod
-	def calcgridsize(num_chars=256, first_number=0, first_char=0):
-		num_cells = num_chars+first_char-first_number
+	def calcgridsize(num_chars=256, first_number=0, first_char_at=0):
+		num_cells = num_chars+first_char_at-first_number
 		cx = num_cells if num_cells<16 else 16
 		cy = num_cells//16 + (1 if num_cells%16!=0 else 0)
 		return (cx, cy)
 
 	@classmethod
-	def genset(cls, data, num_chars=256, mcm=False, pallet=1, first_number=0, first_char=0):
-		assert (first_char>=first_number), "first_char too small!"
-		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char)
+	def genset(cls, data, num_chars=256, mode_fn=mode_standard, palette=[0, 0, 0, 1], first_number=0, first_char_at=0):
+		assert (first_char_at>=first_number), "first_char_at too small!"
+		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char_at)
 		instance = cls(cls.charset_size(cx, cy))
-		instance.charset(data, num_chars, mcm, pallet, first_number, first_char)
+		instance.charset(data, num_chars, mode_fn, palette, first_number, first_char_at)
 		return instance
 
 	def plotpixel(self, pos, c, zoom=8):
@@ -180,12 +236,15 @@ class C64Bitmap(object):
 	def charset_size(cls, cx, cy):
 		return (cls.char_sz+cx*cls.cell_sz, cls.char_sz+cy*cls.cell_sz)
 
-	def charset(self, data, num_chars, mcm, pallet, first_number=0, first_char=0):
-		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char)
+	# first_number: start numbering the cells from this
+	# first_char_at: in which cell to place the first character (as numbered above)
+	# NOTE: the data always comes from the same place regardless of these two variables!
+	def charset(self, data, num_chars, mode_fn, palette, first_number=0, first_char_at=0):
+		cx, cy = C64Bitmap.calcgridsize(num_chars, first_number, first_char_at)
 
 		draw = ImageDraw.Draw(self.image)
 		font = ImageFont.truetype("arial.ttf", self.font_sz)
-		yoff = font.getoffset("M")[1] # yoff is the gap between the top the 'M' and the cell.
+		yoff = font.getoffset("M")[1] # yoff is the gap between the top of the 'M' and the cell.
 
 		xbase = first_number%16
 		for x in range(0, cx):
@@ -198,16 +257,17 @@ class C64Bitmap(object):
 
 		for y in range(0, cy):
 			for x in range(0, cx):
-				char = x+y*16+first_number-first_char
+				char = x+y*16+first_number-first_char_at
 				if char<0:
 					continue
 				if num_chars == 0:
 					break
-				num_chars = num_chars-1
+				num_chars -= 1
+				mcm = mode_fn(char+first_number)==Mode.MCM
 				if mcm:
-					self.setcharmcm(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), pallet, self.zoom)
+					self.setcharmcm(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), palette, self.zoom)
 				else:
-					self.setchar(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), pallet, self.zoom)
+					self.setchar(data, char, (self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), palette[3], self.zoom)
 				self.grid((self.char_sz+x*self.cell_sz, self.char_sz+y*self.cell_sz), mcm, 11, self.zoom)
 
 if __name__ == '__main__':
