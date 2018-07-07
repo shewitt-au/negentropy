@@ -76,7 +76,14 @@ class SymbolTable(multiindex.MultiIndex):
 		except StopIteration:
 			pass
 		else:
+			clashes = 0
 			for s in it:
 				if not (ps[0]&s[0]).is_empty():
-					print("Overlapping: {}, {}".format(ps, s))
+					print("Symbol clash:\n\t{} @ {}\n\t{} @ {}".format(ps[1], ps[0], s[1], s[0]))
+					clashes += 1
+					if clashes==5:
+						print("Stopping clash search\n")
+						break
 				ps = s
+
+		return clashes!=0
