@@ -74,7 +74,7 @@ def main():
 		print(e)
 
 	elapsed_time_secs = time.time() - start_time
-	msg = "Execution took: %s secs" % timedelta(seconds=round(elapsed_time_secs))
+	msg = "\nExecution took: %s secs" % timedelta(seconds=round(elapsed_time_secs))
 	print(msg)
 
 main()

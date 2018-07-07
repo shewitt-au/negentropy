@@ -81,7 +81,7 @@ class SymbolTable(multiindex.MultiIndex):
 				if not (ps[0]&s[0]).is_empty():
 					print("Symbol clash:\n\t{} @ {}\n\t{} @ {}".format(ps[1], ps[0], s[1], s[0]))
 					clashes += 1
-					if clashes==5:
+					if clashes==8:
 						print("Stopping clash search\n")
 						break
 				ps = s
