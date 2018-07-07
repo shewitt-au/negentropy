@@ -68,6 +68,10 @@ class Context(object):
 			for fn in self.args.config:
 				configparser.parse(self, fn)
 
+		#
+		self.syms.clashes()
+		#
+
 		# read the file
 		if not args.input:
 			input = self.datasource_props.get('file', args.input)

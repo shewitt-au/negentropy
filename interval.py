@@ -136,7 +136,7 @@ class Interval(object):
 			return other>=self.first and other<=self.last
 
 	@classmethod
-	def inner_comlement(cls, left, right):
+	def inner_complement(cls, left, right):
 		if cls.exclusive_left(left, right):
 			return cls(left.last+1, right.first-1)
 		elif cls.exclusive_left(right, left):
@@ -147,7 +147,7 @@ class Interval(object):
 	# checks if two intervals are adjacent or overlapping
 	@classmethod
 	def friendly(cls, left, right):
-		return cls.inner_comlement(left, right).is_empty()
+		return cls.inner_complement(left, right).is_empty()
 
 	@classmethod
 	def disjoint(cls, left, right):

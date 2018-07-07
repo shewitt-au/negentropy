@@ -68,3 +68,15 @@ class SymbolTable(multiindex.MultiIndex):
 		if n is None:
 			return "${:04x}".format(addr)
 		return n
+
+	def clashes(self):
+		it = iter(self.sorted_address)
+		try:
+			ps = next(it)
+		except StopIteration:
+			pass
+		else:
+			for s in it:
+				if not (ps[0]&s[0]).is_empty():
+					print("Overlapping: {}, {}".format(ps, s))
+				ps = s
