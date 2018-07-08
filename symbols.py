@@ -1,5 +1,6 @@
 import re
 import bisect
+from collections import namedtuple
 import multiindex
 from interval import Interval
 
@@ -22,6 +23,8 @@ class DictWithRange(multiindex.MultiIndex):
 	def values_in_range(self, ivl):
 		for v in self.items_in_range(ivl):
 			yield v[1]
+
+SymInfo = namedtuple("SymInfo", "name, addr, op_adjust")
 
 class SymbolTable(multiindex.MultiIndex):
 	def __init__(self):
@@ -62,6 +65,19 @@ class SymbolTable(multiindex.MultiIndex):
 		if e is None:
 			return None
 		return e[1]
+
+	#################
+	def cookup(self, addr):
+		e = self.get_entry(addr)
+		if e is None:
+			return SymInfo("${:04x}".format(addr), addr, "")
+		offset = addr-e[0].first
+		if offset!=0:
+			op_adjust = '+${:x}'.format(offset) if offset>=9 else '+{}'.format(offset)
+		else:
+			op_adjust = ''
+		return SymInfo(e[1], e[0].first, op_adjust)
+	#################
 
 	def name(self, addr):
 		n = self.lookup(addr)

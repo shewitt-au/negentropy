@@ -34,23 +34,14 @@ class M6502Decoder(decoders.Prefix):
 
 				target = None
 				offset = 0
+				op_adjust = ''
 				if ii.target:
-					# If we have a target look it up. If we don't find it try the address
-					# before (we'll tack on a '+1').
-					e = ctx.syms.get_entry(ii.target)
-					if e is not None:
-						offset = ii.target-e[0].first
-						target = ii.target-offset
-						operand_body = e[1]
-					else:
-						target = ii.target
-						operand_body = format_numerical_operand(ii.target)
+					e = ctx.syms.cookup(ii.target)
+					operand_body = e.name
+					target = e.addr
+					op_adjust = e.op_adjust
 				else:
 					operand_body = format_numerical_operand(ii.operand)
-				if offset==0:
-					op_adjust = ''
-				else:
-					op_adjust = '+${:x}'.format(offset) if offset>=9 else '+{}'.format(offset)
 
 				c = ctx.cmts[1].by_address.get(ii.ivl.first)
 

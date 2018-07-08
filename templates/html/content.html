@@ -110,13 +110,13 @@
 {%- for v in i.vals -%}
 <td>
 {%- if v.is_source -%}
-<a href="#{{"{:04x}".format(v.target)}}">
+<a href="#{{"{:04x}".format(v.val.addr)}}">
 {%- endif -%}
-{{v.val}}
+{{v.val.name}}
 {%- if v.is_source -%}
 </a>
 {%- endif -%}
-&nbsp;&nbsp;&nbsp;</td>
+{{v.val.op_adjust}}&nbsp;&nbsp;&nbsp;</td>
 {%- endfor -%}</tr>
 {% endfor -%}
 </table>
