@@ -36,7 +36,7 @@ class M6502Decoder(decoders.Prefix):
 				offset = 0
 				op_adjust = ''
 				if ii.target:
-					e = ctx.syms.cookup(ii.target, name_not_found=False)
+					e = ctx.syms.lookup(ii.target, name_not_found=False)
 					if e.name is None:
 						e.name = format_numerical_operand(e.addr)
 					operand_body = e.name

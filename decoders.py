@@ -126,7 +126,7 @@ class Prefix(object):
 			'type': "prefix",
 			'address': ivl.first,
 			'is_destination' : is_destination,
-			'label': s,
+			'label': s.name,
 			'comment_before': None if c is None else c[1],
 			'comment_after': None if c is None else c[2]
 			}

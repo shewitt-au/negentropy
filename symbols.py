@@ -63,14 +63,7 @@ class SymbolTable(multiindex.MultiIndex):
 			return None
 		return ent
 
-	def lookup(self, addr):
-		e = self.get_entry(addr)
-		if e is None:
-			return None
-		return e[1]
-
-	#################
-	def cookup(self, addr, name_not_found=True):
+	def lookup(self, addr, name_not_found=True):
 		e = self.get_entry(addr)
 		if e is None:
 			return SymInfo("${:04x}".format(addr) if name_not_found else None, addr, "")
@@ -80,13 +73,6 @@ class SymbolTable(multiindex.MultiIndex):
 		else:
 			op_adjust = ''
 		return SymInfo(e[1], e[0].first, op_adjust)
-	#################
-
-	def name(self, addr):
-		n = self.lookup(addr)
-		if n is None:
-			return "${:04x}".format(addr)
-		return n
 
 	def clashes(self):
 		it = iter(self.sorted_address)

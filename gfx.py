@@ -110,7 +110,7 @@ class CharDecoder(decoders.Prefix):
 				'type'   : self.name,
 				'address': ivl.first,
 				'is_destination' : not target_already_exits and ctx.is_destination(ivl.first),
-				'label'  : ctx.syms.lookup(ivl.first),
+				'label'  : ctx.syms.lookup(ivl.first).name,
 				'comment_before' : None if c is None else c[0],
 				'comment_after'  : None if c is None else c[1],
 				'comment_inline' : None if c is None else c[2],
