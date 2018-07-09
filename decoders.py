@@ -52,7 +52,11 @@ class GuidedCutter(object):
 class Context(object):
 	def __init__(self, args, decoders):
 		self.args = args
+
 		self.basedir = os.path.dirname(args.output)
+		if self.basedir and not os.path.exists(self.basedir):
+			os.makedirs(self.basedir)
+
 		self.decoders = decoders
 		self.syms = symmod.SymbolTable()
 		#self.cmts = symmod.read_comments(comments)
