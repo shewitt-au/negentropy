@@ -1,5 +1,3 @@
-import glob
-import os
 import jinja2
 import webbrowser
 import decoders
@@ -90,8 +88,7 @@ def run(args):
 	add_dispatcher(env, "dispatch", "{}_handler")
 	add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")
 
-	template = os.path.basename(glob.glob("{}/templates/{}.*".format(os.path.dirname(__file__), args.format))[0])
-	s = render(env, template)
+	s = render(env, bd.template())
 	with open(args.output, "w", encoding='utf-8') as of:
 		if args.prefix:
 			with open(args.prefix, "r") as pf:

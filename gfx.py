@@ -90,6 +90,7 @@ class CharDecoder(decoders.Prefix):
 
 		def generate():
 			fn = "{:04x}.png".format(ivl.first)
+			fpath = ctx.file(fn)
 			bm = C64Bitmap.genset(
 							mem.r8m(ivl.first, len(ivl)),
 							palette,
@@ -98,7 +99,7 @@ class CharDecoder(decoders.Prefix):
 							first_number,
 							first_char_at
 							);
-			bm.save(fn)
+			bm.save(fpath)
 			return fn
 
 		c = ctx.cmts[0].by_address.get(ivl.first)

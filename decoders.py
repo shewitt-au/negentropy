@@ -1,3 +1,5 @@
+import os
+import glob
 from enum import Enum, unique, auto
 from heapq import merge
 import memory as memmod
@@ -50,6 +52,7 @@ class GuidedCutter(object):
 class Context(object):
 	def __init__(self, args, decoders):
 		self.args = args
+		self.basedir = os.path.dirname(args.output)
 		self.decoders = decoders
 		self.syms = symmod.SymbolTable()
 		#self.cmts = symmod.read_comments(comments)
@@ -84,6 +87,12 @@ class Context(object):
 			self.mem = memmod.Memory(contents, origin)
 
 		self.mem_range = self.mem.range()
+
+	def file(self, fn):
+		return os.path.join(self.basedir, fn)
+
+	def template(self):
+		return os.path.basename(glob.glob("{}/templates/{}.*".format(os.path.dirname(__file__), self.args.format))[0])
 
 	def parse_datasource(self, name, props):
 		assert not name, "datasource names not supported"

@@ -75,13 +75,13 @@ class SymbolTable(multiindex.MultiIndex):
 		return SymInfo(e[1], e[0].first, op_adjust)
 
 	def clashes(self):
+		clashes = 0
 		it = iter(self.sorted_address)
 		try:
 			ps = next(it)
 		except StopIteration:
 			pass
 		else:
-			clashes = 0
 			for s in it:
 				if not (ps[0]&s[0]).is_empty():
 					print("Symbol clash:\n\t{} @ {}\n\t{} @ {}".format(ps[1], ps[0], s[1], s[0]))
