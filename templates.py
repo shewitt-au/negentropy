@@ -93,6 +93,9 @@ def run(args):
 	template = os.path.basename(glob.glob("{}/templates/{}.*".format(os.path.dirname(__file__), args.format))[0])
 	s = render(env, template)
 	with open(args.output, "w", encoding='utf-8') as of:
+		if args.prefix:
+			with open(args.prefix, "r") as pf:
+				of.write(pf.read())
 		of.write(s)
 
 	if args.webbrowser:

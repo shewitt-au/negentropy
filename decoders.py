@@ -121,7 +121,7 @@ class Prefix(object):
 		c = ctx.cmts[0].by_address.get(ivl.first)
 		is_destination = ctx.is_destination(ivl.first)
 		params['target_already_exits'] = is_destination
-		s = ctx.syms.lookup(ivl.first)
+		s = ctx.syms.lookup(ivl.first, name_unknowns=False)
 		return {
 			'type': "prefix",
 			'address': ivl.first,

@@ -62,6 +62,9 @@ def main():
 					"-r", "--format",
 					default="html",
 					help="the format of the output file")
+	parser.add_argument(
+					"-p", "--prefix",
+					help="a file to prepend to the start of the output file")
 
 	args = parser.parse_args()
 

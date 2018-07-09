@@ -63,10 +63,10 @@ class SymbolTable(multiindex.MultiIndex):
 			return None
 		return ent
 
-	def lookup(self, addr, name_not_found=True):
+	def lookup(self, addr, name_unknowns=True):
 		e = self.get_entry(addr)
 		if e is None:
-			return SymInfo("${:04x}".format(addr) if name_not_found else None, addr, "")
+			return SymInfo("${:04x}".format(addr) if name_unknowns else None, addr, "")
 		offset = addr-e[0].first
 		if offset!=0:
 			op_adjust = '+${:x}'.format(offset) if offset>=9 else '+{}'.format(offset)
