@@ -1,5 +1,5 @@
 start: toplevel* 
-toplevel: datasource | memmap | annotate
+?toplevel: datasource | memmap | annotate
 
 datasource: "datasource" dsname? properties?
 dsname: NAME
@@ -15,31 +15,35 @@ mmfromreset: "*"
 mmdecoder: NAME
 
 annotate: "annotate" "{" atoplevel* "}"
-atoplevel: label | comment
+?atoplevel: label | comment
 label:  range ("(" lflags+ ")")? lname
 lflags: "i"
 lname: NAME
-comment: aaddress WS* cpos? ctext
-aaddress: number
-cpos: "^" | "v" | ">"
+comment: aaddress cpos? ctext
+aaddress: NUMBER
+cpos: cpost
+cpost: "^"	-> u
+	 | "v"	-> b
+	 | ">"  -> i
 ctext: TQUOTED | QUOTED
 
 properties: "{" propentry* "}"
 propentry: propname "=" propval
 propname: NAME
 propval: variant | list
-variant : name | number | string | boolean
+?variant : name | number | string | boolean
 name: NAME
-number: DECIMAL | HEXNUM
+number: NUMBER
 
 string: QUOTED
 boolean: BOOLEAN
 list: variant ("," variant)+
 
-range: range_single | (range_first "-" range_last)
-range_single: number
-range_first: number
-range_last: number
+range: single | (first "-" last)
+single: rnumber
+first: rnumber
+last: rnumber
+?rnumber: NUMBER
 
 LINECOMMENT: "//"/.*/
 BLOCKCOMMENT: /\/\*.*?\/*/s
@@ -51,6 +55,7 @@ NAME: NAMEFIRST NAMEREST*
 BOOLEAN: "True" | "False"
 DECIMAL: /[0-9]+/
 HEXNUM: /\$[0-9a-fA-F]+/
+NUMBER: DECIMAL | HEXNUM
 
 TSQUOTED: /'''.*?'''/s
 TDQUOTED: /""".*?"""/s
