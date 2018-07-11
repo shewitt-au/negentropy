@@ -4,7 +4,7 @@ if __name__=='__main__':
 	with open("MemType.txt", "r") as f:
 		t = f.read()
 
-	l = Lark(open("script.lark").read())
+	l = Lark(open("script.lark").read(), parser='lalr')
 
 	t = l.parse(t)
 

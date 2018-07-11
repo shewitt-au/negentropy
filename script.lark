@@ -1,22 +1,50 @@
 start: toplevel* 
-toplevel: datasource | annotate
+toplevel: datasource | memmap | annotate
 
 datasource: "datasource" dsname? properties?
-dsname: CNAME
+dsname: NAME
 
-annotate: "annotate" "{" "}"
+memmap: "memmap" mmname ("(" mmdatasource ")")? mmbody?
+mmname: NAME
+mmdatasource: NAME
+mmbody: "{" mmentry+ "}"
+mmentry: range mmdecoder ("<" mmdataaddr)? properties?
+mmdataaddr: mmfromaddr | mmfromreset
+mmfromaddr: number
+mmfromreset: "*"
+mmdecoder: NAME
+mmfirst: number
+mmlast: number
+
+annotate: "annotate" "{" atoplevel* "}"
+atoplevel: label | comment
+label:  range ("(" lflags+ ")")? lname
+lflags: "i"
+lname: NAME
+comment: aaddress WS* cpos? ctext
+aaddress: range
+cpos: "^" | "v" | ">"
+ctext: TQUOTED | QUOTED
 
 properties: "{" propentry* "}"
 propentry: propname "=" propval
-propname: CNAME
+propname: NAME
 propval: variant | list
 
 variant : name | number | string | boolean
-name: CNAME
+name: NAME
 number: DECIMAL | HEXNUM
 string: QUOTED
 boolean: BOOLEAN
-list: variant ("," variant)*
+list: variant ("," variant)+
+
+range: range_single | (range_first "-" range_last)
+range_single: number
+range_first: number
+range_last: number
+
+LINECOMMENT: "//"/.*/
+BLOCKCOMMENT: /\/\*.*?\/*/s
 
 NAMEFIRST: /[a-zA-Z_]/
 NAMEREST: /[0-9a-zA-Z\-_]/
@@ -26,11 +54,14 @@ BOOLEAN: "True" | "False"
 DECIMAL: /[0-9]+/
 HEXNUM: /\$[0-9a-fA-F]+/
 
-SQUOTED: /'[^'\r\n]*'/
-DQUOTED: /"[^"\r\n]*"/
+TSQUOTED: /'''.*?'''/s
+TDQUOTED: /""".*?"""/s
+TQUOTED: TSQUOTED | TDQUOTED
+SQUOTED: /'.*?'/
+DQUOTED: /".*?"/
 QUOTED: SQUOTED | DQUOTED
-TQUOTED: /'''.*?'''/
 
 %import common.WS
-%import common.CNAME
 %ignore WS
+%ignore LINECOMMENT
+%ignore BLOCKCOMMENT
