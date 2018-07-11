@@ -1,0 +1,36 @@
+start: toplevel* 
+toplevel: datasource | annotate
+
+datasource: "datasource" dsname? properties?
+dsname: CNAME
+
+annotate: "annotate" "{" "}"
+
+properties: "{" propentry* "}"
+propentry: propname "=" propval
+propname: CNAME
+propval: variant | list
+
+variant : name | number | string | boolean
+name: CNAME
+number: DECIMAL | HEXNUM
+string: QUOTED
+boolean: BOOLEAN
+list: variant ("," variant)*
+
+NAMEFIRST: /[a-zA-Z_]/
+NAMEREST: /[0-9a-zA-Z\-_]/
+NAME: NAMEFIRST NAMEREST*
+
+BOOLEAN: "True" | "False"
+DECIMAL: /[0-9]+/
+HEXNUM: /\$[0-9a-fA-F]+/
+
+SQUOTED: /'[^'\r\n]*'/
+DQUOTED: /"[^"\r\n]*"/
+QUOTED: SQUOTED | DQUOTED
+TQUOTED: /'''.*?'''/
+
+%import common.WS
+%import common.CNAME
+%ignore WS
