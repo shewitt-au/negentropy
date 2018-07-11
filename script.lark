@@ -31,12 +31,12 @@ properties: "{" propentry* "}"
 propentry: propname "=" propval
 propname: NAME
 propval: variant | list
-?variant : name | number | string | boolean
+?variant : boolean | name | number | string
 name: NAME
 number: NUMBER
 
 string: QUOTED
-boolean: BOOLEAN
+boolean: TRUE | FALSE
 list: variant ("," variant)+
 
 range: single | (first "-" last)
@@ -52,7 +52,8 @@ NAMEFIRST: /[a-zA-Z_]/
 NAMEREST: /[0-9a-zA-Z\-_]/
 NAME: NAMEFIRST NAMEREST*
 
-BOOLEAN: "True" | "False"
+TRUE: "True"
+FALSE: "False"
 DECIMAL: /[0-9]+/
 HEXNUM: /\$[0-9a-fA-F]+/
 NUMBER: DECIMAL | HEXNUM
