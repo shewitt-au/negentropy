@@ -18,8 +18,7 @@ annotate: "annotate" "{" atoplevel* "}"
 label:  range ["(" lflags+ ")"] lname
 lflags: "i"
 lname: NAME
-comment: aaddress cpos? ctext
-aaddress: NUMBER
+comment: number cpos? ctext
 cpos: cpost
 cpost: "^"	-> a
 	 | "v"	-> b
@@ -39,11 +38,7 @@ decimal: DECIMAL
 string: QUOTED
 list: variant ("," variant)+
 
-range: single | (first "-" last)
-single: rnumber
-first: rnumber
-last: rnumber
-?rnumber: NUMBER
+range: number ["-" number]
 
 _DATASOURCE: /datasource(?=[^0-9a-zA-Z\-_]|$)/s
 _MEMMAP: /memmap(?=[^0-9a-zA-Z\-_]|$)/s
@@ -55,9 +50,9 @@ NAME: /[a-zA-Z_][0-9a-zA-Z\-_]*/
 
 TRUE: "True"
 FALSE: "False"
+
 DECIMAL: /[0-9]+/
 HEXNUM: /\$[0-9a-fA-F]+/
-NUMBER: DECIMAL | HEXNUM
 
 TSQUOTED: /'''.*?'''/s
 TDQUOTED: /""".*?"""/s
