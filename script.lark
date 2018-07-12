@@ -1,14 +1,13 @@
 start: toplevel* 
 ?toplevel: datasource | memmap | annotate
 
-datasource: "datasource" dsname? properties?
-dsname: NAME
+datasource: _DATASOURCE NAME? properties?
 
-memmap: "memmap" mmname ("(" mmdatasource ")")? mmbody?
+memmap: _MEMMAP mmname ["(" mmdatasource ")"] mmbody?
 mmname: NAME
 mmdatasource: NAME
 mmbody: "{" mmentry+ "}"
-mmentry: range mmdecoder ("<" mmdataaddr)? properties?
+mmentry: range mmdecoder ["<" mmdataaddr] properties?
 mmdataaddr: mmfromaddr | mmfromreset
 mmfromaddr: number
 mmfromreset: "*"
@@ -16,27 +15,28 @@ mmdecoder: NAME
 
 annotate: "annotate" "{" atoplevel* "}"
 ?atoplevel: label | comment
-label:  range ("(" lflags+ ")")? lname
+label:  range ["(" lflags+ ")"] lname
 lflags: "i"
 lname: NAME
 comment: aaddress cpos? ctext
 aaddress: NUMBER
 cpos: cpost
-cpost: "^"	-> u
+cpost: "^"	-> a
 	 | "v"	-> b
 	 | ">"  -> i
 ctext: TQUOTED | QUOTED
 
 properties: "{" propentry* "}"
-propentry: propname "=" propval
-propname: NAME
-propval: variant | list
-?variant : boolean | name | number | string
-name: NAME
-number: NUMBER
+propentry: NAME "=" propval
+?propval: variant | list
+?variant : boolean | NAME | number | string
+boolean: TRUE | FALSE
+
+?number: hexnum | decimal
+hexnum: HEXNUM
+decimal: DECIMAL
 
 string: QUOTED
-boolean: TRUE | FALSE
 list: variant ("," variant)+
 
 range: single | (first "-" last)
@@ -45,12 +45,13 @@ first: rnumber
 last: rnumber
 ?rnumber: NUMBER
 
+_DATASOURCE: /datasource(?=[^0-9a-zA-Z\-_]|$)/s
+_MEMMAP: /memmap(?=[^0-9a-zA-Z\-_]|$)/s
+
 LINECOMMENT: "//"/.*/
 BLOCKCOMMENT: /\/\*.*?\/*/s
 
-NAMEFIRST: /[a-zA-Z_]/
-NAMEREST: /[0-9a-zA-Z\-_]/
-NAME: NAMEFIRST NAMEREST*
+NAME: /[a-zA-Z_][0-9a-zA-Z\-_]*/
 
 TRUE: "True"
 FALSE: "False"
