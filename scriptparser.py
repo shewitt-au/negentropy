@@ -2,34 +2,49 @@ from lark import Lark, Transformer
 from interval import Interval
 from inspect import cleandoc
 
+def parse(ctx, fname):
+	with open(fname, "r") as f:
+		t = f.read()
+	l = Lark(open("script.lark").read(), parser='lalr', debug=True)
+	t = l.parse(t)
+	ScriptTransformer(ctx).transform(t)
+
 class ScriptTransformer(Transformer):
+	def __init__(self, ctx):
+		self.ctx = ctx
+
 	def datasource(self, t):
-		# t[0] is a dict containing the properties
-		#print(t[0])
-		return t
+		self.ctx.parse_datasource(t[0])
 
 	def memmap(self, t):
-		#print(t[0])
-		return t[0]
+		data = None
+		for e in t[0]:
+			if e[3] is not None:
+				data = e[3] if e[3]>=0 else None
+			self.ctx.memtype.parse_add(e[0], self.ctx.decoders[e[1]], e[2], data)
 
 	# mmentry: range NAME ["<" mmdataaddr] properties?
 	def mmentry(self, t):
 		length = len(t)
 		data = None
-		props = None
+		props = {}
 		if length==2:
-			ivl, name = t
+			ivl, dname = t
 		elif length==3:
 			ivl = t[0]
-			name = t[1]
-			if isinstance(t[2], int):
-				data = t[2]
-			else:
+			dname = t[1]
+			if isinstance(t[2], dict):
 				props = t[2]
+			else:
+				data = t[2]
 		else: #length==4
-			ivl, name, data, props = t
+			ivl, dname, data, props = t
 
-		return ivl, name, data, props
+		# reset data address
+		if data is not None and not isinstance(data, int):
+			data = -1
+
+		return (ivl, dname, props, data)
 
 	def mmbody(self, t):
 		return t
@@ -81,13 +96,3 @@ class ScriptTransformer(Transformer):
 		return t
 	def lflags(self, t):
 		return str(t[0])
-
-if __name__=='__main__':
-	with open("MemType.txt", "r") as f:
-		t = f.read()
-
-	l = Lark(open("script.lark").read(), parser='lalr', debug=True)
-
-	t = l.parse(t)
-	#print(t.pretty())
-	ScriptTransformer().transform(t)

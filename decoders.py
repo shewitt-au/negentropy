@@ -6,7 +6,7 @@ import memory as memmod
 import memmap
 import symbols as symmod
 from interval import Interval
-import configparser
+import scriptparser
 
 @unique
 class CuttingPolicy(Enum):
@@ -73,7 +73,7 @@ class Context(object):
 		# parse
 		if args.config is not None:
 			for fn in self.args.config:
-				configparser.parse(self, fn)
+				scriptparser.parse(self, fn)
 
 		#
 		self.syms.clashes()
@@ -98,8 +98,7 @@ class Context(object):
 	def template(self):
 		return os.path.basename(glob.glob("{}/templates/{}.*".format(os.path.dirname(__file__), self.args.format))[0])
 
-	def parse_datasource(self, name, props):
-		assert not name, "datasource names not supported"
+	def parse_datasource(self, props):
 		self.datasource_props = props
 
 
