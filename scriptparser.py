@@ -6,18 +6,32 @@ class ScriptTransformer(Transformer):
 	def datasource(self, t):
 		# t[0] is a dict containing the properties
 		#print(t[0])
-		pass
+		return t
 
 	def memmap(self, t):
-		pass
+		#print(t[0])
+		return t[0]
 
 	# mmentry: range NAME ["<" mmdataaddr] properties?
 	def mmentry(self, t):
-		return t
+		length = len(t)
+		data = None
+		props = None
+		if length==2:
+			ivl, name = t
+		elif length==3:
+			ivl = t[0]
+			name = t[1]
+			if isinstance(t[2], int):
+				data = t[2]
+			else:
+				props = t[2]
+		else: #length==4
+			ivl, name, data, props = t
+
+		return ivl, name, data, props
 
 	def mmbody(self, t):
-		#print("mmbody")
-		#print(t)
 		return t
 
 	def range(self, t):
@@ -40,6 +54,8 @@ class ScriptTransformer(Transformer):
 		return t[0][1:-1]
 	def tquoted(self, t):
 		return cleandoc(t[0][2:-2])
+	def name(self, t):
+		return str(t[0])
 
 	def comment(self, t):
 		l = len(t)
@@ -65,7 +81,6 @@ class ScriptTransformer(Transformer):
 		return t
 	def lflags(self, t):
 		return str(t[0])
-
 
 if __name__=='__main__':
 	with open("MemType.txt", "r") as f:

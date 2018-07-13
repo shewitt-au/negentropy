@@ -3,13 +3,13 @@ start: toplevel*
 
 datasource: "datasource" properties
 
-memmap: _MEMMAP mmbody
+memmap: "memmap" mmbody
 mmbody: "{" mmentry+ "}"
-mmentry: range NAME ["<" mmdataaddr] properties?
+mmentry: range mmdecoder ["<" mmdataaddr] properties?
 ?mmdataaddr: mmfromaddr | mmfromreset
 ?mmfromaddr: number
 ?mmfromreset: "*"
-?mmdecoder: NAME
+?mmdecoder: name
 
 annotate: "annotate" "{" atoplevel* "}"
 ?atoplevel: label | comment
@@ -23,6 +23,7 @@ comment: number cpos? ctext
 ?ctext: anystring
 ?anystring: quoted | tquoted
 
+name: NAME
 ?string: quoted
 quoted: QUOTED
 tquoted: TQUOTED
@@ -40,8 +41,6 @@ decimal: DECIMAL
 list: variant ("," variant)+
 
 range: number ["-" number]
-
-_MEMMAP: /memmap(?=[^0-9a-zA-Z\-_]|$)/s
 
 LINECOMMENT: "//"/.*/
 BLOCKCOMMENT: /\/\*.*?\/*/s
