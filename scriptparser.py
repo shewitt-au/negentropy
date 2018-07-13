@@ -62,8 +62,24 @@ class ScriptTransformer(Transformer):
 	def lflags(self, t):
 		return str(t[0])
 
-	def range(self, t):
-		return Interval(int(t[0]), int(t[1])) if len(t)==2 else Interval(int(t[0]))
+	def comment(self, t):
+		l = len(t)
+		if l==2:
+			pos = 'v'
+			addr, txt = t
+		else: # i==3
+			addr, pos, txt = t
+		
+		cmt = self.ctx.cmts[0].by_address.get(addr, ("", "", ""))
+		if pos=='v':
+			self.ctx.cmts[0].add((addr, cmt[1], txt))
+		elif pos=='^':
+			self.ctx.cmts[0].add((addr, txt, cmt[2]))
+		elif pos=='>':
+			self.ctx.cmts[1].add((addr, txt))
+		
+	def cpos(self, t):
+		return str(t[0])
 
 	def properties(self, t):
 		return {str(i[0]) : i[1] for i in t}
@@ -78,22 +94,12 @@ class ScriptTransformer(Transformer):
 		return bool(t[0])
 	def list(self, t):
 		return list(t)
+	def name(self, t):
+		return str(t[0])
 	def quoted(self, t):
 		return t[0][1:-1]
 	def tquoted(self, t):
-		return cleandoc(t[0][2:-2])
-	def name(self, t):
-		return str(t[0])
+		return cleandoc(t[0][3:-3])
 
-	def comment(self, t):
-		l = len(t)
-		if l==2:
-			pos = 'v'
-			ivl, txt = t
-		else: # i==3
-			ivl, pos, txt = t
-		#print(ivl, pos, txt)
-		return t
-	def cpos(self, t):
-		return str(t[0])
-
+	def range(self, t):
+		return Interval(int(t[0]), int(t[1])) if len(t)==2 else Interval(int(t[0]))
