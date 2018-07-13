@@ -1,13 +1,20 @@
 from lark import Lark, Transformer
+from lark.exceptions import LarkError
 from interval import Interval
+import errors
 from inspect import cleandoc
+from textwrap import indent
 
 def parse(ctx, fname):
 	with open(fname, "r") as f:
 		t = f.read()
-	l = Lark(open("script.lark").read(), parser='lalr', debug=True)
-	t = l.parse(t)
-	ScriptTransformer(ctx).transform(t)
+	try:
+		l = Lark(open("script.lark").read(), parser='lalr', debug=True)
+		t = l.parse(t)
+		ScriptTransformer(ctx).transform(t)
+	except LarkError as e:
+		etext = indent(str(e), "   ")
+		raise errors.ParserException("Error parsing '{}:\n{}'".format(fname, etext))
 
 class ScriptTransformer(Transformer):
 	def __init__(self, ctx):
