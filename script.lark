@@ -14,9 +14,8 @@ mmentry: range mmdecoder ["<" mmdataaddr] properties?
 annotate: "annotate" "{" atoplevel* "}"
 ?atoplevel: label | comment
 
-label:  range ["(" lflags+ ")"] lname
+label:  range ["(" lflags+ ")"] name
 !lflags: "i"
-?lname: NAME
 
 comment: number cpos? ctext
 !cpos: "^" | "v" | ">"

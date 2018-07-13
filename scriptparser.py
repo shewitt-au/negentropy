@@ -49,6 +49,19 @@ class ScriptTransformer(Transformer):
 	def mmbody(self, t):
 		return t
 
+	def label(self, t):
+		l = len(t)
+		if l==2:
+			flags = ""
+			pos = 'v'
+			ivl, name = t
+		else: # i==3
+			ivl, flags, name = t
+		self.ctx.syms.parse_add(self.ctx, ivl, name, 'i' in flags)
+
+	def lflags(self, t):
+		return str(t[0])
+
 	def range(self, t):
 		return Interval(int(t[0]), int(t[1])) if len(t)==2 else Interval(int(t[0]))
 
@@ -84,15 +97,3 @@ class ScriptTransformer(Transformer):
 	def cpos(self, t):
 		return str(t[0])
 
-	def label(self, t):
-		l = len(t)
-		if l==2:
-			flags = ""
-			pos = 'v'
-			ivl, name = t
-		else: # i==3
-			ivl, flags, name = t
-		#print(ivl, flags, name)
-		return t
-	def lflags(self, t):
-		return str(t[0])
