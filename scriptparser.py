@@ -1,48 +1,72 @@
 from lark import Lark, Transformer
 from interval import Interval
+from inspect import cleandoc
 
 class ScriptTransformer(Transformer):
 	def datasource(self, t):
-		length = len(t)
-		assert length==1 or length==2, "Syntax error"
-		if length==1:
-			p = (None, t[0])
-		else:
-			p = (str(t[0]), t[1])
-		return p
-
-	def memmap(self, t):
-		length = len(t)
-		if length==1:
-			p = (None)
-		elif length==2:
-			p = (str(t[0]))
-		elif length==3:
-			p = (str(t[0]), str(t[1]))
-		#print(t)
-
-	def mmentry(self, t):
+		# t[0] is a dict containing the properties
+		#print(t[0])
 		pass
 
+	def memmap(self, t):
+		pass
+
+	# mmentry: range NAME ["<" mmdataaddr] properties?
+	def mmentry(self, t):
+		return t
+
+	def mmbody(self, t):
+		#print("mmbody")
+		#print(t)
+		return t
+
 	def range(self, t):
-		print(Interval(int(t[0]), int(t[1])) if len(t)==2 else Interval(int(t[0])))
 		return Interval(int(t[0]), int(t[1])) if len(t)==2 else Interval(int(t[0]))
 
 	def properties(self, t):
 		return {str(i[0]) : i[1] for i in t}
 	def propentry(self, t):
 		return t
+
 	def hexnum(self, t):
 		return int(t[0][1:], 16)
 	def decimal(self, t):
 		return int(t[0])
-	def string(self, t):
-		return str(t[0])
 	def boolean(self, t):
 		return bool(t[0])
 	def list(self, t):
 		return list(t)
-	
+	def quoted(self, t):
+		return t[0][1:-1]
+	def tquoted(self, t):
+		return cleandoc(t[0][2:-2])
+
+	def comment(self, t):
+		l = len(t)
+		if l==2:
+			pos = 'v'
+			ivl, txt = t
+		else: # i==3
+			ivl, pos, txt = t
+		#print(ivl, pos, txt)
+		return t
+	def cpos(self, t):
+		return str(t[0])
+
+	def label(self, t):
+		l = len(t)
+		if l==2:
+			flags = ""
+			pos = 'v'
+			ivl, name = t
+		else: # i==3
+			ivl, flags, name = t
+		#print(ivl, flags, name)
+		return t
+	def lflags(self, t):
+		return str(t[0])
+
+
 if __name__=='__main__':
 	with open("MemType.txt", "r") as f:
 		t = f.read()
