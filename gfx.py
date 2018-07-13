@@ -1,7 +1,9 @@
 from enum import Enum, unique, auto
+
 from PIL import Image, ImageFont, ImageDraw
-import decoders
+
 from interval import Interval
+import decoders
 import errors
 
 @unique

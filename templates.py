@@ -1,5 +1,7 @@
-import jinja2
 import webbrowser
+
+import jinja2
+
 import decoders
 import gfx
 import data

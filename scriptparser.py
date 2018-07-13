@@ -1,9 +1,11 @@
-from lark import Lark, Transformer
-from lark.exceptions import LarkError
-from interval import Interval
-import errors
 from inspect import cleandoc
 from textwrap import indent
+
+from lark import Lark, Transformer
+from lark.exceptions import LarkError
+
+from interval import Interval
+import errors
 
 def parse(ctx, fname):
 	with open(fname, "r") as f:

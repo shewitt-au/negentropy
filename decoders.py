@@ -2,10 +2,12 @@ import os
 import glob
 from enum import Enum, unique, auto
 from heapq import merge
+
+
+from interval import Interval
 import memory as memmod
 import memmap
 import symbols as symmod
-from interval import Interval
 import scriptparser
 
 @unique

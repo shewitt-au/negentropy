@@ -1,6 +1,7 @@
-import errors
-from interval import Interval
 import copy
+
+from interval import Interval
+import errors
 import cbmcodec
 
 class Bytes16(bytes):
