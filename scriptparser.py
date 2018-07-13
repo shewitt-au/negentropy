@@ -60,7 +60,6 @@ class ScriptTransformer(Transformer):
 		l = len(t)
 		if l==2:
 			flags = ""
-			pos = 'v'
 			ivl, name = t
 		else: # i==3
 			ivl, flags, name = t
@@ -72,11 +71,13 @@ class ScriptTransformer(Transformer):
 	def comment(self, t):
 		l = len(t)
 		if l==2:
-			pos = 'v'
+			pos = '^'
 			addr, txt = t
 		else: # i==3
 			addr, pos, txt = t
 		
+		if not txt:
+			txt = " "
 		cmt = self.ctx.cmts[0].by_address.get(addr, ("", "", ""))
 		if pos=='v':
 			self.ctx.cmts[0].add((addr, cmt[1], txt))
