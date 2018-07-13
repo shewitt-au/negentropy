@@ -98,6 +98,9 @@ class Context(object):
 	def template(self):
 		return os.path.basename(glob.glob("{}/templates/{}.*".format(os.path.dirname(__file__), self.args.format))[0])
 
+	def implfile(self, fn):
+		return os.path.join(os.path.dirname(__file__), fn)
+
 	def parse_datasource(self, props):
 		self.datasource_props = props
 

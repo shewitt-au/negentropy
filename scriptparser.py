@@ -9,7 +9,7 @@ def parse(ctx, fname):
 	with open(fname, "r") as f:
 		t = f.read()
 	try:
-		l = Lark(open("script.lark").read(), parser='lalr', debug=True)
+		l = Lark(open(ctx.implfile("script.lark")).read(), parser='lalr', debug=True)
 		t = l.parse(t)
 		ScriptTransformer(ctx).transform(t)
 	except LarkError as e:
