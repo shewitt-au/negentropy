@@ -104,7 +104,6 @@ class CharDecoder(decoders.Prefix):
 			bm.save(fpath)
 			return fn
 
-		c = ctx.cmts[0].by_address.get(ivl.first)
 		target_already_exits = params['target_already_exits']
 		params['first_number'] = (first_char_at+num_chars)&~0xf
 		params['first_char_at'] = first_char_at+num_chars
@@ -114,9 +113,6 @@ class CharDecoder(decoders.Prefix):
 				'address': ivl.first,
 				'is_destination' : not target_already_exits and ctx.is_destination(ivl.first),
 				'label'  : ctx.syms.lookup(ivl.first).name,
-				'comment_before' : None if c is None else c[0],
-				'comment_after'  : None if c is None else c[1],
-				'comment_inline' : None if c is None else c[2],
 				'generate' : generate
 				}
 
