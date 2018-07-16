@@ -44,6 +44,13 @@ class multidict(object):
 	def __contains__(self, key):
 		return key in self._dict
 
+	def __str__(self):
+		return str(self._dict)
+
+	def __repr__(self):
+		return repr(self._dict)
+
+
 if __name__=='__main__':
 	m = multidict()
 	print(m[1])
@@ -81,3 +88,5 @@ if __name__=='__main__':
 
 	print(1 in m)
 	print(0 in m)
+
+	print(m)
