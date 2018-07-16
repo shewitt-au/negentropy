@@ -3,10 +3,22 @@
 # (with the wrong semantics).
 
 class multidict(object):
-	def __init__(self):
-		self._dict = {1: ["one", "One"], 2: ["two", "Two"], 3: ["three", "Three"]}
-		self._len = 0
+	def __init__(self, d):
 		self._sel = 0
+		if d is None:
+			self._dict = {}
+			self._len = 0
+		elif isinstance(d, dict):
+			# Allow initialisation from a regular dict 
+			self._dict = d
+			self._calclen()
+		else:
+			raise ValueError # TODO: match dict behaviour
+
+	def _calclen(self):
+		self._len = 0
+		for v in self._dict.values():
+			self._len += len(v)
 
 	def __len__(self):
 		return self._len
@@ -50,9 +62,19 @@ class multidict(object):
 	def __repr__(self):
 		return repr(self._dict)
 
+	def __format__(self, format_spec):
+		return self.dict.__format__(format_spec)
+
+	def __eq__(self, other):
+		return self._dict==other
+
+	def __ne__(self, other):
+		return self._dict!=other
 
 if __name__=='__main__':
-	m = multidict()
+	a = {1: ["one", "One"], 2: ["two", "Two"], 3: ["three", "Three"]}
+	m = multidict(a)
+	print(len(m))
 	print(m[1])
 	try:
 		print(m[0])
@@ -89,4 +111,11 @@ if __name__=='__main__':
 	print(1 in m)
 	print(0 in m)
 
-	print(m)
+	print(str(m))
+	print(repr(m))
+
+	print("fmt: {}".format(a))
+
+	d1 = multidict({1: "one"})
+	d2 = multidict({2: "two"})
+	print(d1!=d2)
