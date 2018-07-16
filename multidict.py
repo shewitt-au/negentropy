@@ -2,8 +2,10 @@
 # We delegate rather than subclass so any missing/new methods won't be inherited
 # (with the wrong semantics).
 
+import copy
+
 class multidict(object):
-	def __init__(self, d):
+	def __init__(self, d=None):
 		self._sel = 0
 		if d is None:
 			self._dict = {}
@@ -14,6 +16,26 @@ class multidict(object):
 			self._calclen()
 		else:
 			raise ValueError # TODO: match dict behaviour
+
+	def clear(self):
+		self._dict.clear()
+
+	def copy(self):
+		return copy.copy(self)
+
+	@classmethod
+	def fromkeys(cls, seq, value=None):
+		md = cls()
+		for v in seq:
+			md[v] = value
+		return md
+
+	def get(self, key, default=None):
+		items = self._dict.get(key)
+		if items is None:
+			return default
+		else:
+			return items[self._sel]
 
 	def _calclen(self):
 		self._len = 0
@@ -119,3 +141,11 @@ if __name__=='__main__':
 	d1 = multidict({1: "one"})
 	d2 = multidict({2: "two"})
 	print(d1!=d2)
+
+	print(dir(m))
+
+	print(multidict.fromkeys([1, 2, 3], "who knows?"))
+
+	print(m.get(1))
+	print(m.get(7))
+	print(m.get(7, "seven"))
