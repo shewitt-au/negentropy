@@ -4,6 +4,27 @@
 
 import copy
 
+class multidict_items(object):
+	def __init__(self, md):
+		self._md = md
+
+	def __len__(self):
+		return self._md._len
+
+	def __iter__(self):
+		for ki in self._md._dict.items():
+			for vi in ki[1]:
+				yield (ki[0], vi)
+
+	def __contains__(self, item):
+		return item in iter(self)
+
+	def isdisjoint(self, other):
+		for v in other:
+			if v in self:
+				return False
+		return True
+
 class multidict(object):
 	def __init__(self, d=None):
 		self._sel = 0
@@ -36,6 +57,9 @@ class multidict(object):
 			return default
 		else:
 			return items[self._sel]
+
+	def items(self):
+		return multidict_items(self)
 
 	def _calclen(self):
 		self._len = 0
@@ -78,9 +102,6 @@ class multidict(object):
 	def __contains__(self, key):
 		return key in self._dict
 
-	def __str__(self):
-		return str(self._dict)
-
 	def __repr__(self):
 		return repr(self._dict)
 
@@ -96,56 +117,10 @@ class multidict(object):
 if __name__=='__main__':
 	a = {1: ["one", "One"], 2: ["two", "Two"], 3: ["three", "Three"]}
 	m = multidict(a)
-	print(len(m))
-	print(m[1])
-	try:
-		print(m[0])
-	except KeyError as e:
-		print("Expected: {}".format(e))
+	i = m.items()
+	print([v for v in i])
 
-	print(len(m))
-	m[0] = "zero"
-	print(len(m))
-	m[0] = "Zero"
-	print(len(m))
-	print(m._dict)
+	print((2, "one") in i)
 
-	del m[0]
-	print(len(m))
-	print(m._dict)
-	del m[0]
-	print(len(m))
-	print(m._dict)
-	try:
-		del m[0]
-	except KeyError as e:
-		print("Expected: {}".format(e))
-	print(len(m))
-	print(m._dict)
-
-	print([v for v in iter(m)])
-
-	try:
-		print([v for v in reversed(m)])
-	except TypeError as e:
-		print("Expected: {}".format(e))
-
-	print(1 in m)
-	print(0 in m)
-
-	print(str(m))
-	print(repr(m))
-
-	print("fmt: {}".format(a))
-
-	d1 = multidict({1: "one"})
-	d2 = multidict({2: "two"})
-	print(d1!=d2)
-
-	print(dir(m))
-
-	print(multidict.fromkeys([1, 2, 3], "who knows?"))
-
-	print(m.get(1))
-	print(m.get(7))
-	print(m.get(7, "seven"))
+	print(m.items().isdisjoint([(1, "one")]))
+	print(m.items().isdisjoint([(1, "apple")]))
