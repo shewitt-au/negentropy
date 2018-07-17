@@ -1,4 +1,5 @@
 # A python dictionary clone that supports multiple values with the same key.
+# It is implemented in terms of a Python dictionary with lists as the values.
 # We delegate rather than subclass so any missing/new methods won't be inherited
 # (with the wrong semantics).
 
@@ -132,8 +133,15 @@ class multidict(object):
 		# behaviour. I'll implement the method but with semantics that don't
 		# comply with >=3.7 behaviour.
 
-		pass
-
+		try:
+			ki = next(iter(self._dict.items()))
+		except StopIteration:
+			raise KeyError("popitem(): dictionary is empty")
+		else:
+			v = ki[1].pop(self._sel)
+			if len(ki[1])==0:
+				del self._dict[ki[0]]
+			return (ki[0], v)
 
 #If key is in the dictionary, remove it and return its value,
 #else return default. If default is not given and key is not
@@ -197,10 +205,5 @@ if __name__=='__main__':
 	m = multidict(a)
 	
 	print(m)
-	print(m.pop(1))
-	print(m)
-	print(m.pop(1))
-	print(m)
-
-	print(m.pop(5, "Not there!"))
-	print(m)
+	while True:
+		print(m.popitem())
