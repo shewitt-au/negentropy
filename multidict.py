@@ -130,7 +130,7 @@ class multidict(object):
 		#
 		# I can't justify the runtime or effort required to comply with this
 		# behaviour. I'll implement the method but with semantics that don't
-		# comply with >-3.7 behaviour.
+		# comply with >=3.7 behaviour.
 
 		pass
 
