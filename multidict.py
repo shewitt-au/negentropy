@@ -143,6 +143,28 @@ class multidict(object):
 				del self._dict[ki[0]]
 			return (ki[0], v)
 
+	def update(self, src=None, **kwargs):
+		if isinstance(src, multidict):
+			for ki in src._dict.items():
+				for val in ki[1]:
+					self[ki[0]] = val
+		elif isinstance(src, dict):
+			for item in src.items():
+				self[item[0]] = item[1]
+		else:
+			for kv in enumerate(src):
+				try:
+					seq = iter(kv[1])
+				except:
+					raise TypeError("cannot convert dictionary update sequence element #{} to a sequence".format(kv[0]))
+				l = list(seq)
+				if len(l)!=2:
+					raise ValueError("dictionary update sequence element #{} has length {}; 2 is required".format(kv[0], len(l)))
+				self[l[0]] = l[1]
+
+		for arg in kwargs.items():
+			self[arg[0]] = arg[1]
+
 #If key is in the dictionary, remove it and return its value,
 #else return default. If default is not given and key is not
 #in the dictionary, a KeyError is raised.
@@ -204,6 +226,5 @@ if __name__=='__main__':
 	a = {1: ["one", "One"], 2: ["two", "Two"], 3: ["three", "Three"]}
 	m = multidict(a)
 	
+	m.update(["ad", "cd"])
 	print(m)
-	while True:
-		print(m.popitem())
