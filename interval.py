@@ -59,7 +59,7 @@ class Interval(object):
 
 	def __eq__(self, other):
 		if isinstance(other, __class__):
-			return self.value == other.value
+			return self.first==other.first and self.last==other.last
 		elif isinstance(other, numbers.Number):
 			return other>=self.first and other<=self.last
 		else:
@@ -67,7 +67,7 @@ class Interval(object):
 
 	def __ne__(self, other):
 		if isinstance(other, __class__):
-			return self.value != other.value
+			return self.first!=other.first or self.last!=other.last
 		elif isinstance(other, numbers.Number):
 			return other<self.first or other>self.last
 		else:
