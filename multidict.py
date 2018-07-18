@@ -165,10 +165,6 @@ class multidict(object):
 		for arg in kwargs.items():
 			self[arg[0]] = arg[1]
 
-#If key is in the dictionary, remove it and return its value,
-#else return default. If default is not given and key is not
-#in the dictionary, a KeyError is raised.
-
 	def _calclen(self):
 		self._len = 0
 		for v in self._dict.values():
@@ -221,10 +217,3 @@ class multidict(object):
 
 	def __ne__(self, other):
 		return self._dict!=other
-
-if __name__=='__main__':
-	a = {1: ["one", "One"], 2: ["two", "Two"], 3: ["three", "Three"]}
-	m = multidict(a)
-	
-	m.update(["ad", "cd"])
-	print(m)
