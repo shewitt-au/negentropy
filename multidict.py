@@ -143,6 +143,9 @@ class multidict(object):
 				del self._dict[ki[0]]
 			return (ki[0], v)
 
+	def setdefault(self, key, default=None):
+		return self._dict.setdefault(key, []).append(default)
+
 	def update(self, src=None, **kwargs):
 		if isinstance(src, multidict):
 			for ki in src._dict.items():
@@ -225,6 +228,9 @@ class multidict(object):
 		return self._dict!=other
 
 if __name__=='__main__':
-	m = multidict()
+	m = multidict({1: ["one", "One"], 2:["two", "Two"]})
 	print(m)
-	m.update(["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"])
+	m.setdefault(3, "three")
+	print(m)
+	m.setdefault(3, "Three")
+	print(m)
