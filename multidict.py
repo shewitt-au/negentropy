@@ -157,10 +157,16 @@ class multidict(object):
 					seq = iter(kv[1])
 				except:
 					raise TypeError("cannot convert dictionary update sequence element #{} to a sequence".format(kv[0]))
-				l = list(seq)
-				if len(l)!=2:
-					raise ValueError("dictionary update sequence element #{} has length {}; 2 is required".format(kv[0], len(l)))
-				self[l[0]] = l[1]
+				def first10(it):
+					for c in range(10):
+						yield next(it)
+				lst = list(first10(seq))
+				l = len(lst)
+				if l!=2:
+					if l>=10:
+						l = ">=10"
+					raise ValueError("dictionary update sequence element #{} has length {}; 2 is required".format(kv[0], l))
+				self[lst[0]] = lst[1]
 
 		for arg in kwargs.items():
 			self[arg[0]] = arg[1]
@@ -217,3 +223,8 @@ class multidict(object):
 
 	def __ne__(self, other):
 		return self._dict!=other
+
+if __name__=='__main__':
+	m = multidict()
+	print(m)
+	m.update(["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"])
