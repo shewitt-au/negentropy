@@ -18,7 +18,7 @@ class CuttingPolicy(Enum):
 
 class GuidedCutter(object):
 	def __init__(self, ctx, ivl, coll):
-		self.cuts = merge(ctx.syms.left_edges(ivl), ctx.cmts[0].keys_in_range(ivl))
+		self.cuts = merge(ctx.syms.left_edges(ivl), ctx.cmts.cuts(ivl))
 		self.current = Interval()
 		self.coll = coll
 		self._next_cut()
@@ -61,10 +61,7 @@ class Context(object):
 
 		self.decoders = decoders
 		self.syms = symmod.SymbolTable()
-		#self.cmts = symmod.read_comments(comments)
-		# TODO: This is a mess. Make a comments class
-		self.cmts = (symmod.DictWithRange(), symmod.DictWithRange())
-		#
+		self.cmts = symmod.Comments()
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
 		self.memtype = memmap.MemType(self, args.defaultdecoder)
@@ -77,9 +74,7 @@ class Context(object):
 			for fn in self.args.config:
 				scriptparser.parse(self, fn)
 
-		#
 		self.syms.clashes()
-		#
 
 		# read the file
 		if not args.input:
@@ -135,7 +130,7 @@ class Prefix(object):
 			return None
 
 	def prefix(self, ctx, ivl, params):
-		c = ctx.cmts[0].by_address.get(ivl.first)
+		c = ctx.cmts.get(ivl.first)
 		is_destination = ctx.is_destination(ivl.first)
 		params['target_already_exits'] = is_destination
 		s = ctx.syms.lookup(ivl.first, name_unknowns=False)
@@ -144,8 +139,8 @@ class Prefix(object):
 			'address': ivl.first,
 			'is_destination' : is_destination,
 			'label': s.name,
-			'comment_before': None if c is None else c[1],
-			'comment_after': None if c is None else c[2]
+			'comment_before': None if c is None else c.before,
+			'comment_after': None if c is None else c.after
 			}
 
 	def cutting_policy(self):

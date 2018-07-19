@@ -80,13 +80,12 @@ class ScriptTransformer(Transformer):
 		
 		if not txt:
 			txt = " "
-		cmt = self.ctx.cmts[0].by_address.get(addr, ("", "", ""))
-		if pos=='v':
-			self.ctx.cmts[0].add((addr, cmt[1], txt))
-		elif pos=='^':
-			self.ctx.cmts[0].add((addr, txt, cmt[2]))
+		if pos=='^':
+			self.ctx.cmts.add_before(addr, txt)
+		elif pos=='v':
+			self.ctx.cmts.add_after(addr, txt)
 		elif pos=='>':
-			self.ctx.cmts[1].add((addr, txt))
+			self.ctx.cmts.add_inline(addr, txt)
 		
 	def cpos(self, t):
 		return str(t[0])

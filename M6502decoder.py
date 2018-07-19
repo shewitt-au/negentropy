@@ -45,7 +45,7 @@ class M6502Decoder(decoders.Prefix):
 				else:
 					operand_body = format_numerical_operand(ii.operand)
 
-				c = ctx.cmts[1].by_address.get(ii.ivl.first)
+				c = ctx.cmts.get_inline(ii.ivl.first)
 
 				yield {
 					'address': ii.ivl.first,

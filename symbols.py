@@ -23,6 +23,63 @@ class DictWithRange(multiindex.MultiIndex):
 		for v in self.items_in_range(ivl):
 			yield v[1]
 
+class CommentInfo(object):
+	def __init__(self, before=None, after=None):
+		self.before = before
+		self.after = after
+
+	def __repr__(self):
+		return "CommentInfo(before='{}', after='{}')".format(self.before, self.after)
+
+class Comments(object):
+	def __init__(self):
+		self.main = DictWithRange()
+		self.inline = DictWithRange()
+
+	def get(self, addr):
+		ent = self.main.by_address.get(addr)
+		return ent[1] if ent is not None else None
+
+	def get_inline(self, addr):
+		return self.inline.by_address.get(addr)
+
+	def add_before(self, addr, txt):
+		cmt = self.main.by_address.get(addr)
+
+		print("***Before***: ", cmt)
+
+		if cmt is None:
+			self.main.add((addr, CommentInfo(before=txt)))
+		else:
+			cmt[1].before = txt
+
+		cmt = self.main.by_address.get(addr)
+		print("***After***: ", cmt)
+
+	def add_after(self, addr, txt):
+		print("---add_after---", hex(addr), txt)
+		cmt = self.main.by_address.get(addr)
+
+		print("***Before***: ", cmt)
+
+		if cmt is None:
+			self.main.add((addr, CommentInfo(after=txt)))
+		else:
+			cmt[1].after = txt
+
+		cmt = self.main.by_address.get(addr)
+		print("***After***: ", cmt)
+
+	def add_inline(self, addr, txt):
+		cmt = self.inline.by_address.get(addr)
+		if cmt is None:
+			self.inline.add((addr, txt))
+		else:
+			cmt = (addr, txt)
+
+	def cuts(self, ivl):
+		return self.main.keys_in_range(ivl)
+
 class SymInfo(object):
 	def __init__(self, name, addr, op_adjust):
 		self.name = name
