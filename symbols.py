@@ -1,12 +1,13 @@
 import bisect
-import multiindex
 
+import multiindex
 from interval import Interval
+from multidict import multidict
 
 class DictWithRange(multiindex.MultiIndex):
 	def __init__(self):
 		super().__init__()
-		self.add_index("by_address", dict, multiindex.dict_indexer, (lambda k: k[0]))
+		self.add_index("by_address", multidict, multiindex.dict_indexer, (lambda k: k[0]))
 		self.add_index("sorted_address", list, multiindex.sorted_list_indexer, (lambda k: k[0]))
 
 	def items_in_range(self, ivl):
@@ -45,30 +46,17 @@ class Comments(object):
 
 	def add_before(self, addr, txt):
 		cmt = self.main.by_address.get(addr)
-
-		print("***Before***: ", cmt)
-
 		if cmt is None:
 			self.main.add((addr, CommentInfo(before=txt)))
 		else:
 			cmt[1].before = txt
 
-		cmt = self.main.by_address.get(addr)
-		print("***After***: ", cmt)
-
 	def add_after(self, addr, txt):
-		print("---add_after---", hex(addr), txt)
 		cmt = self.main.by_address.get(addr)
-
-		print("***Before***: ", cmt)
-
 		if cmt is None:
 			self.main.add((addr, CommentInfo(after=txt)))
 		else:
 			cmt[1].after = txt
-
-		cmt = self.main.by_address.get(addr)
-		print("***After***: ", cmt)
 
 	def add_inline(self, addr, txt):
 		cmt = self.inline.by_address.get(addr)
