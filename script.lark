@@ -41,8 +41,9 @@ list: variant ("," variant)+
 
 range: number ["-" number]
 
+
+BLOCKCOMMENT: /\/\*.*?\*\//s
 LINECOMMENT: "//"/.*/
-BLOCKCOMMENT: /\/\*.*?\/*/s
 
 NAME: /[a-zA-Z_][0-9a-zA-Z\-_]*/
 
