@@ -185,7 +185,7 @@ class MemType(object):
 		if not self.got_parse_data:
 			if self.default_decoder is None:
 				self.default_decoder = ctx.decoders['data']
-			self.map.append(MemRegion(self.default_decoder, ctx.mem_range.first, ctx.mem_range.last, {}))
+			self.map.append(MemRegion(self.default_decoder, ctx.mem.range().first, ctx.mem.range().last, {}))
 		# Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
 		self.map.sort()
 
@@ -222,7 +222,7 @@ class MemType(object):
 		new_map = []
 
 		if ivl is None:
-			ivl = ctx.mem_range
+			ivl = ctx.mem.range()
 			ivl = self.envelope(ivl)
 
 		for region, is_hole in self._region_iter(ctx, ivl):
@@ -262,7 +262,7 @@ class MemType(object):
 		hole_idx = 0
 
 		if ivl is None:
-			ivl = ctx.mem_range
+			ivl = ctx.mem.range()
 			ivl = self.envelope(ivl)
 
 		for region in self.overlapping(ivl):

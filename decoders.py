@@ -87,8 +87,6 @@ class Context(object):
 			contents = f.read()
 			self.mem = memmod.Memory(contents, origin)
 
-		self.mem_range = self.mem.range()
-
 	def file(self, fn):
 		return os.path.join(self.basedir, fn)
 
