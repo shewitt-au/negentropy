@@ -6,20 +6,22 @@ datasource: "datasource" properties
 memmap: "memmap" mmbody
 mmbody: "{" mmentry+ "}"
 mmentry: range mmdecoder ["<" mmdataaddr] properties?
-?mmdataaddr: mmfromaddr | mmfromreset
+mmdecoder: NAME
+mmdataaddr: mmfromaddr | mmfromreset
 ?mmfromaddr: number
-?mmfromreset: "*"
-?mmdecoder: name
+mmfromreset: "*"
 
 annotate: "annotate" "{" atoplevel* "}"
 ?atoplevel: label | comment
 
-label:  range ["(" lflags+ ")"] name
+label:  range ["(" lflags+ ")"] lname ["{" label* "}"]
+lname: NAME
 !lflags: "i"
 
-comment: number cpos? ctext
+comment: caddress cpos? ctext
+caddress: number
 !cpos: "^" | "v" | ">"
-?ctext: anystring
+ctext: anystring
 ?anystring: quoted | tquoted
 
 name: NAME

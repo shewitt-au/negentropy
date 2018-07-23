@@ -23,75 +23,53 @@ class ScriptTransformer(Transformer):
 		self.ctx = ctx
 
 	def datasource(self, t):
-		self.ctx.parse_datasource(t[0])
+		self.ctx.parse_datasource(t[0][1])
 
 	def memmap(self, t):
-		data = None
+		def handle(self, range, mmdecoder, properties={}, mmdataaddr=None):
+			self.ctx.memtype.parse_add(range, self.ctx.decoders[mmdecoder], properties, mmdataaddr)
 		for e in t[0]:
-			if e[3] is not None:
-				data = e[3] if e[3]>=0 else None
-			self.ctx.memtype.parse_add(e[0], self.ctx.decoders[e[1]], e[2], data)
-
-	# mmentry: range NAME ["<" mmdataaddr] properties?
-	def mmentry(self, t):
-		length = len(t)
-		data = None
-		props = {}
-		if length==2:
-			ivl, dname = t
-		elif length==3:
-			ivl = t[0]
-			dname = t[1]
-			if isinstance(t[2], dict):
-				props = t[2]
-			else:
-				data = t[2]
-		else: #length==4
-			ivl, dname, data, props = t
-
-		# reset data address
-		if data is not None and not isinstance(data, int):
-			data = -1
-
-		return (ivl, dname, props, data)
-
+			handle(self, **dict(e))
 	def mmbody(self, t):
 		return t
+	def mmentry(self, t):
+		return t
+	def mmdecoder(self, t):
+		return ("mmdecoder", str(t[0]))
+	def mmdataaddr(self, t):
+		return ("mmdataaddr", t[0])
+	def mmfromreset(selt, t):
+		return -1
 
 	def label(self, t):
-		l = len(t)
-		if l==2:
-			flags = ""
-			ivl, name = t
-		else: # i==3
-			ivl, flags, name = t
-		self.ctx.syms.parse_add(self.ctx, ivl, name, 'i' in flags)
-
+		def handle(self, range, lname, lflags=""):
+			self.ctx.syms.parse_add(self.ctx, range, lname, 'i' in lflags)
+		handle(self, **dict(t))
 	def lflags(self, t):
-		return str(t[0])
+		return ("lflags", str(t[0]))
+	def lname(self, t):
+		return ("lname", str(t[0]))
 
 	def comment(self, t):
-		l = len(t)
-		if l==2:
-			pos = '^'
-			addr, txt = t
-		else: # i==3
-			addr, pos, txt = t
-		
-		if not txt:
-			txt = " "
-		if pos=='^':
-			self.ctx.cmts.add_before(addr, txt)
-		elif pos=='v':
-			self.ctx.cmts.add_after(addr, txt)
-		elif pos=='>':
-			self.ctx.cmts.add_inline(addr, txt)
-		
+		def handle(self, caddress, ctext, cpos="^"):
+			if not ctext:
+				ctext = " "
+			if cpos=='^':
+				self.ctx.cmts.add_before(caddress, ctext)
+			elif cpos=='v':
+				self.ctx.cmts.add_after(caddress, ctext)
+			elif cpos=='>':
+				self.ctx.cmts.add_inline(caddress, ctext)
+		handle(self, **dict(t))
+	def caddress(self, t):
+		return ("caddress", t[0])
 	def cpos(self, t):
-		return str(t[0])
+		return ("cpos", str(t[0]))
+	def ctext(self, t):
+		return ('ctext', str(t[0]))
 
 	def properties(self, t):
-		return {str(i[0]) : i[1] for i in t}
+		return ("properties", {str(i[0]) : i[1] for i in t})
 	def propentry(self, t):
 		return t
 
@@ -111,4 +89,5 @@ class ScriptTransformer(Transformer):
 		return cleandoc(t[0][3:-3])
 
 	def range(self, t):
-		return Interval(int(t[0]), int(t[1])) if len(t)==2 else Interval(int(t[0]))
+		ivl = Interval(int(t[0]), int(t[1])) if len(t)==2 else Interval(int(t[0]))
+		return ("range", ivl)
