@@ -81,7 +81,9 @@ class SymbolTable(multiindex.MultiIndex):
 		self.add_index("sorted_name", list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
 		self.black_list = None
 
-	def parse_add(self, ctx, ivl, name, in_index):
+	def parse_add(self, ctx, ivl, name, in_index, sublabels):
+		if sublabels:
+			print(sublabels)
 		ctx.have_indexables |= in_index
 		self.add((ivl, name, in_index))
 
