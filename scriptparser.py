@@ -25,13 +25,6 @@ class ScriptTransformer(Transformer):
 	def datasource(self, t):
 		self.ctx.parse_datasource(t[0][1])
 
-	def annotate(self, t):
-		for e in t:
-			if e is None:
-				continue
-			if e[0]=="label":
-				self.ctx.syms.parse_add(self.ctx, *e[1])
-
 	def memmap(self, t):
 		def handle(self, range, mmdecoder, properties={}, mmdataaddr=None):
 			self.ctx.memtype.parse_add(range, self.ctx.decoders[mmdecoder], properties, mmdataaddr)
@@ -49,15 +42,13 @@ class ScriptTransformer(Transformer):
 		return -1
 
 	def label(self, t):
-		def handle(self, range, lname, lflags="", sublabels=None):
-			return ("label", (range, lname, 'i' in lflags, sublabels))
-		return handle(self, **dict(t))
+		def handle(self, range, lname, lflags=""):
+			self.ctx.syms.parse_add(self.ctx, range, lname, 'i' in lflags)
+		handle(self, **dict(t))
 	def lflags(self, t):
 		return ("lflags", str(t[0]))
 	def lname(self, t):
 		return ("lname", str(t[0]))
-	def sublabels(self, t):
-		return ("sublabels", [(l[1]) for l in t])
 
 	def comment(self, t):
 		def handle(self, caddress, ctext, cpos="^"):

@@ -14,10 +14,9 @@ mmfromreset: "*"
 annotate: "annotate" "{" atoplevel* "}"
 ?atoplevel: label | comment
 
-label:  range ["(" lflags+ ")"] lname ["{" sublabels "}"]
+label:  range ["(" lflags+ ")"] lname ["{" label* "}"]
 lname: NAME
 !lflags: "i"
-sublabels: label+
 
 comment: caddress cpos? ctext
 caddress: number
