@@ -50,6 +50,17 @@ class ScriptTransformer(Transformer):
 	def lname(self, t):
 		return ("lname", str(t[0]))
 
+	def directive(self, t):
+		def handle(range, dcommand, daddress=None, dsymbol=None):
+			print(range, dcommand, daddress, dsymbol)
+		handle(**dict(t))
+	def dcommand(self, t):
+		return ("dcommand", str(t[0]))
+	def daddress(self, t):
+		return ("daddress", t[0])
+	def dsymbol(self, t):
+		return ('dsymbol', str(t[0]))
+
 	def comment(self, t):
 		def handle(self, caddress, ctext, cpos="^"):
 			if not ctext:

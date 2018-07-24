@@ -12,11 +12,17 @@ mmdataaddr: mmfromaddr | mmfromreset
 mmfromreset: "*"
 
 annotate: "annotate" "{" atoplevel* "}"
-?atoplevel: label | comment
+?atoplevel: label | comment | directive
 
 label:  range ["(" lflags+ ")"] lname
 lname: NAME
 !lflags: "i"
+
+directive: range "[" dcommand "]" doperand
+!dcommand: "<" | ">"
+?doperand: daddress | dsymbol
+daddress: number
+dsymbol: NAME
 
 comment: caddress cpos? ctext
 caddress: number
