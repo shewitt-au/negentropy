@@ -53,7 +53,7 @@ class ScriptTransformer(Transformer):
 	def comment(self, t):
 		def handle(self, caddress, ctext, cpos="^"):
 			if not ctext:
-				ctext = " "
+				ctext = "\n"
 			if cpos=='^':
 				self.ctx.cmts.add_before(caddress, ctext)
 			elif cpos=='v':

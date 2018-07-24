@@ -25,7 +25,7 @@ class DictWithRange(multiindex.MultiIndex):
 			yield v[1]
 
 class CommentInfo(object):
-	def __init__(self, before=None, after=None):
+	def __init__(self, before="", after=""):
 		self.before = before
 		self.after = after
 
@@ -49,14 +49,14 @@ class Comments(object):
 		if cmt is None:
 			self.main.add((addr, CommentInfo(before=txt)))
 		else:
-			cmt[1].before = txt
+			cmt[1].before += txt
 
 	def add_after(self, addr, txt):
 		cmt = self.main.by_address.get(addr)
 		if cmt is None:
 			self.main.add((addr, CommentInfo(after=txt)))
 		else:
-			cmt[1].after = txt
+			cmt[1].after += txt
 
 	def add_inline(self, addr, txt):
 		cmt = self.inline.by_address.get(addr)
