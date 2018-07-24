@@ -14,7 +14,7 @@ mmfromreset: "*"
 annotate: "annotate" "{" atoplevel* "}"
 ?atoplevel: label | comment
 
-label:  range ["(" lflags+ ")"] lname ["{" label* "}"]
+label:  range ["(" lflags+ ")"] lname
 lname: NAME
 !lflags: "i"
 
