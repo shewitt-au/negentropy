@@ -50,7 +50,7 @@
 {%- if i.instruction.is_source -%}
 <a href="#{{"{:04x}".format(i.instruction.target)}}">
 {%- endif -%}
-{{i.instruction.operand}}
+{{i.instruction.operand|e}}
 {%- if i.instruction.is_source -%}
 </a>
 {%- endif -%}

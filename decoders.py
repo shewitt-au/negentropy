@@ -62,6 +62,7 @@ class Context(object):
 		self.decoders = decoders
 		self.syms = symmod.SymbolTable()
 		self.cmts = symmod.Comments()
+		self.directives = symmod.Directives()
 		self.links_referenced_addresses = set()
 		self.links_reachable_addresses = set()
 		self.memtype = memmap.MemType(self, args.defaultdecoder)
@@ -71,8 +72,10 @@ class Context(object):
 
 		# parse
 		if args.config is not None:
+			self.directives.parse_begin()
 			for fn in self.args.config:
 				scriptparser.parse(self, fn)
+			self.directives.parse_end(self)
 
 		self.syms.clashes()
 

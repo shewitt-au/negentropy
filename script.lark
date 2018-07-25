@@ -18,11 +18,12 @@ label:  range ["(" lflags+ ")"] lname
 lname: NAME
 !lflags: "i"
 
-directive: range "[" dcommand "]" doperand
-!dcommand: "<" | ">"
-?doperand: daddress | dsymbol
+directive: daddress "[" dcommand "]" doperand
 daddress: number
-dsymbol: NAME
+!dcommand: "<" | ">"
+?doperand: doaddress | dosymbol
+doaddress: number
+dosymbol: NAME
 
 comment: caddress cpos? ctext
 caddress: number

@@ -1,4 +1,5 @@
 import bisect
+import numbers
 
 import multiindex
 from interval import Interval
@@ -79,6 +80,7 @@ class SymbolTable(multiindex.MultiIndex):
 		super().__init__()
 		self.add_index("sorted_address", list, multiindex.sorted_list_indexer, (lambda k: k[0])) # list sorted by address
 		self.add_index("sorted_name", list, multiindex.sorted_list_indexer, (lambda k: k[1])) # list sorted by name
+		self.add_index("by_name", multidict, multiindex.dict_indexer, (lambda k: k[1])) # dict of names
 		self.black_list = None
 
 	def parse_add(self, ctx, ivl, name, in_index):
@@ -137,3 +139,82 @@ class SymbolTable(multiindex.MultiIndex):
 				ps = s
 
 		return clashes!=0
+
+class DirectiveParseInfo(object):
+	def __init__(self, address, command, oaddress, osymbol):
+		self.address = address
+		self.command = command
+		self.oaddress = oaddress
+		self.osymbol = osymbol
+
+class DirectiveInfo(object):
+	def __init__(self, address, command, instead):
+		self.address = address
+		self.command = command
+		self.instead = instead
+
+	def __eq__(self, other):
+		if isinstance(other, numbers.Number):
+			return self.address==other
+		else:
+			return self.address==other.address
+	def __ne__(self, other):
+		if isinstance(other, numbers.Number):
+			return self.address!=other
+		else:
+			return self.address!=other.address
+	def __lt__(self, other):
+		if isinstance(other, numbers.Number):
+			return self.address<other
+		else:
+			return self.address<other.address
+	def __le__(self, other):
+		if isinstance(other, numbers.Number):
+			return self.address<=other
+		else:
+			return self.address<=other.address
+	def __gt__(self, other):
+		if isinstance(other, numbers.Number):
+			return self.address>other
+		else:
+			return self.address>other.address
+	def __ge__(self, other):
+		if isinstance(other, numbers.Number):
+			return self.address>=other
+		else:
+			return self.address>=other.address
+
+	def __repr__(self):
+		return "DirectiveInfo(0x{:04x}, '{}', '{}'')".format(self.address, self.command, self.instead)
+
+class Directives(object):
+	def parse_begin(self):
+		self.plist = []
+
+	def parse_add(self, address, command, oaddress, osymbol):
+		self.plist.append(DirectiveParseInfo(address, command, oaddress, osymbol))
+
+	def parse_end(self, ctx):
+		self.dlist = []
+		for d in self.plist:
+			if d.oaddress is None:
+				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+ctx.syms.by_name[d.osymbol][1]))
+			else:
+				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+ctx.syms.get_entry(d.oaddress)[1]))
+		self.dlist.sort()
+		del self.plist
+
+	def reset(self, address):
+		self.pos = bisect.bisect_left(self.dlist, address)
+
+	def lookup(self, address):
+		while self.pos<len(self.dlist):
+			v = self.dlist[self.pos]
+			if v==address:
+				self.pos += 1
+				return v
+			elif v>address:
+				return None
+			else:
+				self.pos += 1
+		return None

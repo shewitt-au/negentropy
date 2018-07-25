@@ -51,15 +51,17 @@ class ScriptTransformer(Transformer):
 		return ("lname", str(t[0]))
 
 	def directive(self, t):
-		def handle(range, dcommand, daddress=None, dsymbol=None):
-			print(range, dcommand, daddress, dsymbol)
+		def handle(daddress, dcommand, doaddress=None, dosymbol=None):
+			self.ctx.directives.parse_add(daddress, dcommand, doaddress, dosymbol)
 		handle(**dict(t))
-	def dcommand(self, t):
-		return ("dcommand", str(t[0]))
 	def daddress(self, t):
 		return ("daddress", t[0])
-	def dsymbol(self, t):
-		return ('dsymbol', str(t[0]))
+	def dcommand(self, t):
+		return ("dcommand", str(t[0]))
+	def doaddress(self, t):
+		return ("doaddress", t[0])
+	def dosymbol(self, t):
+		return ('dosymbol', str(t[0]))
 
 	def comment(self, t):
 		def handle(self, caddress, ctext, cpos="^"):

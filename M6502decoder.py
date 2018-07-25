@@ -21,6 +21,7 @@ class M6502Decoder(decoders.Prefix):
 
 	def decode(self, ctx, ivl, params):
 		def lines(self):
+			ctx.directives.reset(ivl.first)
 			target_already_exits = params['target_already_exits']
 
 			for ii in M6502Iterator(ctx.mem, ivl):
@@ -43,7 +44,11 @@ class M6502Decoder(decoders.Prefix):
 					target = e.addr
 					op_adjust = e.op_adjust
 				else:
-					operand_body = format_numerical_operand(ii.operand)
+					d = ctx.directives.lookup(ii.ivl.first)
+					if d is None:
+						operand_body = format_numerical_operand(ii.operand)
+					else:
+						operand_body = d.instead
 
 				c = ctx.cmts.get_inline(ii.ivl.first)
 
