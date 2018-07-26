@@ -149,10 +149,21 @@ class DirectiveParseInfo(object):
 		self.osymbol = osymbol
 
 class DirectiveInfo(object):
-	def __init__(self, address, command, instead):
+	def __init__(self, address, command, full_addr, instead):
 		self.address = address
 		self.command = command
+		self.full_addr = full_addr
 		self.instead = instead
+
+	def validate(self, oper):
+		if self.command=='<':
+			if oper != self.full_addr&0x00ff:
+				raise Dis64Exception("Directive: unexpected low byte")
+		elif self.command=='>':
+			if oper != self.full_addr>>8:
+				raise Dis64Exception("Directive: unexpected high byte")
+		else:
+			assert False, "unexpected directive"
 
 	def __eq__(self, other):
 		if isinstance(other, numbers.Number):
@@ -199,12 +210,13 @@ class Directives(object):
 		self.dlist = []
 		for d in self.plist:
 			if d.oaddress is None:
-				if not d.osymbol in ctx.syms.by_name:
+				sym_ent = ctx.syms.by_name.get(d.osymbol, None)
+				if sym_ent is None:
 					raise Dis64Exception("Directive: '{}' symbol not found".format(d.osymbol))
-				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+d.osymbol))
+				self.dlist.append(DirectiveInfo(d.address, d.command, sym_ent[0].first, d.command+d.osymbol))
 			else:
-				name = ctx.syms.lookup(d.oaddress).name
-				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+name))
+				sym = ctx.syms.lookup(d.oaddress)
+				self.dlist.append(DirectiveInfo(d.address, d.command, sym.addr, d.command+sym.name))
 		self.dlist.sort()
 		del self.plist
 

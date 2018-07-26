@@ -48,6 +48,7 @@ class M6502Decoder(decoders.Prefix):
 					if d is None:
 						operand_body = format_numerical_operand(ii.operand)
 					else:
+						d.validate(ii.operand)
 						operand_body = d.instead
 
 				c = ctx.cmts.get_inline(ii.ivl.first)
