@@ -4,6 +4,7 @@ import numbers
 import multiindex
 from interval import Interval
 from multidict import multidict
+from errors import *
 
 class DictWithRange(multiindex.MultiIndex):
 	def __init__(self):
@@ -198,9 +199,12 @@ class Directives(object):
 		self.dlist = []
 		for d in self.plist:
 			if d.oaddress is None:
-				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+ctx.syms.by_name[d.osymbol][1]))
+				if not d.osymbol in ctx.syms.by_name:
+					raise Dis64Exception("Directive: '{}' symbol not found".format(d.osymbol))
+				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+d.osymbol))
 			else:
-				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+ctx.syms.get_entry(d.oaddress)[1]))
+				name = ctx.syms.lookup(d.oaddress).name
+				self.dlist.append(DirectiveInfo(d.address, d.command, d.command+name))
 		self.dlist.sort()
 		del self.plist
 
