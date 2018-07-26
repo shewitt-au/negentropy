@@ -153,7 +153,7 @@ class DirectiveInfo(object):
 		self.address = address
 		self.command = command
 		self.full_addr = full_addr
-		self.instead = instead
+		self.instead = command+instead
 
 	def validate(self, oper):
 		if self.command=='<':
@@ -213,10 +213,10 @@ class Directives(object):
 				sym_ent = ctx.syms.by_name.get(d.osymbol, None)
 				if sym_ent is None:
 					raise Dis64Exception("Directive: '{}' symbol not found".format(d.osymbol))
-				self.dlist.append(DirectiveInfo(d.address, d.command, sym_ent[0].first, d.command+d.osymbol))
+				self.dlist.append(DirectiveInfo(d.address, d.command, sym_ent[0].first, d.osymbol))
 			else:
 				sym = ctx.syms.lookup(d.oaddress)
-				self.dlist.append(DirectiveInfo(d.address, d.command, sym.addr, d.command+sym.name))
+				self.dlist.append(DirectiveInfo(d.address, d.command, sym.addr, sym.name))
 		self.dlist.sort()
 		del self.plist
 
