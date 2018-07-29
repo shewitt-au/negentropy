@@ -66,6 +66,10 @@ def main():
 	parser.add_argument(
 					"-p", "--prefix",
 					help="a file to prepend to the start of the output file")
+	parser.add_argument(
+					"--noc64symbols",
+					action="store_true",
+					help="don't use internal C64 symbol table")
 
 	args = parser.parse_args()
 

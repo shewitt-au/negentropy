@@ -59,6 +59,8 @@ class Context(object):
 		if self.basedir and not os.path.exists(self.basedir):
 			os.makedirs(self.basedir)
 
+		self.sourcedir = os.path.dirname(__file__)
+
 		self.decoders = decoders
 		self.syms = symmod.SymbolTable()
 		self.cmts = symmod.Comments()
@@ -71,9 +73,12 @@ class Context(object):
 		self.have_indexables = False
 
 		# parse
-		if args.config is not None:
+		config = args.config if args.config is not None else []
+		if not args.noc64symbols:
+			config.append(self.source_file("symbols", "c64.txt"))
+		if config:
 			self.directives.parse_begin()
-			for fn in self.args.config:
+			for fn in config:
 				scriptparser.parse(self, fn)
 			self.directives.parse_end(self)
 
@@ -92,6 +97,9 @@ class Context(object):
 
 	def file(self, fn):
 		return os.path.join(self.basedir, fn)
+
+	def source_file(self, *fns):
+		return os.path.join(self.sourcedir, *fns)
 
 	def template(self):
 		return os.path.basename(glob.glob("{}/templates/{}.*".format(os.path.dirname(__file__), self.args.format))[0])
