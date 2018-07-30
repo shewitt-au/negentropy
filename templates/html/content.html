@@ -196,7 +196,8 @@
 {#- ********************************BODY******************************** #}
 
 <div class="disass_container">
-{%- if title %}<h1>{{title}}</h1><br/>{% endif -%}
+{%- if builton %}<small>built on {{builton}}</small><br/>{% endif -%}
+{%- if title %}<h1>{{title}}</h1>{% endif -%}
 
 {#- ----------------first hole link---------------- -#}
 {%- if have_holes %}

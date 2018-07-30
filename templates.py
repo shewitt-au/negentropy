@@ -1,4 +1,5 @@
 import webbrowser
+import datetime
 
 import jinja2
 
@@ -80,6 +81,8 @@ def run(args):
 
 	env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
 	env.globals['title'] = args.title
+	if args.builton:
+		env.globals['builton'] = datetime.datetime.now().astimezone().isoformat(sep=' ', timespec='seconds')
 	env.globals['items'] = bd.items()
 	env.globals['has_index'] = index.has_index(bd)
 	env.globals['index'] = index.get_index(bd)

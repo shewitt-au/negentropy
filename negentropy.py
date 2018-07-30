@@ -70,6 +70,10 @@ def main():
 					"--noc64symbols",
 					action="store_true",
 					help="don't use internal C64 symbol table")
+	parser.add_argument(
+					"-b", "--builton",
+					action="store_true",
+					help="include the date & time of the build")
 
 	args = parser.parse_args()
 
