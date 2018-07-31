@@ -89,4 +89,3 @@ def main():
 	msg = "\nExecution took: %s secs" % timedelta(seconds=round(elapsed_time_secs))
 	print(msg)
 
-main()
