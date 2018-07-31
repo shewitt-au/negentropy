@@ -9,5 +9,8 @@ setup(name='negentropy',
       license='MIT',
       packages=['negentropy'],
       install_requires=['jinja2', 'pillow', 'lark'],
+      entry_points={
+          'console_scripts': ['negentropy=negentropy.negentropy:main'],
+      },
       include_package_data=True,
       zip_safe=False)
