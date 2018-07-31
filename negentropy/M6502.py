@@ -1,8 +1,8 @@
 from enum import Enum, unique, auto
 from collections import namedtuple
 
-from interval import Interval
-import errors
+from .interval import Interval
+from . import errors
 
 @unique
 class AddrMode(Enum):

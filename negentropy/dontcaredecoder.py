@@ -1,5 +1,5 @@
-from interval import Interval
-import decoders
+from .interval import Interval
+from . import decoders
 
 class DontCareDecoder(decoders.Prefix):
 	def __init__(self, name):

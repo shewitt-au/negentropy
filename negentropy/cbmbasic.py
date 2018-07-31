@@ -1,7 +1,7 @@
 from enum import Enum, unique, auto
 import functools
 
-from interval import Interval
+from .interval import Interval
 
 # $80 - $ca
 _commands = (

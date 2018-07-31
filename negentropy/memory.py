@@ -1,8 +1,8 @@
 import copy
 
-from interval import Interval
-import errors
-import cbmcodec
+from .interval import Interval
+from . import errors
+from . import cbmcodec
 
 class Bytes16(bytes):
 	def __len__(self):

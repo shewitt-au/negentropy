@@ -2,9 +2,9 @@ from enum import Enum, unique, auto
 
 from PIL import Image, ImageFont, ImageDraw
 
-from interval import Interval
-import decoders
-import errors
+from .interval import Interval
+from . import decoders
+from . import errors
 
 @unique
 class Mode(Enum):

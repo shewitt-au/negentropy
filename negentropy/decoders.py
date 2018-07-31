@@ -3,12 +3,11 @@ import glob
 from enum import Enum, unique, auto
 from heapq import merge
 
-
-from interval import Interval
-import memory as memmod
-import memmap
-import symbols as symmod
-import scriptparser
+from .interval import Interval
+from . import memory as memmod
+from . import memmap
+from . import symbols as symmod
+from . import scriptparser
 
 @unique
 class CuttingPolicy(Enum):

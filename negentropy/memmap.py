@@ -4,8 +4,8 @@ from heapq import merge
 import copy
 import numbers
 
-from interval import Interval
-import decoders
+from .interval import Interval
+from . import decoders
 
 class BaseRegion(object):
 	def __init__(self, first=None, last=None):

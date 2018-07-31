@@ -1,5 +1,5 @@
-import decoders
-from M6502 import *
+from . import decoders
+from .M6502 import *
 
 class M6502Decoder(decoders.Prefix):
 	def __init__(self, name):

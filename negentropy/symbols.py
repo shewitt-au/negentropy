@@ -1,10 +1,10 @@
 import bisect
 import numbers
 
-import multiindex
-from interval import Interval
-from multidict import multidict
-from errors import *
+from . import multiindex
+from .interval import Interval
+from .multidict import multidict
+from .errors import *
 
 class DictWithRange(multiindex.MultiIndex):
 	def __init__(self):

@@ -1,6 +1,6 @@
-from interval import Interval
-import decoders
-from cbmbasic import *
+from .interval import Interval
+from . import decoders
+from .cbmbasic import *
 
 class TokenDecoder(object):
 	def __init__(self, mem, codec):

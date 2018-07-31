@@ -4,8 +4,8 @@ import time
 from datetime import timedelta
 from argparse import ArgumentParser
 
-import templates
-import errors
+from . import templates
+from . import errors
 
 def main():
 	start_time = time.time()

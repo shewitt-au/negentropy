@@ -1,5 +1,5 @@
-from interval import Interval
-import decoders
+from .interval import Interval
+from . import decoders
 
 class BytesDecoder(decoders.Prefix):
 	def __init__(self, name, linelen):

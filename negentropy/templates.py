@@ -3,13 +3,13 @@ import datetime
 
 import jinja2
 
-import decoders
-import gfx
-import data
-import M6502decoder
-import index
-import cbmbasicdecoder
-import dontcaredecoder
+from . import decoders
+from . import gfx
+from . import data
+from . import M6502decoder
+from . import index
+from . import cbmbasicdecoder
+from . import dontcaredecoder
 
 def render(env, template_name, **template_vars):
 	template = env.get_template(template_name)
