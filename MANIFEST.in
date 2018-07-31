@@ -1,3 +1,4 @@
+include negentropy/script.lark
 include negentropy/symbols/*
 include negentropy/templates/*
 include negentropy/templates/html/*
