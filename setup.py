@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='negentropy',
-      version='0.1.1',
+      version='0.2',
       description='C64 disassembler',
       long_description=readme(),
       long_description_content_type='text/markdown',
