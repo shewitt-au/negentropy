@@ -31,14 +31,18 @@
 {{- comment_after(section) -}}
 {%- endmacro -%}
 
+{#- ----------------pc---------------- -#}
+{%- macro pc_handler(section) -%}
+*={{"${:04x}".format(section.address)}}
+{% endmacro -%}
+
 {#- ----------------data---------------- -#}
 {%- macro data_handler(section) -%}
 {%- for i in section.lines -%}
-!byte {{i.bytes|seq2str("${:02x}", s=[(1,", "), (4, ",  ")])}};
+!byte {{i.bytes|seq2str("${:02x}", s=[(1,", "), (4, ",  ")])}}
 {% endfor -%}
 {%- endmacro -%}
 
-*=$5000;
 {%- for section in items -%}
 {{ section.type|dispatch(section) }}
 {%- endfor -%}

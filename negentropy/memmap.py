@@ -265,7 +265,14 @@ class MemType(object):
             ivl = ctx.mem.range()
             ivl = self.envelope(ivl)
 
+        pc = None
         for region in self.overlapping(ivl):
+            if region.ivl.first != pc:
+                yield {
+                    'type': 'pc',
+                    'address': region.ivl.first
+                    }
+
             if region.is_hole:
                 # we found a hole and we've got a default decoder
                 yield {
@@ -277,3 +284,5 @@ class MemType(object):
                 hole_idx += 1
             else:
                 yield from region.items(ctx)
+
+            pc = region.ivl.last+1
