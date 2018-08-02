@@ -1,21 +1,21 @@
 {%- macro comment_before(i) -%}
-{% if i.comment_before %}
+{%- if i.comment_before -%}
 <div class="disass_comment">
 {%- for line in i.comment_before.splitlines() -%}
 ; {{line}}
 {% endfor -%}
 </div>
-{%- endif -%}
+{% endif -%}
 {%- endmacro -%}
 
 {%- macro comment_after(i) -%}
-{% if i.comment_after %}
+{%- if i.comment_after -%}
 <div class="disass_comment">
 {%- for line in i.comment_after.splitlines() -%}
 ; {{line}}
 {% endfor -%}
 </div>
-{%- endif -%}
+{% endif -%}
 {%- endmacro -%}
 
 {%- macro comment_inline(i) -%}
@@ -35,15 +35,15 @@
 {%- endmacro -%}
 
 {%- macro label(i) -%}
-{% if i.label %}
+{%- if i.label -%}
 <b>{{i.label}}:</b><br/>
-{%- endif %}
+{% endif -%}
 {%- endmacro -%}
 
 {%- macro anchor(i) -%}
-{% if i.is_destination -%}
+{%- if i.is_destination -%}
 <a name="{{"{:04x}".format(i.address)}}"></a>
-{%- endif %}
+{%- endif -%}
 {%- endmacro -%}
 
 {%- macro operand(i) -%}
@@ -73,10 +73,10 @@
 
 {#- ----------------prefix---------------- -#}
 {%- macro prefix_handler(section) -%}
-{{ anchor(section) }}
-{{ comment_before(section) }}
-{{ label(section) }}
-{{ comment_after(section) }}
+{{- anchor(section) -}}
+{{- comment_before(section) -}}
+{{- label(section) -}}
+{{- comment_after(section) -}}
 {%- if section.authoring_info -%}
 {{section.authoring_info.type}} section @
 {{-address_range(section.authoring_info)-}} 
@@ -91,7 +91,7 @@
 {{-comment_inline(i)}}
 {% endfor -%}
 </div>
-{%- endmacro -%}
+{% endmacro -%}
 
 {#- ----------------data---------------- -#}
 {%- macro data_handler(section) -%}
@@ -100,7 +100,7 @@
 {{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}
 {% endfor -%}
 </div>
-{%- endmacro -%}
+{% endmacro -%}
 
 {#- ----------------ptr16---------------- -#}
 {%- macro ptr16_handler(section) -%}
@@ -120,13 +120,13 @@
 {%- endfor -%}</tr>
 {% endfor -%}
 </table>
-{%- endmacro -%}
+{% endmacro -%}
 
 {#- ----------------chars---------------- -#}
 {%- macro chars_handler(section) -%}
 <b>{{"{:04x}".format(section.address)}}</b><br/>
 <img src="{{section.generate()}}"/><br/>
-{%- endmacro -%}
+{% endmacro -%}
 
 {#- ----------------hole---------------- -#}
 {%- macro hole_handler(section) -%}
@@ -196,8 +196,12 @@
 {#- ********************************BODY******************************** #}
 
 <div class="disass_container">
-{% if builton %}<span class="disass_tiny">built on {{builton}}</span><br/>{% endif %}
-{% if title %}<h1>{{title}}</h1>{% endif %}
+{% if builton -%}
+<span class="disass_tiny">built on {{builton}}</span><br/>
+{% endif -%}
+{%- if title -%}
+<h1>{{title}}</h1>
+{% endif -%}
 
 {#- ----------------first hole link---------------- -#}
 {%- if have_holes %}
@@ -215,5 +219,5 @@
 {#- ----------------sections---------------- -#}
 {%- for section in items -%}
 {{ section.type|dispatch(section) }}
-{% endfor -%}
+{%- endfor -%}
 </div>
