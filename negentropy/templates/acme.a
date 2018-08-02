@@ -1,0 +1,44 @@
+{%- macro comment_before(i) -%}
+{%- if i.comment_before -%}
+{%- for line in i.comment_before.splitlines() -%}
+; {{line}}
+{% endfor -%}
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro comment_after(i) -%}
+{%- if i.comment_after -%}
+{%- for line in i.comment_after.splitlines() -%}
+; {{line}}
+{% endfor -%}
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro comment_inline(i) -%}
+{%- if i.comment -%}
+; {{i.comment}}
+{%- endif -%}
+{%- endmacro -%}
+
+{%- macro label(i) -%}
+{% if i.label -%}{{i.label}}{% endif %}
+{%- endmacro -%}
+
+{#- ----------------prefix---------------- -#}
+{%- macro prefix_handler(section) -%}
+{{- comment_before(section) -}}
+{{- label(section) -}}
+{{- comment_after(section) -}}
+{%- endmacro -%}
+
+{#- ----------------data---------------- -#}
+{%- macro data_handler(section) -%}
+{%- for i in section.lines -%}
+!byte {{i.bytes|seq2str("${:02x}", s=[(1,", "), (4, ",  ")])}};
+{% endfor -%}
+{%- endmacro -%}
+
+*=$5000;
+{%- for section in items -%}
+{{ section.type|dispatch(section) }}
+{%- endfor -%}
