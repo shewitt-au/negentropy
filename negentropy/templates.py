@@ -1,8 +1,11 @@
 import webbrowser
 import datetime
+import os
+import glob
 
 import jinja2
 
+from . import errors
 from . import decoders
 from . import gfx
 from . import data
@@ -10,6 +13,21 @@ from . import M6502decoder
 from . import index
 from . import cbmbasicdecoder
 from . import dontcaredecoder
+
+class TemplateMgr(object):
+    def __init__(self, ctx, name):
+        self.name = name
+        self.source = ctx.sourcedir
+        self.templates = ctx.source_file("templates")
+
+    def template(self):
+        l = glob.glob(os.path.join(self.templates, self.name, "template.*"))
+        if len(l)==0:
+            raise errors.Dis64Exception("'{}' template not found".format(self.name))
+        elif len(l)>1:
+            raise errors.Dis64Exception("Too many candidates for '{}' template".format(self.name))
+        return os.path.relpath(l[0], start=self.templates).replace("\\", "/")
+            # https://github.com/pallets/jinja/issues/767 ---/\
 
 def render(env, template_name, **template_vars):
     template = env.get_template(template_name)
@@ -79,7 +97,8 @@ def run(args):
                 )
     bd.preprocess()
 
-    env = jinja2.Environment(loader=jinja2.PackageLoader(__name__))
+    print(bd.template_mgr.templates)
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(bd.template_mgr.templates))
     env.globals['title'] = args.title
     if args.builton:
         env.globals['builton'] = datetime.datetime.now().astimezone().isoformat(sep=' ', timespec='seconds')
@@ -93,7 +112,7 @@ def run(args):
     add_dispatcher(env, "dispatch", "{}_handler")
     add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")
 
-    s = render(env, bd.template())
+    s = render(env, bd.template_mgr.template())
     with open(args.output, "w", encoding='utf-8') as of:
         if args.prefix:
             with open(args.prefix, "r") as pf:

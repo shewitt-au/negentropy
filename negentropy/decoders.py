@@ -1,5 +1,4 @@
 import os
-import glob
 from enum import Enum, unique, auto
 from heapq import merge
 
@@ -8,6 +7,7 @@ from . import memory as memmod
 from . import memmap
 from . import symbols as symmod
 from . import scriptparser
+from . import templates
 
 @unique
 class CuttingPolicy(Enum):
@@ -59,6 +59,7 @@ class Context(object):
             os.makedirs(self.basedir)
 
         self.sourcedir = os.path.dirname(__file__)
+        self.template_mgr = templates.TemplateMgr(self, args.format)
 
         self.decoders = decoders
         self.syms = symmod.SymbolTable()
@@ -99,9 +100,6 @@ class Context(object):
 
     def source_file(self, *fns):
         return os.path.join(self.sourcedir, *fns)
-
-    def template(self):
-        return os.path.basename(glob.glob("{}/templates/{}.*".format(os.path.dirname(__file__), self.args.format))[0])
 
     def implfile(self, fn):
         return os.path.join(os.path.dirname(__file__), fn)

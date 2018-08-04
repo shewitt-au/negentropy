@@ -16,7 +16,7 @@
 
 {%- macro comment_inline(i) -%}
 {%- if i.comment -%}
-; {{i.comment}}
+ ; {{i.comment}}
 {%- endif -%}
 {%- endmacro -%}
 
@@ -24,16 +24,29 @@
 {% if i.label -%}{{i.label}}{% endif %}
 {%- endmacro -%}
 
+{%- macro operand(i) -%}
+{{i.instruction.operand}}{{i.instruction.op_adjust}}
+{%- endmacro -%}
+
+{%- macro instruction(i) -%}
+{{i.instruction.mnemonic}} {{i.instruction.pre}}{{operand(i)}}{{i.instruction.post}}
+{%- endmacro -%}
+
 {#- ----------------prefix---------------- -#}
 {%- macro prefix_handler(section) -%}
-{{- comment_before(section) -}}
-{{- label(section) -}}
-{{- comment_after(section) -}}
-{%- endmacro -%}
+{{- comment_before(section) }}{{ comment_after(section) }}{{ label(section) }}
+{% endmacro -%}
 
 {#- ----------------pc---------------- -#}
 {%- macro pc_handler(section) -%}
 *={{"${:04x}".format(section.address)}}
+{% endmacro -%}
+
+{#- ----------------code---------------- -#}
+{%- macro code_handler(section) -%}
+{%- for i in section.lines -%}
+{{instruction(i)}}{{comment_inline(i)}}
+{% endfor -%}
 {% endmacro -%}
 
 {#- ----------------data---------------- -#}
@@ -42,6 +55,13 @@
 !byte {{i.bytes|seq2str("${:02x}", s=[(1,", "), (4, ",  ")])}}
 {% endfor -%}
 {%- endmacro -%}
+
+{#- ----------------ptr16---------------- -#}
+{%- macro ptr16_handler(section) -%}
+{%- for i in section.lines -%}
+!word {% for v in i.vals -%}{{v.val.name}}{{v.val.op_adjust}} {% endfor %}
+{% endfor -%}
+{% endmacro -%}
 
 {%- for section in items -%}
 {{ section.type|dispatch(section) }}
