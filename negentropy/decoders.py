@@ -62,6 +62,7 @@ class Context(object):
         self.template_mgr = templates.TemplateMgr(self, args.format)
 
         self.decoders = decoders
+        self.decoder_map = {}
         self.syms = symmod.SymbolTable()
         self.cmts = symmod.Comments()
         self.directives = symmod.Directives()
@@ -71,9 +72,13 @@ class Context(object):
         self.holes = 0
         self.datasource_props = {}
         self.have_indexables = False
+        self.options = {}
 
         # parse
         config = args.config if args.config is not None else []
+        template_script = self.template_mgr.script()
+        if template_script:
+            config.insert(0, template_script)
         if not args.noc64symbols:
             config.append(self.source_file("symbols", "c64.txt"))
         if config:
@@ -95,6 +100,9 @@ class Context(object):
             contents = f.read()
             self.mem = memmod.Memory(contents, origin)
 
+    def decoder(self, name):
+        return self.decoders[self.decoder_map.get(name, name)]
+
     def file(self, fn):
         return os.path.join(self.basedir, fn)
 
@@ -104,9 +112,14 @@ class Context(object):
     def implfile(self, fn):
         return os.path.join(os.path.dirname(__file__), fn)
 
+    def parse_options(self, opts):
+        self.options.update(opts)
+
+    def parse_decoderentry(self, src, dst):
+        self.decoder_map[src] = dst
+
     def parse_datasource(self, props):
         self.datasource_props = props
-
 
     def link_add_referenced(self, addr):
         self.links_referenced_addresses.add(addr)

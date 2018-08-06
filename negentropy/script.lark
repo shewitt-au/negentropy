@@ -1,5 +1,12 @@
 start: toplevel* 
-?toplevel: datasource | memmap | annotate
+?toplevel: decoders | options | datasource | memmap | annotate
+
+decoders: "decoders" "{" decent* "}"
+decent: decsrc "->" decdst
+decsrc: NAME
+decdst: NAME
+
+options: "options" properties
 
 datasource: "datasource" properties
 

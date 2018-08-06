@@ -301,7 +301,7 @@ def sign_extend(x):
     return (x^0x80)-0x80;
 
 InstructionInfo = namedtuple("InstructionInfo", "ivl, opcode, operand, target, op_info, mode_info")
-def M6502Iterator(mem, ivl):
+def M6502Iterator(mem, ivl, hide_a=False):
     mem = mem.view(ivl)
     addr = ivl.first
     while addr<=ivl.last:
@@ -325,6 +325,10 @@ def M6502Iterator(mem, ivl):
             target = operand
         else:
             target = None
+
+        # ACME assembler uses "ASL" instead of "ASL A"
+        if hide_a and op_info.mode==AddrMode.Accumulator:
+            mode_info = ModeInfo(0, False, "", "")
 
         yield InstructionInfo(Interval(addr, addr+mode_info.operand_size), opcode, operand, target, op_info, mode_info)
 

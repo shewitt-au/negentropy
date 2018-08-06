@@ -1,0 +1,10 @@
+decoders
+{
+	bitmap -> data
+}
+
+options
+{
+	hide_a = True
+	no_ats = True
+}

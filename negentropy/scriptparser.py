@@ -22,12 +22,24 @@ class ScriptTransformer(Transformer):
     def __init__(self, ctx):
         self.ctx = ctx
 
+    def decent(self, t):
+        def handle(decsrc, decdst):
+            self.ctx.parse_decoderentry(decsrc, decdst)
+        handle(**dict(t))
+    def decsrc(self, t):
+        return ("decsrc", str(t[0]))
+    def decdst(self, t):
+        return ("decdst", str(t[0]))
+
+    def options(self, t):
+        self.ctx.parse_options(t[0][1])
+
     def datasource(self, t):
         self.ctx.parse_datasource(t[0][1])
 
     def memmap(self, t):
         def handle(self, range, mmdecoder, properties={}, mmdataaddr=None):
-            self.ctx.memtype.parse_add(range, self.ctx.decoders[mmdecoder], properties, mmdataaddr)
+            self.ctx.memtype.parse_add(range, self.ctx.decoder(mmdecoder), properties, mmdataaddr)
         for e in t[0]:
             handle(self, **dict(e))
     def mmbody(self, t):

@@ -20,6 +20,10 @@
 {%- endif -%}
 {%- endmacro -%}
 
+{%- macro address_range(i) -%}
+{{"{:04x}-{:04x}".format(i.ivl.first, i.ivl.last)}}
+{%- endmacro -%}
+
 {%- macro label(i) -%}
 {% if i.label -%}{{i.label}}{% endif %}
 {%- endmacro -%}
@@ -31,6 +35,18 @@
 {%- macro instruction(i) -%}
 {{i.instruction.mnemonic}} {{i.instruction.pre}}{{operand(i)}}{{i.instruction.post}}
 {%- endmacro -%}
+
+{#- ----------------section handlers---------------- -#}
+
+{#- ----------------symbols---------------- -#}
+{%- macro symbols_handler(section) -%}
+{{section.name}} = {{section.ivl.first|hexnum}}
+{% endmacro -%}
+
+{#- ----------------intro---------------- -#}
+{%- macro intro_handler(section) -%}
+; {{section.section_type}} section @{{address_range(section)}} 
+{% endmacro -%}
 
 {#- ----------------prefix---------------- -#}
 {%- macro prefix_handler(section) -%}
@@ -59,7 +75,7 @@
 {#- ----------------ptr16---------------- -#}
 {%- macro ptr16_handler(section) -%}
 {%- for i in section.lines -%}
-!word {% for v in i.vals -%}{{v.val.name}}{{v.val.op_adjust}} {% endfor %}
+!word {% for v in i.vals -%}{{v.val.name}}{{v.val.op_adjust}}{{"," if not loop.last}}{% endfor %}
 {% endfor -%}
 {% endmacro -%}
 

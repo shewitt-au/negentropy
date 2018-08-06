@@ -170,7 +170,7 @@ class MemType(object):
     def __init__(self, ctx, default_decoder=None):
         self.map = [] # A list of 'MemRegion's
         if default_decoder:
-            self.default_decoder = ctx.decoders[default_decoder]
+            self.default_decoder = ctx.decoder(default_decoder)
         else:
             self.default_decoder = None
 
@@ -184,7 +184,7 @@ class MemType(object):
     def parse_end(self, ctx):
         if not self.got_parse_data:
             if self.default_decoder is None:
-                self.default_decoder = ctx.decoders['data']
+                self.default_decoder = ctx.decoder('data')
             self.map.append(MemRegion(self.default_decoder, ctx.mem.range().first, ctx.mem.range().last, {}))
         # Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
         self.map.sort()
@@ -239,7 +239,7 @@ class MemType(object):
                     cr = CompoundMemRegion()
                     dr.last = remains.first-1
                     cr.add(dr)
-                    mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
+                    mr = MemRegion(ctx.decoder('data'), remains.first, remains.last, {})
                     mr.preprocess(ctx)
                     cr.add(mr)
                     cr.is_hole = ctx.args.gaps
@@ -250,7 +250,7 @@ class MemType(object):
                     region_cpy = copy.copy(region)
                     region_cpy.last = remains.first-1
                     new_map.append(region_cpy)
-                    mr = MemRegion(ctx.decoders['data'], remains.first, remains.last, {})
+                    mr = MemRegion(ctx.decoder('data'), remains.first, remains.last, {})
                     mr.preprocess(ctx)
                     new_map.append(mr)
                 else:
@@ -259,15 +259,23 @@ class MemType(object):
         self.map = new_map
 
     def items(self, ctx, ivl):
+        no_ats = ctx.options.get("no_ats", False)
         hole_idx = 0
 
         if ivl is None:
             ivl = ctx.mem.range()
             ivl = self.envelope(ivl)
 
+        for s in ctx.syms.out_of_range(ctx.mem.range()):
+            yield {
+                'type': 'symbols',
+                'ivl': s[0],
+                'name': s[1]
+            }
+
         pc = None
         for region in self.overlapping(ivl):
-            if region.ivl.first != pc:
+            if not no_ats and region.ivl.first != pc:
                 yield {
                     'type': 'pc',
                     'address': region.ivl.first
@@ -283,6 +291,10 @@ class MemType(object):
                     }
                 hole_idx += 1
             else:
-                yield from region.items(ctx)
+                if no_ats:
+                    if region.at is None:
+                        yield from region.items(ctx)
+                else:
+                    yield from region.items(ctx)  
 
             pc = region.ivl.last+1

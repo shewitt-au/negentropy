@@ -19,15 +19,20 @@ class TemplateMgr(object):
         self.name = name
         self.source = ctx.sourcedir
         self.templates = ctx.source_file("templates")
+        self.templatefiles = os.path.join(self.templates, self.name)
 
     def template(self):
-        l = glob.glob(os.path.join(self.templates, self.name, "template.*"))
+        l = glob.glob(os.path.join(self.templatefiles, "template.*"))
         if len(l)==0:
             raise errors.Dis64Exception("'{}' template not found".format(self.name))
         elif len(l)>1:
             raise errors.Dis64Exception("Too many candidates for '{}' template".format(self.name))
         return os.path.relpath(l[0], start=self.templates).replace("\\", "/")
             # https://github.com/pallets/jinja/issues/767 ---/\
+
+    def script(self):
+        s = os.path.join(self.templatefiles, "script.txt")
+        return s if os.path.exists(s) else None
 
 def render(env, template_name, **template_vars):
     template = env.get_template(template_name)
@@ -83,8 +88,14 @@ def sequence_to_string(it, pat, **kwargs):
 
     return ret
 
+def hexnum(n):
+    if n<0x100:
+        return "${:02x}".format(n)
+    else:
+        return "${:04x}".format(n)
+
 def run(args):
-    bd = decoders.Context(
+    ctx = decoders.Context(
                 args,
                 decoders = {
                     "bitmap" : gfx.CharDecoder("chars"),
@@ -95,24 +106,24 @@ def run(args):
                     "dontcare" : dontcaredecoder.DontCareDecoder("dontcare")
                     }
                 )
-    bd.preprocess()
+    ctx.preprocess()
 
-    print(bd.template_mgr.templates)
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(bd.template_mgr.templates))
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(ctx.template_mgr.templates))
     env.globals['title'] = args.title
     if args.builton:
         env.globals['builton'] = datetime.datetime.now().astimezone().isoformat(sep=' ', timespec='seconds')
-    env.globals['items'] = bd.items()
-    env.globals['has_index'] = index.has_index(bd)
-    env.globals['index'] = index.get_index(bd)
-    env.globals['have_holes'] = bd.holes>0
+    env.globals['items'] = ctx.items()
+    env.globals['has_index'] = index.has_index(ctx)
+    env.globals['index'] = index.get_index(ctx)
+    env.globals['have_holes'] = ctx.holes>0
     env.globals['flags'] = args.flags
     env.filters['seq2str'] = sequence_to_string
     env.filters['mdescape'] = mdescape
+    env.filters['hexnum'] = hexnum
     add_dispatcher(env, "dispatch", "{}_handler")
     add_dispatcher(env, "cbmbasic_dispatch", "cbmbasic_{}_handler")
 
-    s = render(env, bd.template_mgr.template())
+    s = render(env, ctx.template_mgr.template())
     with open(args.output, "w", encoding='utf-8') as of:
         if args.prefix:
             with open(args.prefix, "r") as pf:

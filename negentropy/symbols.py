@@ -84,6 +84,15 @@ class SymbolTable(multiindex.MultiIndex):
         self.add_index("by_name", multidict, multiindex.dict_indexer, (lambda k: k[1])) # dict of names
         self.black_list = None
 
+    def out_of_range(self, ivl):
+        b = bisect.bisect_left(self.sorted_address, self.sorted_address_compare(0))
+        e = bisect.bisect_left(self.sorted_address, self.sorted_address_compare(ivl.first), b)
+        for i in range(b, e):
+            yield self.sorted_address[i]
+        b = bisect.bisect_right(self.sorted_address, self.sorted_address_compare(ivl.last), e)
+        for i in range(b, len(self.sorted_address)):
+            yield self.sorted_address[i]
+
     def parse_add(self, ctx, ivl, name, in_index):
         ctx.have_indexables |= in_index
         self.add((ivl, name, in_index))
