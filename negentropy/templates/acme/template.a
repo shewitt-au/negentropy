@@ -1,3 +1,15 @@
+{%- set tabwidth=20 -%}
+{%- set ns = namespace(label_len=0) -%}
+
+{%- macro tabs() -%}
+{%- if ns.label_len>=tabwidth %}
+{{ " "*tabwidth -}}
+{%- else -%}
+{{- " "*(tabwidth-ns.label_len) -}}
+{%- endif -%}
+{%- set ns.label_len = 0 -%}
+{%- endmacro -%}
+
 {%- macro comment_before(i) -%}
 {%- if i.comment_before -%}
 {%- for line in i.comment_before.splitlines() -%}
@@ -25,7 +37,12 @@
 {%- endmacro -%}
 
 {%- macro label(i) -%}
-{% if i.label -%}{{i.label}}{% endif %}
+{%- if i.label -%}
+{%- set ns.label_len = i.label|length -%}
+{{- i.label -}}
+{%- else -%}
+{%- set ns.label_len = 0 -%}
+{%- endif -%}
 {%- endmacro -%}
 
 {%- macro operand(i) -%}
@@ -50,7 +67,12 @@
 
 {#- ----------------prefix---------------- -#}
 {%- macro prefix_handler(section) -%}
-{{- comment_before(section) }}{{ comment_after(section) }}{{ label(section) }}
+{{- comment_before(section) -}}
+{{- label(section) -}}
+{%- if section.comment_after and section.label %}
+{% set ns.label_len=0 -%}
+{%- endif -%}
+{{- comment_after(section) -}}
 {% endmacro -%}
 
 {#- ----------------pc---------------- -#}
@@ -61,7 +83,7 @@
 {#- ----------------code---------------- -#}
 {%- macro code_handler(section) -%}
 {%- for i in section.lines -%}
-{{instruction(i)}}{{comment_inline(i)}}
+{{tabs()}}{{instruction(i)}}{{comment_inline(i)}}
 {% endfor -%}
 {% endmacro -%}
 
