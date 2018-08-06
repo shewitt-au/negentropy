@@ -275,7 +275,10 @@ class MemType(object):
 
         pc = None
         for region in self.overlapping(ivl):
-            if not no_ats and region.ivl.first != pc:
+            if no_ats and region.at is not None:
+                continue
+
+            if region.ivl.first != pc:
                 yield {
                     'type': 'pc',
                     'address': region.ivl.first
@@ -291,10 +294,6 @@ class MemType(object):
                     }
                 hole_idx += 1
             else:
-                if no_ats:
-                    if region.at is None:
-                        yield from region.items(ctx)
-                else:
-                    yield from region.items(ctx)  
+                yield from region.items(ctx)
 
             pc = region.ivl.last+1
