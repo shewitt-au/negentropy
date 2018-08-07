@@ -153,6 +153,8 @@ class Prefix(object):
         is_destination = ctx.is_destination(ivl.first)
         params['target_already_exits'] = is_destination
         s = ctx.syms.lookup(ivl.first, name_unknowns=False)
+        if s.op_adjust: # TODO: op_adjust is a string. Perhaps a better interface
+            s.name = None
         return {
             'type': "prefix",
             'address': ivl.first,
