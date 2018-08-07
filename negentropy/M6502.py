@@ -297,7 +297,7 @@ opcode_to_mnemonic_and_mode = [
     OpcodeInfo("ISB",   AddrMode.Absolute)      #$ff
     ]
 
-def sign_extend(x):
+def s8_to_int(x):
     return (x^0x80)-0x80;
 
 InstructionInfo = namedtuple("InstructionInfo", "ivl, opcode, operand, target, op_info, mode_info")
@@ -320,7 +320,7 @@ def M6502Iterator(mem, ivl, hide_a=False):
             return # there's some space left at the end of 'ivl'
 
         if op_info.mode == AddrMode.Relative:
-            target = addr+sign_extend(operand)+2
+            target = addr+s8_to_int(operand)+2
         elif mode_info.has_address:
             target = operand
         else:

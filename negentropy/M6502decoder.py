@@ -24,7 +24,9 @@ class M6502Decoder(decoders.Prefix):
             ctx.directives.reset(ivl.first)
             target_already_exits = params['target_already_exits']
 
-            for ii in M6502Iterator(ctx.mem, ivl, ctx.options.get("hide_a", False)):
+            hide_a = ctx.options.get("hide_a", False)
+            pc_rel = ctx.options.get("pc_rel", False)
+            for ii in M6502Iterator(ctx.mem, ivl, hide_a):
                 def format_numerical_operand(v):
                     if ii.mode_info.operand_size==0:
                         return ""
@@ -39,7 +41,10 @@ class M6502Decoder(decoders.Prefix):
                 if ii.target:
                     e = ctx.syms.lookup(ii.target, name_unknowns=False)
                     if e.name is None:
-                        e.name = format_numerical_operand(e.addr)
+                        if pc_rel and ii.op_info.mode==AddrMode.Relative:
+                            e.name = "*{:+}".format(e.addr-ii.ivl.first)
+                        else:
+                            e.name = format_numerical_operand(e.addr)
                     operand_body = e.name
                     target = e.addr
                     op_adjust = e.op_adjust
