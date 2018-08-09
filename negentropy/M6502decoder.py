@@ -1,5 +1,6 @@
 from . import decoders
 from .M6502 import *
+from . import symbols
 
 class M6502Decoder(decoders.Prefix):
     def __init__(self, name):
@@ -35,26 +36,25 @@ class M6502Decoder(decoders.Prefix):
                     elif ii.mode_info.operand_size==1:
                         return "${:02x}".format(v)
 
-                target = None
-                offset = 0
-                op_adjust = ''
+                oper = symbols.Operand(ctx)
+                d = ctx.directives.lookup(ii.ivl.first)
+
                 if ii.target:
                     e = ctx.syms.lookup(ii.target, name_unknowns=False)
-                    if e.name is None:
+                    optext = e.name
+                    if optext is None:
                         if pc_rel and ii.op_info.mode==AddrMode.Relative:
-                            e.name = "*{:+}".format(e.addr-ii.ivl.first)
+                            optext = "*{:+}".format(e.addr-ii.ivl.first)
                         else:
-                            e.name = format_numerical_operand(e.addr)
-                    operand_body = e.name
-                    target = e.addr
-                    op_adjust = e.op_adjust
+                            optext = format_numerical_operand(e.addr)
+                    oper.post(optext, ii.target)
+                    if e.op_adjust:
+                        oper.post(e.op_adjust)
                 else:
-                    d = ctx.directives.lookup(ii.ivl.first)
                     if d is None:
-                        operand_body = format_numerical_operand(ii.operand)
+                        oper.post(format_numerical_operand(ii.operand))
                     else:
-                        d.validate(ii.operand)
-                        operand_body = d.instead
+                        oper = d.operand(ctx, ii.operand)
 
                 c = ctx.cmts.get_inline(ii.ivl.first)
 
@@ -67,10 +67,7 @@ class M6502Decoder(decoders.Prefix):
                         'mnemonic': ii.op_info.mnemonic,
                         'pre': ii.mode_info.pre,
                         'post': ii.mode_info.post,
-                        'operand': operand_body,
-                        'op_adjust': op_adjust,
-                        'is_source' : ctx.is_destination(target),
-                        'target' : target
+                        'operand': oper,
                         }
                     }
 

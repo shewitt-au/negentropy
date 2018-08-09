@@ -27,7 +27,7 @@ lname: NAME
 
 directive: daddress "[" dcommand "]" doperand
 daddress: number
-!dcommand: "<" | ">"
+!dcommand: ["<" | ">"] ["r"]
 ?doperand: doaddress | dosymbol
 doaddress: number
 dosymbol: NAME

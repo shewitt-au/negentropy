@@ -47,14 +47,15 @@
 {%- endmacro -%}
 
 {%- macro operand(i) -%}
-{%- if i.instruction.is_source -%}
-<a href="#{{"{:04x}".format(i.instruction.target)}}">
+{%- for os in i.instruction.operand -%}
+{%- if os.link -%}
+<a href="#{{os.link}}">
 {%- endif -%}
-{{i.instruction.operand|e}}
-{%- if i.instruction.is_source -%}
+{{os.text|e}}
+{%- if os.link -%}
 </a>
 {%- endif -%}
-{{i.instruction.op_adjust}}
+{%- endfor -%}
 {%- endmacro -%}
 
 {%- macro instruction(i) -%}

@@ -76,6 +76,9 @@ class SymInfo(object):
         self.addr = addr
         self.op_adjust = op_adjust
 
+    def __repr__(self):
+        return "SymInfo('{}', ${:04x}, '{}')".format(self.name, self.addr, self.op_adjust)
+
 class SymbolTable(multiindex.MultiIndex):
     def __init__(self):
         super().__init__()
@@ -131,6 +134,12 @@ class SymbolTable(multiindex.MultiIndex):
             op_adjust = ''
         return SymInfo(e[1], e[0].first, op_adjust)
 
+    def lookup_byname(self, name):
+        s = self.by_name.get(name)
+        if s:
+            s = SymInfo(s[1], s[0].first, '')
+        return s
+
     def clashes(self):
         clashes = 0
         it = iter(self.sorted_address)
@@ -150,29 +159,47 @@ class SymbolTable(multiindex.MultiIndex):
 
         return clashes!=0
 
-class DirectiveParseInfo(object):
+class DirectiveInfo(object):
     def __init__(self, address, command, oaddress, osymbol):
         self.address = address
         self.command = command
-        self.oaddress = oaddress
+        self.oaddress = oaddress # one or the other of these two
         self.osymbol = osymbol
 
-class DirectiveInfo(object):
-    def __init__(self, address, command, full_addr, instead):
-        self.address = address
-        self.command = command
-        self.full_addr = full_addr
-        self.instead = command+instead
-
-    def validate(self, oper):
-        if self.command=='<':
-            if oper != self.full_addr&0x00ff:
-                raise Dis64Exception("Directive: unexpected low byte")
-        elif self.command=='>':
-            if oper != self.full_addr>>8:
-                raise Dis64Exception("Directive: unexpected high byte")
+    def resolve_syms(self, ctx):
+        if self.osymbol:
+            assert self.oaddress is None, "one or the other of 'oaddress' and 'osymbol'"
+            sym_ent = ctx.syms.lookup_byname(self.osymbol)
+            if sym_ent is None:
+                raise Dis64Exception("Directive: '{}' symbol not found".format(self.osymbol))
+            self.osymbol = sym_ent
+            self.oaddress = sym_ent.addr
         else:
-            assert False, "unexpected directive"
+            assert self.oaddress is not None, "one or the other of 'oaddress' and 'osymbol'"
+            self.osymbol = ctx.syms.lookup(self.oaddress)
+        ctx.link_add_referenced(self.oaddress)
+
+    def operand(self, ctx, oper):
+        o = Operand(ctx)
+
+        if '<' in self.command:
+            if oper != self.osymbol.addr&0x00ff:
+                raise Dis64Exception("Directive: unexpected low byte")
+            else:
+                o.post("<")
+                o.post(self.osymbol.name, self.osymbol.addr)
+                if self.osymbol.op_adjust:
+                    o.post(self.osymbol.op_adjust)
+        elif '>' in self.command:
+            if oper != self.osymbol.addr>>8:
+                raise Dis64Exception("Directive: unexpected high byte")
+            else:
+                o.post(">")
+                o.post(self.osymbol.name, self.osymbol.addr)
+                if self.osymbol.op_adjust:
+                    o.post(self.osymbol.op_adjust)
+
+        return o
 
     def __eq__(self, other):
         if isinstance(other, numbers.Number):
@@ -206,28 +233,24 @@ class DirectiveInfo(object):
             return self.address>=other.address
 
     def __repr__(self):
-        return "DirectiveInfo(0x{:04x}, '{}', '{}'')".format(self.address, self.command, self.instead)
+        return "DirectiveInfo(${:04x}, {}, {}, ${:04x})".format(
+            self.address,
+            self.command,
+            self.osymbol,
+            self.oaddress
+            )
 
 class Directives(object):
     def parse_begin(self):
-        self.plist = []
+        self.dlist = []
 
     def parse_add(self, address, command, oaddress, osymbol):
-        self.plist.append(DirectiveParseInfo(address, command, oaddress, osymbol))
+        self.dlist.append(DirectiveInfo(address, command, oaddress, osymbol))
 
     def parse_end(self, ctx):
-        self.dlist = []
-        for d in self.plist:
-            if d.oaddress is None:
-                sym_ent = ctx.syms.by_name.get(d.osymbol, None)
-                if sym_ent is None:
-                    raise Dis64Exception("Directive: '{}' symbol not found".format(d.osymbol))
-                self.dlist.append(DirectiveInfo(d.address, d.command, sym_ent[0].first, d.osymbol))
-            else:
-                sym = ctx.syms.lookup(d.oaddress)
-                self.dlist.append(DirectiveInfo(d.address, d.command, sym.addr, sym.name))
+        for d in self.dlist:
+            d.resolve_syms(ctx)
         self.dlist.sort()
-        del self.plist
 
     def reset(self, address):
         self.pos = bisect.bisect_left(self.dlist, address)
@@ -243,3 +266,52 @@ class Directives(object):
             else:
                 self.pos += 1
         return None
+
+class OperandPart(object):
+    def __init__(self, s, l=None):
+        self.s = s
+        self.l = l
+
+    def gettext(self):
+        return self.s
+    def settext(self, value):
+        self.s = value
+    text = property(gettext, settext)
+
+    def getlink(self):
+        return self.l
+    def setlink(self, value):
+        self.l = value
+    link = property(getlink, setlink)
+
+    def __str__(self):
+        return self.s
+
+class Operand(object):
+    def __init__(self, ctx):
+        self.ctx = ctx
+        self.parts = []
+
+    def pre(self, s, l=None):
+        l = self.process_link(l)
+        self.parts.insert(0, OperandPart(s, l))
+
+    def post(self, s, l=None):
+        l = self.process_link(l)
+        self.parts.append(OperandPart(s, l))
+
+    def process_link(self, l):
+        if l:
+            return "{:04x}".format(l) if self.ctx.is_destination(l) else None
+        else:
+            None
+
+    def __iter__(self):
+        return iter(self.parts)
+    def __getitem__(self, k):
+        return self.parts[k]
+    def __len__(self):
+        return len(self.parts)
+
+    def __str__(self):
+        return "".join([str(s) for s in self.parts])
