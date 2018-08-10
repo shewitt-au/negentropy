@@ -50,7 +50,9 @@ class M6502Decoder(decoders.Prefix):
                                 optext = "*{:+}".format(e.addr-ii.ivl.first)
                             else:
                                 optext = format_numerical_operand(e.addr)
-                        oper.post(optext, ii.target)
+                        oper.post(optext, e.addr)
+                        if ii.target == 0x72b8:
+                            print(hex(ii.target), e)
                         if e.op_adjust:
                             oper.post(e.op_adjust_str())
                 else:
