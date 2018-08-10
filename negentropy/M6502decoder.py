@@ -51,8 +51,6 @@ class M6502Decoder(decoders.Prefix):
                             else:
                                 optext = format_numerical_operand(e.addr)
                         oper.post(optext, e.addr)
-                        if ii.target == 0x72b8:
-                            print(hex(ii.target), e)
                         if e.op_adjust:
                             oper.post(e.op_adjust_str())
                 else:
