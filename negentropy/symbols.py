@@ -72,7 +72,7 @@ class Comments(object):
 
 def format_op_adjust(adj):
     sgn = '+' if adj>=0 else '-'
-    return '{}${:x}'.format(sgn, abs(adj)) if adj>=9 else '{}{}'.format(sgn, abs(adj))
+    return '{}${:x}'.format(sgn, abs(adj)) if abs(adj)>=9 else '{}{}'.format(sgn, abs(adj))
 
 class SymInfo(object):
     def __init__(self, name, addr, op_adjust):
