@@ -70,14 +70,20 @@ class Comments(object):
     def cuts(self, ivl):
         return self.main.keys_in_range(ivl)
 
+def format_op_adjust(adj):
+    return '${:+x}'.format(adj) if adj>=9 else '{:+}'.format(adj)
+
 class SymInfo(object):
     def __init__(self, name, addr, op_adjust):
         self.name = name
         self.addr = addr
         self.op_adjust = op_adjust
 
+    def op_adjust_str(self):
+        return format_op_adjust(self.op_adjust)
+
     def __repr__(self):
-        return "SymInfo('{}', ${:04x}, '{}')".format(self.name, self.addr, self.op_adjust)
+        return "SymInfo('{}', ${:04x}, {:+})".format(self.name, self.addr, self.op_adjust)
 
 class SymbolTable(multiindex.MultiIndex):
     def __init__(self):
@@ -126,18 +132,14 @@ class SymbolTable(multiindex.MultiIndex):
     def lookup(self, addr, name_unknowns=True):
         e = self.get_entry(addr)
         if e is None:
-            return SymInfo("${:04x}".format(addr) if name_unknowns else None, addr, "")
-        offset = addr-e[0].first
-        if offset!=0:
-            op_adjust = '+${:x}'.format(offset) if offset>=9 else '+{}'.format(offset)
-        else:
-            op_adjust = ''
+            return SymInfo("${:04x}".format(addr) if name_unknowns else None, addr, 0)
+        op_adjust = addr-e[0].first
         return SymInfo(e[1], e[0].first, op_adjust)
 
     def lookup_byname(self, name):
         s = self.by_name.get(name)
         if s:
-            s = SymInfo(s[1], s[0].first, '')
+            s = SymInfo(s[1], s[0].first, 0)
         return s
 
     def clashes(self):
@@ -177,11 +179,18 @@ class DirectiveInfo(object):
         else:
             assert self.oaddress is not None, "one or the other of 'oaddress' and 'osymbol'"
             self.osymbol = ctx.syms.lookup(self.oaddress)
+            print(hex(self.oaddress), self.osymbol)
         ctx.link_add_referenced(self.oaddress)
 
     def operand(self, ctx, oper):
         o = Operand(ctx)
 
+        if 'r' in self.command:
+            offset = oper-self.oaddress
+            o.post(self.osymbol.name, self.osymbol.addr)
+            if offset:
+                o.post(format_op_adjust(offset))
+        #TODO: handle a combination of these 
         if '<' in self.command:
             if oper != self.osymbol.addr&0x00ff:
                 raise Dis64Exception("Directive: unexpected low byte")
@@ -189,7 +198,7 @@ class DirectiveInfo(object):
                 o.post("<")
                 o.post(self.osymbol.name, self.osymbol.addr)
                 if self.osymbol.op_adjust:
-                    o.post(self.osymbol.op_adjust)
+                    o.post(self.osymbol.op_adjust_str())
         elif '>' in self.command:
             if oper != self.osymbol.addr>>8:
                 raise Dis64Exception("Directive: unexpected high byte")
@@ -197,7 +206,7 @@ class DirectiveInfo(object):
                 o.post(">")
                 o.post(self.osymbol.name, self.osymbol.addr)
                 if self.osymbol.op_adjust:
-                    o.post(self.osymbol.op_adjust)
+                    o.post(self.osymbol.op_adjust_str())
 
         return o
 

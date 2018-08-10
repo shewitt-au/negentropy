@@ -40,16 +40,19 @@ class M6502Decoder(decoders.Prefix):
                 d = ctx.directives.lookup(ii.ivl.first)
 
                 if ii.target:
-                    e = ctx.syms.lookup(ii.target, name_unknowns=False)
-                    optext = e.name
-                    if optext is None:
-                        if pc_rel and ii.op_info.mode==AddrMode.Relative:
-                            optext = "*{:+}".format(e.addr-ii.ivl.first)
-                        else:
-                            optext = format_numerical_operand(e.addr)
-                    oper.post(optext, ii.target)
-                    if e.op_adjust:
-                        oper.post(e.op_adjust)
+                    if d:
+                        oper = d.operand(ctx, ii.target)
+                    else:
+                        e = ctx.syms.lookup(ii.target, name_unknowns=False)
+                        optext = e.name
+                        if optext is None:
+                            if pc_rel and ii.op_info.mode==AddrMode.Relative:
+                                optext = "*{:+}".format(e.addr-ii.ivl.first)
+                            else:
+                                optext = format_numerical_operand(e.addr)
+                        oper.post(optext, ii.target)
+                        if e.op_adjust:
+                            oper.post(e.op_adjust_str())
                 else:
                     if d is None:
                         oper.post(format_numerical_operand(ii.operand))
