@@ -46,7 +46,7 @@
 {%- endmacro -%}
 
 {%- macro operand(i) -%}
-{{i.instruction.operand}}{{i.instruction.op_adjust}}
+{{i.instruction.operand}}
 {%- endmacro -%}
 
 {%- macro instruction(i) -%}

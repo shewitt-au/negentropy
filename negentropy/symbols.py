@@ -71,7 +71,8 @@ class Comments(object):
         return self.main.keys_in_range(ivl)
 
 def format_op_adjust(adj):
-    return '${:+x}'.format(adj) if adj>=9 else '{:+}'.format(adj)
+    sgn = '+' if adj>=0 else '-'
+    return '{}${:x}'.format(sgn, abs(adj)) if adj>=9 else '{}{}'.format(sgn, abs(adj))
 
 class SymInfo(object):
     def __init__(self, name, addr, op_adjust):

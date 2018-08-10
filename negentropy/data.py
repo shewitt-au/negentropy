@@ -1,5 +1,6 @@
 from .interval import Interval
 from . import decoders
+from . import symbols # for HACK
 
 class BytesDecoder(decoders.Prefix):
     def __init__(self, name, linelen):
@@ -56,6 +57,8 @@ class PointerDecoder(decoders.Prefix):
         def value(addr):
             v = mem.r16(addr)
             e = ctx.syms.lookup(v)
+            # TODO: make this use operand class
+            e.op_adjust = symbols.format_op_adjust(e.op_adjust) if e.op_adjust!=0 else ""# HACK
             return {"val": e, "is_source": ctx.is_destination(e.addr)}
 
         def lines(self):
