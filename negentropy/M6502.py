@@ -37,264 +37,264 @@ mode_to_operand_info = {
     AddrMode.Relative       : ModeInfo(1, True,  "",   ""   )
     }
 
-OpcodeInfo = namedtuple("OpcodeInfo", "mnemonic, mode")
+OpcodeInfo = namedtuple("OpcodeInfo", "mnemonic, mode, flow_transfer")
 opcode_to_mnemonic_and_mode = [
-    OpcodeInfo("BRK",   AddrMode.Implied),      #$00
-    OpcodeInfo("ORA",   AddrMode.IndirectX),    #$01
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$02
-    OpcodeInfo("SLO",   AddrMode.IndirectX),    #$03
-    OpcodeInfo("NOOP",  AddrMode.ZeroPage),     #$04
-    OpcodeInfo("ORA",   AddrMode.ZeroPage),     #$05
-    OpcodeInfo("ASL",   AddrMode.ZeroPage),     #$06
-    OpcodeInfo("SLO",   AddrMode.ZeroPage),     #$07
-    OpcodeInfo("PHP",   AddrMode.Implied),      #$08
-    OpcodeInfo("ORA",   AddrMode.Immediate),    #$09
-    OpcodeInfo("ASL",   AddrMode.Accumulator),  #$0a
-    OpcodeInfo("ANC",   AddrMode.Immediate),    #$0b
-    OpcodeInfo("NOOP",  AddrMode.Absolute),     #$0c
-    OpcodeInfo("ORA",   AddrMode.Absolute),     #$0d
-    OpcodeInfo("ASL",   AddrMode.Absolute),     #$0e
-    OpcodeInfo("SLO",   AddrMode.Absolute),     #$0f
-    OpcodeInfo("BPL",   AddrMode.Relative),     #$10
-    OpcodeInfo("ORA",   AddrMode.IndirectY),    #$11
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$12
-    OpcodeInfo("SLO",   AddrMode.IndirectY),    #$13
-    OpcodeInfo("NOOP",  AddrMode.ZeroPageX),    #$14
-    OpcodeInfo("ORA",   AddrMode.ZeroPageX),    #$15
-    OpcodeInfo("ASL",   AddrMode.ZeroPageX),    #$16
-    OpcodeInfo("SLO",   AddrMode.ZeroPageX),    #$17
-    OpcodeInfo("CLC",   AddrMode.Implied),      #$18
-    OpcodeInfo("ORA",   AddrMode.AbsoluteY),    #$19
-    OpcodeInfo("NOOP",  AddrMode.Implied),      #$1a
-    OpcodeInfo("SLO",   AddrMode.AbsoluteY),    #$1b
-    OpcodeInfo("NOOP",  AddrMode.AbsoluteX),    #$1c
-    OpcodeInfo("ORA",   AddrMode.AbsoluteX),    #$1d
-    OpcodeInfo("ASL",   AddrMode.AbsoluteX),    #$1e
-    OpcodeInfo("SLO",   AddrMode.AbsoluteX),    #$1f
-    OpcodeInfo("JSR",   AddrMode.Absolute),     #$20
-    OpcodeInfo("AND",   AddrMode.IndirectX),    #$21
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$22
-    OpcodeInfo("RLA",   AddrMode.IndirectX),    #$23
-    OpcodeInfo("BIT",   AddrMode.ZeroPage),     #$24
-    OpcodeInfo("AND",   AddrMode.ZeroPage),     #$25
-    OpcodeInfo("ROL",   AddrMode.ZeroPage),     #$26
-    OpcodeInfo("RLA",   AddrMode.ZeroPage),     #$27
-    OpcodeInfo("PLP",   AddrMode.Implied),      #$28
-    OpcodeInfo("AND",   AddrMode.Immediate),    #$29
-    OpcodeInfo("ROL",   AddrMode.Accumulator),  #$2a
-    OpcodeInfo("ANC",   AddrMode.Immediate),    #$2b
-    OpcodeInfo("BIT",   AddrMode.Absolute),     #$2c
-    OpcodeInfo("AND",   AddrMode.Absolute),     #$2d
-    OpcodeInfo("ROL",   AddrMode.Absolute),     #$2e
-    OpcodeInfo("RLA",   AddrMode.Absolute),     #$2f
-    OpcodeInfo("BMI",   AddrMode.Relative),     #$30
-    OpcodeInfo("AND",   AddrMode.IndirectY),    #$31
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$32
-    OpcodeInfo("RLA",   AddrMode.IndirectY),    #$33
-    OpcodeInfo("NOOP",  AddrMode.ZeroPageX),    #$34
-    OpcodeInfo("AND",   AddrMode.ZeroPageX),    #$35
-    OpcodeInfo("ROL",   AddrMode.ZeroPageX),    #$36
-    OpcodeInfo("RLA",   AddrMode.ZeroPageX),    #$37
-    OpcodeInfo("SEC",   AddrMode.Implied),      #$38
-    OpcodeInfo("AND",   AddrMode.AbsoluteY),    #$39
-    OpcodeInfo("NOOP",  AddrMode.Implied),      #$3a
-    OpcodeInfo("RLA",   AddrMode.AbsoluteY),    #$3b
-    OpcodeInfo("NOOP",  AddrMode.AbsoluteX),    #$3c
-    OpcodeInfo("AND",   AddrMode.AbsoluteX),    #$3d
-    OpcodeInfo("ROL",   AddrMode.AbsoluteX),    #$3e
-    OpcodeInfo("RLA",   AddrMode.AbsoluteX),    #$3f
-    OpcodeInfo("RTI",   AddrMode.Implied),      #$40
-    OpcodeInfo("EOR",   AddrMode.IndirectX),    #$41
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$42
-    OpcodeInfo("SRE",   AddrMode.IndirectX),    #$43
-    OpcodeInfo("NOOP",  AddrMode.ZeroPage),     #$44
-    OpcodeInfo("EOR",   AddrMode.ZeroPage),     #$45
-    OpcodeInfo("LSR",   AddrMode.ZeroPage),     #$46
-    OpcodeInfo("SRE",   AddrMode.ZeroPage),     #$47
-    OpcodeInfo("PHA",   AddrMode.Implied),      #$48
-    OpcodeInfo("EOR",   AddrMode.Immediate),    #$49
-    OpcodeInfo("LSR",   AddrMode.Accumulator),  #$4a
-    OpcodeInfo("ASR",   AddrMode.Immediate),    #$4b
-    OpcodeInfo("JMP",   AddrMode.Absolute),     #$4c
-    OpcodeInfo("EOR",   AddrMode.Absolute),     #$4d
-    OpcodeInfo("LSR",   AddrMode.Absolute),     #$4e
-    OpcodeInfo("SRE",   AddrMode.Absolute),     #$4f
-    OpcodeInfo("BVC",   AddrMode.Relative),     #$50
-    OpcodeInfo("EOR",   AddrMode.IndirectY),    #$51
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$52
-    OpcodeInfo("SRE",   AddrMode.IndirectY),    #$53
-    OpcodeInfo("NOOP",  AddrMode.ZeroPageX),    #$54
-    OpcodeInfo("EOR",   AddrMode.ZeroPageX),    #$55
-    OpcodeInfo("LSR",   AddrMode.ZeroPageX),    #$56
-    OpcodeInfo("SRE",   AddrMode.ZeroPageX),    #$57
-    OpcodeInfo("CLI",   AddrMode.Implied),      #$58
-    OpcodeInfo("EOR",   AddrMode.AbsoluteY),    #$59
-    OpcodeInfo("NOOP",  AddrMode.Implied),      #$5a
-    OpcodeInfo("SRE",   AddrMode.AbsoluteY),    #$5b
-    OpcodeInfo("NOOP",  AddrMode.AbsoluteX),    #$5c
-    OpcodeInfo("EOR",   AddrMode.AbsoluteX),    #$5d
-    OpcodeInfo("LSR",   AddrMode.AbsoluteX),    #$5e
-    OpcodeInfo("SRE",   AddrMode.AbsoluteX),    #$5f
-    OpcodeInfo("RTS",   AddrMode.Implied),      #$60
-    OpcodeInfo("ADC",   AddrMode.IndirectX),    #$61
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$62
-    OpcodeInfo("RRA",   AddrMode.IndirectX),    #$63
-    OpcodeInfo("NOOP",  AddrMode.ZeroPage),     #$64
-    OpcodeInfo("ADC",   AddrMode.ZeroPage),     #$65
-    OpcodeInfo("ROR",   AddrMode.ZeroPage),     #$66
-    OpcodeInfo("RRA",   AddrMode.ZeroPage),     #$67
-    OpcodeInfo("PLA",   AddrMode.Implied),      #$68
-    OpcodeInfo("ADC",   AddrMode.Immediate),    #$69
-    OpcodeInfo("ROR",   AddrMode.Accumulator),  #$6a
-    OpcodeInfo("ARR",   AddrMode.Immediate),    #$6b
-    OpcodeInfo("JMP",   AddrMode.AbsIndirect),  #$6c
-    OpcodeInfo("ADC",   AddrMode.Absolute),     #$6d
-    OpcodeInfo("ROR",   AddrMode.Absolute),     #$6e
-    OpcodeInfo("RRA",   AddrMode.Absolute),     #$6f
-    OpcodeInfo("BVS",   AddrMode.Relative),     #$70
-    OpcodeInfo("ADC",   AddrMode.IndirectY),    #$71
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$72
-    OpcodeInfo("RRA",   AddrMode.IndirectY),    #$73
-    OpcodeInfo("NOOP",  AddrMode.ZeroPageX),    #$74
-    OpcodeInfo("ADC",   AddrMode.ZeroPageX),    #$75
-    OpcodeInfo("ROR",   AddrMode.ZeroPageX),    #$76
-    OpcodeInfo("RRA",   AddrMode.ZeroPageX),    #$77
-    OpcodeInfo("SEI",   AddrMode.Implied),      #$78
-    OpcodeInfo("ADC",   AddrMode.AbsoluteY),    #$79
-    OpcodeInfo("NOOP",  AddrMode.Implied),      #$7a
-    OpcodeInfo("RRA",   AddrMode.AbsoluteY),    #$7b
-    OpcodeInfo("NOOP",  AddrMode.AbsoluteX),    #$7c
-    OpcodeInfo("ADC",   AddrMode.AbsoluteX),    #$7d
-    OpcodeInfo("ROR",   AddrMode.AbsoluteX),    #$7e
-    OpcodeInfo("RRA",   AddrMode.AbsoluteX),    #$7f
-    OpcodeInfo("NOOP",  AddrMode.Immediate),    #$80
-    OpcodeInfo("STA",   AddrMode.IndirectX),    #$81
-    OpcodeInfo("NOOP",  AddrMode.Immediate),    #$82
-    OpcodeInfo("SAX",   AddrMode.IndirectX),    #$83
-    OpcodeInfo("STY",   AddrMode.ZeroPage),     #$84
-    OpcodeInfo("STA",   AddrMode.ZeroPage),     #$85
-    OpcodeInfo("STX",   AddrMode.ZeroPage),     #$86
-    OpcodeInfo("SAX",   AddrMode.ZeroPage),     #$87
-    OpcodeInfo("DEY",   AddrMode.Implied),      #$88
-    OpcodeInfo("NOOP",  AddrMode.Immediate),    #$89
-    OpcodeInfo("TXA",   AddrMode.Implied),      #$8a
-    OpcodeInfo("ANE",   AddrMode.Immediate),    #$8b
-    OpcodeInfo("STY",   AddrMode.Absolute),     #$8c
-    OpcodeInfo("STA",   AddrMode.Absolute),     #$8d
-    OpcodeInfo("STX",   AddrMode.Absolute),     #$8e
-    OpcodeInfo("SAX",   AddrMode.Absolute),     #$8f
-    OpcodeInfo("BCC",   AddrMode.Relative),     #$90
-    OpcodeInfo("STA",   AddrMode.IndirectY),    #$91
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$92
-    OpcodeInfo("SHA",   AddrMode.IndirectY),    #$93
-    OpcodeInfo("STY",   AddrMode.ZeroPageX),    #$94
-    OpcodeInfo("STA",   AddrMode.ZeroPageX),    #$95
-    OpcodeInfo("STX",   AddrMode.ZeroPageY),    #$96
-    OpcodeInfo("SAX",   AddrMode.ZeroPageY),    #$97
-    OpcodeInfo("TYA",   AddrMode.Implied),      #$98
-    OpcodeInfo("STA",   AddrMode.AbsoluteY),    #$99
-    OpcodeInfo("TXS",   AddrMode.Implied),      #$9a
-    OpcodeInfo("SHS",   AddrMode.AbsoluteY),    #$9b
-    OpcodeInfo("SHY",   AddrMode.AbsoluteX),    #$9c
-    OpcodeInfo("STA",   AddrMode.AbsoluteX),    #$9d
-    OpcodeInfo("SHX",   AddrMode.AbsoluteY),    #$9e
-    OpcodeInfo("SHA",   AddrMode.AbsoluteY),    #$9f
-    OpcodeInfo("LDY",   AddrMode.Immediate),    #$a0
-    OpcodeInfo("LDA",   AddrMode.IndirectX),    #$a1
-    OpcodeInfo("LDX",   AddrMode.Immediate),    #$a2
-    OpcodeInfo("LAX",   AddrMode.IndirectX),    #$a3
-    OpcodeInfo("LDY",   AddrMode.ZeroPage),     #$a4
-    OpcodeInfo("LDA",   AddrMode.ZeroPage),     #$a5
-    OpcodeInfo("LDX",   AddrMode.ZeroPage),     #$a6
-    OpcodeInfo("LAX",   AddrMode.ZeroPage),     #$a7
-    OpcodeInfo("TAY",   AddrMode.Implied),      #$a8
-    OpcodeInfo("LDA",   AddrMode.Immediate),    #$a9
-    OpcodeInfo("TAX",   AddrMode.Implied),      #$aa
-    OpcodeInfo("LXA",   AddrMode.Immediate),    #$ab
-    OpcodeInfo("LDY",   AddrMode.Absolute),     #$ac
-    OpcodeInfo("LDA",   AddrMode.Absolute),     #$ad
-    OpcodeInfo("LDX",   AddrMode.Absolute),     #$ae
-    OpcodeInfo("LAX",   AddrMode.Absolute),     #$af
-    OpcodeInfo("BCS",   AddrMode.Relative),     #$b0
-    OpcodeInfo("LDA",   AddrMode.IndirectY),    #$b1
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$b2
-    OpcodeInfo("LAX",   AddrMode.IndirectY),    #$b3
-    OpcodeInfo("LDY",   AddrMode.ZeroPageX),    #$b4
-    OpcodeInfo("LDA",   AddrMode.ZeroPageX),    #$b5
-    OpcodeInfo("LDX",   AddrMode.ZeroPageY),    #$b6
-    OpcodeInfo("LAX",   AddrMode.ZeroPageY),    #$b7
-    OpcodeInfo("CLV",   AddrMode.Implied),      #$b8
-    OpcodeInfo("LDA",   AddrMode.AbsoluteY),    #$b9
-    OpcodeInfo("TSX",   AddrMode.Implied),      #$ba
-    OpcodeInfo("LAS",   AddrMode.AbsoluteY),    #$bb
-    OpcodeInfo("LDY",   AddrMode.AbsoluteX),    #$bc
-    OpcodeInfo("LDA",   AddrMode.AbsoluteX),    #$bd
-    OpcodeInfo("LDX",   AddrMode.AbsoluteY),    #$be
-    OpcodeInfo("LAX",   AddrMode.AbsoluteY),    #$bf
-    OpcodeInfo("CPY",   AddrMode.Immediate),    #$c0
-    OpcodeInfo("CMP",   AddrMode.IndirectX),    #$c1
-    OpcodeInfo("NOOP",  AddrMode.Immediate),    #$c2
-    OpcodeInfo("DCP",   AddrMode.IndirectX),    #$c3
-    OpcodeInfo("CPY",   AddrMode.ZeroPage),     #$c4
-    OpcodeInfo("CMP",   AddrMode.ZeroPage),     #$c5
-    OpcodeInfo("DEC",   AddrMode.ZeroPage),     #$c6
-    OpcodeInfo("DCP",   AddrMode.ZeroPage),     #$c7
-    OpcodeInfo("INY",   AddrMode.Implied),      #$c8
-    OpcodeInfo("CMP",   AddrMode.Immediate),    #$c9
-    OpcodeInfo("DEX",   AddrMode.Implied),      #$ca
-    OpcodeInfo("SBX",   AddrMode.Immediate),    #$cb
-    OpcodeInfo("CPY",   AddrMode.Absolute),     #$cc
-    OpcodeInfo("CMP",   AddrMode.Absolute),     #$cd
-    OpcodeInfo("DEC",   AddrMode.Absolute),     #$ce
-    OpcodeInfo("DCP",   AddrMode.Absolute),     #$cf
-    OpcodeInfo("BNE",   AddrMode.Relative),     #$d0
-    OpcodeInfo("CMP",   AddrMode.IndirectY),    #$d1
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$d2
-    OpcodeInfo("DCP",   AddrMode.IndirectY),    #$d3
-    OpcodeInfo("NOOP",  AddrMode.ZeroPageX),    #$d4
-    OpcodeInfo("CMP",   AddrMode.ZeroPageX),    #$d5
-    OpcodeInfo("DEC",   AddrMode.ZeroPageX),    #$d6
-    OpcodeInfo("DCP",   AddrMode.ZeroPageX),    #$d7
-    OpcodeInfo("CLD",   AddrMode.Implied),      #$d8
-    OpcodeInfo("CMP",   AddrMode.AbsoluteY),    #$d9
-    OpcodeInfo("NOOP",  AddrMode.Implied),      #$da
-    OpcodeInfo("DCP",   AddrMode.AbsoluteY),    #$db
-    OpcodeInfo("NOOP",  AddrMode.AbsoluteX),    #$dc
-    OpcodeInfo("CMP",   AddrMode.AbsoluteX),    #$dd
-    OpcodeInfo("DEC",   AddrMode.AbsoluteX),    #$de
-    OpcodeInfo("DCP",   AddrMode.AbsoluteX),    #$df
-    OpcodeInfo("CPX",   AddrMode.Immediate),    #$e0
-    OpcodeInfo("SBC",   AddrMode.IndirectX),    #$e1
-    OpcodeInfo("NOOP",  AddrMode.Immediate),    #$e2
-    OpcodeInfo("ISB",   AddrMode.IndirectX),    #$e3
-    OpcodeInfo("CPX",   AddrMode.ZeroPage),     #$e4
-    OpcodeInfo("SBC",   AddrMode.ZeroPage),     #$e5
-    OpcodeInfo("INC",   AddrMode.ZeroPage),     #$e6
-    OpcodeInfo("ISB",   AddrMode.ZeroPage),     #$e7
-    OpcodeInfo("INX",   AddrMode.Implied),      #$e8
-    OpcodeInfo("SBC",   AddrMode.Immediate),    #$e9
-    OpcodeInfo("NOP",   AddrMode.Implied),      #$ea
-    OpcodeInfo("USBC",  AddrMode.Immediate),    #$eb
-    OpcodeInfo("CPX",   AddrMode.Absolute),     #$ec
-    OpcodeInfo("SBC",   AddrMode.Absolute),     #$ed
-    OpcodeInfo("INC",   AddrMode.Absolute),     #$ee
-    OpcodeInfo("ISB",   AddrMode.Absolute),     #$ef
-    OpcodeInfo("BEQ",   AddrMode.Relative),     #$f0
-    OpcodeInfo("SBC",   AddrMode.IndirectY),    #$f1
-    OpcodeInfo("JAM",   AddrMode.Implied),      #$f2
-    OpcodeInfo("ISB",   AddrMode.IndirectY),    #$f3
-    OpcodeInfo("NOOP",  AddrMode.ZeroPageX),    #$f4
-    OpcodeInfo("SBC",   AddrMode.ZeroPageX),    #$f5
-    OpcodeInfo("INC",   AddrMode.ZeroPageX),    #$f6
-    OpcodeInfo("ISB",   AddrMode.ZeroPageX),    #$f7
-    OpcodeInfo("SED",   AddrMode.Implied),      #$f8
-    OpcodeInfo("SBC",   AddrMode.AbsoluteY),    #$f9
-    OpcodeInfo("NOOP",  AddrMode.Implied),      #$fa
-    OpcodeInfo("ISB",   AddrMode.AbsoluteY),    #$fb
-    OpcodeInfo("NOOP",  AddrMode.AbsoluteX),    #$fc
-    OpcodeInfo("SBC",   AddrMode.AbsoluteX),    #$fd
-    OpcodeInfo("INC",   AddrMode.AbsoluteX),    #$fe
-    OpcodeInfo("ISB",   AddrMode.Absolute)      #$ff
+    OpcodeInfo("BRK",   AddrMode.Implied,       False),     #$00
+    OpcodeInfo("ORA",   AddrMode.IndirectX,     False),     #$01
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$02
+    OpcodeInfo("SLO",   AddrMode.IndirectX,     False),     #$03
+    OpcodeInfo("NOOP",  AddrMode.ZeroPage,      False),     #$04
+    OpcodeInfo("ORA",   AddrMode.ZeroPage,      False),     #$05
+    OpcodeInfo("ASL",   AddrMode.ZeroPage,      False),     #$06
+    OpcodeInfo("SLO",   AddrMode.ZeroPage,      False),     #$07
+    OpcodeInfo("PHP",   AddrMode.Implied,       False),     #$08
+    OpcodeInfo("ORA",   AddrMode.Immediate,     False),     #$09
+    OpcodeInfo("ASL",   AddrMode.Accumulator,   False),     #$0a
+    OpcodeInfo("ANC",   AddrMode.Immediate,     False),     #$0b
+    OpcodeInfo("NOOP",  AddrMode.Absolute,      False),     #$0c
+    OpcodeInfo("ORA",   AddrMode.Absolute,      False),     #$0d
+    OpcodeInfo("ASL",   AddrMode.Absolute,      False),     #$0e
+    OpcodeInfo("SLO",   AddrMode.Absolute,      False),     #$0f
+    OpcodeInfo("BPL",   AddrMode.Relative,      True ),     #$10
+    OpcodeInfo("ORA",   AddrMode.IndirectY,     False),     #$11
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$12
+    OpcodeInfo("SLO",   AddrMode.IndirectY,     False),     #$13
+    OpcodeInfo("NOOP",  AddrMode.ZeroPageX,     False),     #$14
+    OpcodeInfo("ORA",   AddrMode.ZeroPageX,     False),     #$15
+    OpcodeInfo("ASL",   AddrMode.ZeroPageX,     False),     #$16
+    OpcodeInfo("SLO",   AddrMode.ZeroPageX,     False),     #$17
+    OpcodeInfo("CLC",   AddrMode.Implied,       False),     #$18
+    OpcodeInfo("ORA",   AddrMode.AbsoluteY,     False),     #$19
+    OpcodeInfo("NOOP",  AddrMode.Implied,       False),     #$1a
+    OpcodeInfo("SLO",   AddrMode.AbsoluteY,     False),     #$1b
+    OpcodeInfo("NOOP",  AddrMode.AbsoluteX,     False),     #$1c
+    OpcodeInfo("ORA",   AddrMode.AbsoluteX,     False),     #$1d
+    OpcodeInfo("ASL",   AddrMode.AbsoluteX,     False),     #$1e
+    OpcodeInfo("SLO",   AddrMode.AbsoluteX,     False),     #$1f
+    OpcodeInfo("JSR",   AddrMode.Absolute,      True ),     #$20
+    OpcodeInfo("AND",   AddrMode.IndirectX,     False),     #$21
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$22
+    OpcodeInfo("RLA",   AddrMode.IndirectX,     False),     #$23
+    OpcodeInfo("BIT",   AddrMode.ZeroPage,      False),     #$24
+    OpcodeInfo("AND",   AddrMode.ZeroPage,      False),     #$25
+    OpcodeInfo("ROL",   AddrMode.ZeroPage,      False),     #$26
+    OpcodeInfo("RLA",   AddrMode.ZeroPage,      False),     #$27
+    OpcodeInfo("PLP",   AddrMode.Implied,       False),     #$28
+    OpcodeInfo("AND",   AddrMode.Immediate,     False),     #$29
+    OpcodeInfo("ROL",   AddrMode.Accumulator,   False),     #$2a
+    OpcodeInfo("ANC",   AddrMode.Immediate,     False),     #$2b
+    OpcodeInfo("BIT",   AddrMode.Absolute,      False),     #$2c
+    OpcodeInfo("AND",   AddrMode.Absolute,      False),     #$2d
+    OpcodeInfo("ROL",   AddrMode.Absolute,      False),     #$2e
+    OpcodeInfo("RLA",   AddrMode.Absolute,      False),     #$2f
+    OpcodeInfo("BMI",   AddrMode.Relative,      True ),     #$30
+    OpcodeInfo("AND",   AddrMode.IndirectY,     False),     #$31
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$32
+    OpcodeInfo("RLA",   AddrMode.IndirectY,     False),     #$33
+    OpcodeInfo("NOOP",  AddrMode.ZeroPageX,     False),     #$34
+    OpcodeInfo("AND",   AddrMode.ZeroPageX,     False),     #$35
+    OpcodeInfo("ROL",   AddrMode.ZeroPageX,     False),     #$36
+    OpcodeInfo("RLA",   AddrMode.ZeroPageX,     False),     #$37
+    OpcodeInfo("SEC",   AddrMode.Implied,       False),     #$38
+    OpcodeInfo("AND",   AddrMode.AbsoluteY,     False),     #$39
+    OpcodeInfo("NOOP",  AddrMode.Implied,       False),     #$3a
+    OpcodeInfo("RLA",   AddrMode.AbsoluteY,     False),     #$3b
+    OpcodeInfo("NOOP",  AddrMode.AbsoluteX,     False),     #$3c
+    OpcodeInfo("AND",   AddrMode.AbsoluteX,     False),     #$3d
+    OpcodeInfo("ROL",   AddrMode.AbsoluteX,     False),     #$3e
+    OpcodeInfo("RLA",   AddrMode.AbsoluteX,     False),     #$3f
+    OpcodeInfo("RTI",   AddrMode.Implied,       False),     #$40
+    OpcodeInfo("EOR",   AddrMode.IndirectX,     False),     #$41
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$42
+    OpcodeInfo("SRE",   AddrMode.IndirectX,     False),     #$43
+    OpcodeInfo("NOOP",  AddrMode.ZeroPage,      False),     #$44
+    OpcodeInfo("EOR",   AddrMode.ZeroPage,      False),     #$45
+    OpcodeInfo("LSR",   AddrMode.ZeroPage,      False),     #$46
+    OpcodeInfo("SRE",   AddrMode.ZeroPage,      False),     #$47
+    OpcodeInfo("PHA",   AddrMode.Implied,       False),     #$48
+    OpcodeInfo("EOR",   AddrMode.Immediate,     False),     #$49
+    OpcodeInfo("LSR",   AddrMode.Accumulator,   False),     #$4a
+    OpcodeInfo("ASR",   AddrMode.Immediate,     False),     #$4b
+    OpcodeInfo("JMP",   AddrMode.Absolute,      True ),     #$4c
+    OpcodeInfo("EOR",   AddrMode.Absolute,      False),     #$4d
+    OpcodeInfo("LSR",   AddrMode.Absolute,      False),     #$4e
+    OpcodeInfo("SRE",   AddrMode.Absolute,      False),     #$4f
+    OpcodeInfo("BVC",   AddrMode.Relative,      True ),     #$50
+    OpcodeInfo("EOR",   AddrMode.IndirectY,     False),     #$51
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$52
+    OpcodeInfo("SRE",   AddrMode.IndirectY,     False),     #$53
+    OpcodeInfo("NOOP",  AddrMode.ZeroPageX,     False),     #$54
+    OpcodeInfo("EOR",   AddrMode.ZeroPageX,     False),     #$55
+    OpcodeInfo("LSR",   AddrMode.ZeroPageX,     False),     #$56
+    OpcodeInfo("SRE",   AddrMode.ZeroPageX,     False),     #$57
+    OpcodeInfo("CLI",   AddrMode.Implied,       False),     #$58
+    OpcodeInfo("EOR",   AddrMode.AbsoluteY,     False),     #$59
+    OpcodeInfo("NOOP",  AddrMode.Implied,       False),     #$5a
+    OpcodeInfo("SRE",   AddrMode.AbsoluteY,     False),     #$5b
+    OpcodeInfo("NOOP",  AddrMode.AbsoluteX,     False),     #$5c
+    OpcodeInfo("EOR",   AddrMode.AbsoluteX,     False),     #$5d
+    OpcodeInfo("LSR",   AddrMode.AbsoluteX,     False),     #$5e
+    OpcodeInfo("SRE",   AddrMode.AbsoluteX,     False),     #$5f
+    OpcodeInfo("RTS",   AddrMode.Implied,       False),     #$60
+    OpcodeInfo("ADC",   AddrMode.IndirectX,     False),     #$61
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$62
+    OpcodeInfo("RRA",   AddrMode.IndirectX,     False),     #$63
+    OpcodeInfo("NOOP",  AddrMode.ZeroPage,      False),     #$64
+    OpcodeInfo("ADC",   AddrMode.ZeroPage,      False),     #$65
+    OpcodeInfo("ROR",   AddrMode.ZeroPage,      False),     #$66
+    OpcodeInfo("RRA",   AddrMode.ZeroPage,      False),     #$67
+    OpcodeInfo("PLA",   AddrMode.Implied,       False),     #$68
+    OpcodeInfo("ADC",   AddrMode.Immediate,     False),     #$69
+    OpcodeInfo("ROR",   AddrMode.Accumulator,   False),     #$6a
+    OpcodeInfo("ARR",   AddrMode.Immediate,     False),     #$6b
+    OpcodeInfo("JMP",   AddrMode.AbsIndirect,   True ),     #$6c
+    OpcodeInfo("ADC",   AddrMode.Absolute,      False),     #$6d
+    OpcodeInfo("ROR",   AddrMode.Absolute,      False),     #$6e
+    OpcodeInfo("RRA",   AddrMode.Absolute,      False),     #$6f
+    OpcodeInfo("BVS",   AddrMode.Relative,      True ),     #$70
+    OpcodeInfo("ADC",   AddrMode.IndirectY,     False),     #$71
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$72
+    OpcodeInfo("RRA",   AddrMode.IndirectY,     False),     #$73
+    OpcodeInfo("NOOP",  AddrMode.ZeroPageX,     False),     #$74
+    OpcodeInfo("ADC",   AddrMode.ZeroPageX,     False),     #$75
+    OpcodeInfo("ROR",   AddrMode.ZeroPageX,     False),     #$76
+    OpcodeInfo("RRA",   AddrMode.ZeroPageX,     False),     #$77
+    OpcodeInfo("SEI",   AddrMode.Implied,       False),     #$78
+    OpcodeInfo("ADC",   AddrMode.AbsoluteY,     False),     #$79
+    OpcodeInfo("NOOP",  AddrMode.Implied,       False),     #$7a
+    OpcodeInfo("RRA",   AddrMode.AbsoluteY,     False),     #$7b
+    OpcodeInfo("NOOP",  AddrMode.AbsoluteX,     False),     #$7c
+    OpcodeInfo("ADC",   AddrMode.AbsoluteX,     False),     #$7d
+    OpcodeInfo("ROR",   AddrMode.AbsoluteX,     False),     #$7e
+    OpcodeInfo("RRA",   AddrMode.AbsoluteX,     False),     #$7f
+    OpcodeInfo("NOOP",  AddrMode.Immediate,     False),     #$80
+    OpcodeInfo("STA",   AddrMode.IndirectX,     False),     #$81
+    OpcodeInfo("NOOP",  AddrMode.Immediate,     False),     #$82
+    OpcodeInfo("SAX",   AddrMode.IndirectX,     False),     #$83
+    OpcodeInfo("STY",   AddrMode.ZeroPage,      False),     #$84
+    OpcodeInfo("STA",   AddrMode.ZeroPage,      False),     #$85
+    OpcodeInfo("STX",   AddrMode.ZeroPage,      False),     #$86
+    OpcodeInfo("SAX",   AddrMode.ZeroPage,      False),     #$87
+    OpcodeInfo("DEY",   AddrMode.Implied,       False),     #$88
+    OpcodeInfo("NOOP",  AddrMode.Immediate,     False),     #$89
+    OpcodeInfo("TXA",   AddrMode.Implied,       False),     #$8a
+    OpcodeInfo("ANE",   AddrMode.Immediate,     False),     #$8b
+    OpcodeInfo("STY",   AddrMode.Absolute,      False),     #$8c
+    OpcodeInfo("STA",   AddrMode.Absolute,      False),     #$8d
+    OpcodeInfo("STX",   AddrMode.Absolute,      False),     #$8e
+    OpcodeInfo("SAX",   AddrMode.Absolute,      False),     #$8f
+    OpcodeInfo("BCC",   AddrMode.Relative,      True ),     #$90
+    OpcodeInfo("STA",   AddrMode.IndirectY,     False),     #$91
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$92
+    OpcodeInfo("SHA",   AddrMode.IndirectY,     False),     #$93
+    OpcodeInfo("STY",   AddrMode.ZeroPageX,     False),     #$94
+    OpcodeInfo("STA",   AddrMode.ZeroPageX,     False),     #$95
+    OpcodeInfo("STX",   AddrMode.ZeroPageY,     False),     #$96
+    OpcodeInfo("SAX",   AddrMode.ZeroPageY,     False),     #$97
+    OpcodeInfo("TYA",   AddrMode.Implied,       False),     #$98
+    OpcodeInfo("STA",   AddrMode.AbsoluteY,     False),     #$99
+    OpcodeInfo("TXS",   AddrMode.Implied,       False),     #$9a
+    OpcodeInfo("SHS",   AddrMode.AbsoluteY,     False),     #$9b
+    OpcodeInfo("SHY",   AddrMode.AbsoluteX,     False),     #$9c
+    OpcodeInfo("STA",   AddrMode.AbsoluteX,     False),     #$9d
+    OpcodeInfo("SHX",   AddrMode.AbsoluteY,     False),     #$9e
+    OpcodeInfo("SHA",   AddrMode.AbsoluteY,     False),     #$9f
+    OpcodeInfo("LDY",   AddrMode.Immediate,     False),     #$a0
+    OpcodeInfo("LDA",   AddrMode.IndirectX,     False),     #$a1
+    OpcodeInfo("LDX",   AddrMode.Immediate,     False),     #$a2
+    OpcodeInfo("LAX",   AddrMode.IndirectX,     False),     #$a3
+    OpcodeInfo("LDY",   AddrMode.ZeroPage,      False),     #$a4
+    OpcodeInfo("LDA",   AddrMode.ZeroPage,      False),     #$a5
+    OpcodeInfo("LDX",   AddrMode.ZeroPage,      False),     #$a6
+    OpcodeInfo("LAX",   AddrMode.ZeroPage,      False),     #$a7
+    OpcodeInfo("TAY",   AddrMode.Implied,       False),     #$a8
+    OpcodeInfo("LDA",   AddrMode.Immediate,     False),     #$a9
+    OpcodeInfo("TAX",   AddrMode.Implied,       False),     #$aa
+    OpcodeInfo("LXA",   AddrMode.Immediate,     False),     #$ab
+    OpcodeInfo("LDY",   AddrMode.Absolute,      False),     #$ac
+    OpcodeInfo("LDA",   AddrMode.Absolute,      False),     #$ad
+    OpcodeInfo("LDX",   AddrMode.Absolute,      False),     #$ae
+    OpcodeInfo("LAX",   AddrMode.Absolute,      False),     #$af
+    OpcodeInfo("BCS",   AddrMode.Relative,      True ),     #$b0
+    OpcodeInfo("LDA",   AddrMode.IndirectY,     False),     #$b1
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$b2
+    OpcodeInfo("LAX",   AddrMode.IndirectY,     False),     #$b3
+    OpcodeInfo("LDY",   AddrMode.ZeroPageX,     False),     #$b4
+    OpcodeInfo("LDA",   AddrMode.ZeroPageX,     False),     #$b5
+    OpcodeInfo("LDX",   AddrMode.ZeroPageY,     False),     #$b6
+    OpcodeInfo("LAX",   AddrMode.ZeroPageY,     False),     #$b7
+    OpcodeInfo("CLV",   AddrMode.Implied,       False),     #$b8
+    OpcodeInfo("LDA",   AddrMode.AbsoluteY,     False),     #$b9
+    OpcodeInfo("TSX",   AddrMode.Implied,       False),     #$ba
+    OpcodeInfo("LAS",   AddrMode.AbsoluteY,     False),     #$bb
+    OpcodeInfo("LDY",   AddrMode.AbsoluteX,     False),     #$bc
+    OpcodeInfo("LDA",   AddrMode.AbsoluteX,     False),     #$bd
+    OpcodeInfo("LDX",   AddrMode.AbsoluteY,     False),     #$be
+    OpcodeInfo("LAX",   AddrMode.AbsoluteY,     False),     #$bf
+    OpcodeInfo("CPY",   AddrMode.Immediate,     False),     #$c0
+    OpcodeInfo("CMP",   AddrMode.IndirectX,     False),     #$c1
+    OpcodeInfo("NOOP",  AddrMode.Immediate,     False),     #$c2
+    OpcodeInfo("DCP",   AddrMode.IndirectX,     False),     #$c3
+    OpcodeInfo("CPY",   AddrMode.ZeroPage,      False),     #$c4
+    OpcodeInfo("CMP",   AddrMode.ZeroPage,      False),     #$c5
+    OpcodeInfo("DEC",   AddrMode.ZeroPage,      False),     #$c6
+    OpcodeInfo("DCP",   AddrMode.ZeroPage,      False),     #$c7
+    OpcodeInfo("INY",   AddrMode.Implied,       False),     #$c8
+    OpcodeInfo("CMP",   AddrMode.Immediate,     False),     #$c9
+    OpcodeInfo("DEX",   AddrMode.Implied,       False),     #$ca
+    OpcodeInfo("SBX",   AddrMode.Immediate,     False),     #$cb
+    OpcodeInfo("CPY",   AddrMode.Absolute,      False),     #$cc
+    OpcodeInfo("CMP",   AddrMode.Absolute,      False),     #$cd
+    OpcodeInfo("DEC",   AddrMode.Absolute,      False),     #$ce
+    OpcodeInfo("DCP",   AddrMode.Absolute,      False),     #$cf
+    OpcodeInfo("BNE",   AddrMode.Relative,      True ),     #$d0
+    OpcodeInfo("CMP",   AddrMode.IndirectY,     False),     #$d1
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$d2
+    OpcodeInfo("DCP",   AddrMode.IndirectY,     False),     #$d3
+    OpcodeInfo("NOOP",  AddrMode.ZeroPageX,     False),     #$d4
+    OpcodeInfo("CMP",   AddrMode.ZeroPageX,     False),     #$d5
+    OpcodeInfo("DEC",   AddrMode.ZeroPageX,     False),     #$d6
+    OpcodeInfo("DCP",   AddrMode.ZeroPageX,     False),     #$d7
+    OpcodeInfo("CLD",   AddrMode.Implied,       False),     #$d8
+    OpcodeInfo("CMP",   AddrMode.AbsoluteY,     False),     #$d9
+    OpcodeInfo("NOOP",  AddrMode.Implied,       False),     #$da
+    OpcodeInfo("DCP",   AddrMode.AbsoluteY,     False),     #$db
+    OpcodeInfo("NOOP",  AddrMode.AbsoluteX,     False),     #$dc
+    OpcodeInfo("CMP",   AddrMode.AbsoluteX,     False),     #$dd
+    OpcodeInfo("DEC",   AddrMode.AbsoluteX,     False),     #$de
+    OpcodeInfo("DCP",   AddrMode.AbsoluteX,     False),     #$df
+    OpcodeInfo("CPX",   AddrMode.Immediate,     False),     #$e0
+    OpcodeInfo("SBC",   AddrMode.IndirectX,     False),     #$e1
+    OpcodeInfo("NOOP",  AddrMode.Immediate,     False),     #$e2
+    OpcodeInfo("ISB",   AddrMode.IndirectX,     False),     #$e3
+    OpcodeInfo("CPX",   AddrMode.ZeroPage,      False),     #$e4
+    OpcodeInfo("SBC",   AddrMode.ZeroPage,      False),     #$e5
+    OpcodeInfo("INC",   AddrMode.ZeroPage,      False),     #$e6
+    OpcodeInfo("ISB",   AddrMode.ZeroPage,      False),     #$e7
+    OpcodeInfo("INX",   AddrMode.Implied,       False),     #$e8
+    OpcodeInfo("SBC",   AddrMode.Immediate,     False),     #$e9
+    OpcodeInfo("NOP",   AddrMode.Implied,       False),     #$ea
+    OpcodeInfo("USBC",  AddrMode.Immediate,     False),     #$eb
+    OpcodeInfo("CPX",   AddrMode.Absolute,      False),     #$ec
+    OpcodeInfo("SBC",   AddrMode.Absolute,      False),     #$ed
+    OpcodeInfo("INC",   AddrMode.Absolute,      False),     #$ee
+    OpcodeInfo("ISB",   AddrMode.Absolute,      False),     #$ef
+    OpcodeInfo("BEQ",   AddrMode.Relative,      True ),     #$f0
+    OpcodeInfo("SBC",   AddrMode.IndirectY,     False),     #$f1
+    OpcodeInfo("JAM",   AddrMode.Implied,       False),     #$f2
+    OpcodeInfo("ISB",   AddrMode.IndirectY,     False),     #$f3
+    OpcodeInfo("NOOP",  AddrMode.ZeroPageX,     False),     #$f4
+    OpcodeInfo("SBC",   AddrMode.ZeroPageX,     False),     #$f5
+    OpcodeInfo("INC",   AddrMode.ZeroPageX,     False),     #$f6
+    OpcodeInfo("ISB",   AddrMode.ZeroPageX,     False),     #$f7
+    OpcodeInfo("SED",   AddrMode.Implied,       False),     #$f8
+    OpcodeInfo("SBC",   AddrMode.AbsoluteY,     False),     #$f9
+    OpcodeInfo("NOOP",  AddrMode.Implied,       False),     #$fa
+    OpcodeInfo("ISB",   AddrMode.AbsoluteY,     False),     #$fb
+    OpcodeInfo("NOOP",  AddrMode.AbsoluteX,     False),     #$fc
+    OpcodeInfo("SBC",   AddrMode.AbsoluteX,     False),     #$fd
+    OpcodeInfo("INC",   AddrMode.AbsoluteX,     False),     #$fe
+    OpcodeInfo("ISB",   AddrMode.Absolute,      False)      #$ff
     ]
 
 def s8_to_int(x):
