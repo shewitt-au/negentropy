@@ -1,13 +1,13 @@
 {%- set tabwidth=20 -%}
-{%- set ns = namespace(label_len=0) -%}
+{%- set indent = namespace(sofar=0) -%}
 
 {%- macro tabs() -%}
-{%- if ns.label_len>=tabwidth %}
+{%- if indent.sofar>=tabwidth %}
 {{ " "*tabwidth -}}
 {%- else -%}
-{{- " "*(tabwidth-ns.label_len) -}}
+{{- " "*(tabwidth-indent.sofar) -}}
 {%- endif -%}
-{%- set ns.label_len = 0 -%}
+{%- set indent.sofar = 0 -%}
 {%- endmacro -%}
 
 {%- macro comment_before(i) -%}
@@ -38,10 +38,10 @@
 
 {%- macro label(i) -%}
 {%- if i.label -%}
-{%- set ns.label_len = i.label|length -%}
+{%- set indent.sofar = i.label|length -%}
 {{- i.label -}}
 {%- else -%}
-{%- set ns.label_len = 0 -%}
+{%- set indent.sofar = 0 -%}
 {%- endif -%}
 {%- endmacro -%}
 
@@ -70,7 +70,7 @@
 {{- comment_before(section) -}}
 {{- label(section) -}}
 {%- if section.comment_after and section.label %}
-{% set ns.label_len=0 -%}
+{% set indent.sofar=0 -%}
 {%- endif -%}
 {{- comment_after(section) -}}
 {% endmacro -%}
