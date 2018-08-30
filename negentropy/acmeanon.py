@@ -14,7 +14,7 @@ class LowestFree(object):
 
 	# return the lowest free (starting from 1) and mark it as used
 	def aquire(self):
-		just_lowest = self.free&-self.free
+		just_lowest = self.free&-self.free # a touch of bit twiddling is good for the soul
 		self.free &= ~just_lowest
 		return just_lowest.bit_length()
 
@@ -104,9 +104,7 @@ class AcmeAnonAssigner(object):
 
 if __name__=='__main__':
 	x = AcmeAnonAssigner()
-	x.add(0x0, 0x30)
-	x.add(0x10, 0x40)
-	x.add(0x020, 0x3e)
-	x.add(0x3c, 0x3d)
+	x.add(0x0, 0x100)
+	x.add(0x80, 0x20)
 
 	x.process()
