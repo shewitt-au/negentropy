@@ -5,6 +5,9 @@
 # "-" (back references) symbols. "-" is a distinct symbol from '--' (the same
 # goes for "+"). We use this class the track free "names", where a "name" is
 # the number of times the symbol is repeated. It returns the lowest free "name".
+
+import heapq
+
 class LowestFree(object):
 	def __init__(self):
 		self.free = -1
@@ -24,12 +27,14 @@ class RefInfo(object):
 		self.src = src
 		self.dst = dst
 
+	def top(self):
+		return min(self.src, self.dst)
+	def bottom(self):
+		return max(self.src, self.dst)
 	def offset(self):
 		return self.dst-self.src
 
-	def bottom(self):
-		return max(self.src, self.dst)
-
+	# we sort by 'dst', which is the end the label is applied to.
 	def __eq__(self, other):
 		return self.dst == other.dst
 	def __ne__(self, other):
@@ -52,11 +57,53 @@ class RefInfo(object):
 		else:
 			return "RefInfo(${0:04x}---${0:04x})".format(self.src)
 
+class ScopeTracker(object):
+	def __init__(self):
+		self.lowest = LowestFree()
+		self.active = []
+
+	def label(self, r):
+		# first we remove any references we have overtaken
+		top = r.top()
+		if self.active:
+			while top>self.active[0][0]:
+				overtaken = heapq.heappop(self.active)
+				self.lowest.release(overtaken[1])
+				if not self.active:
+					break
+		# label this one and add it to the active heap
+		label = self.lowest.aquire()
+		heapq.heappush(self.active, (r.bottom(), label))
+
+		return label
+
+class X(object):
+	def __init__(self):
+		self.refs = []
+
+	def add(self, src, dst):
+		self.refs.append(RefInfo(src, dst))
+
+	def process(self):
+		self.refs.sort()
+
+		forward = ScopeTracker()
+		back = ScopeTracker()
+
+		for r in self.refs:
+			if r.offset() >=0:
+				label = forward.label(r)
+			else:
+				label = back.label(r)
+			print(r, label)
+
 if __name__=='__main__':
-	r1 = RefInfo(0, 10)
-	r2 = RefInfo(20, 11)
-	r3 = RefInfo(12, 12)
-	l = [r1, r2, r3]
-	l.sort()
-	print(l)
-	print(r1.bottom())
+	x = X()
+	x.add(0x0, 0x10)
+	x.add(0x01, 0xf)
+	x.add(0x02, 0x30)
+	x.add(0x02f, 0x40)
+
+	x.add(0x1000, 0x0)
+
+	x.process()
