@@ -57,10 +57,13 @@ class RefInfo(object):
 		else:
 			return "RefInfo(${0:04x}---${0:04x})".format(self.src)
 
+# As long as two references overlap they can't have the same number.
+# This class is used to track what is and isn't still in scope and assign
+# labels using that data. 
 class ScopeTracker(object):
 	def __init__(self):
 		self.lowest = LowestFree()
-		self.active = []
+		self.active = [] # tuples: (bottom, label)
 
 	def label(self, r):
 		# first we remove any references we have overtaken
@@ -77,7 +80,7 @@ class ScopeTracker(object):
 
 		return label
 
-class X(object):
+class AcmeAnonAssigner(object):
 	def __init__(self):
 		self.refs = []
 
@@ -87,23 +90,23 @@ class X(object):
 	def process(self):
 		self.refs.sort()
 
+		# forward and backward are in different namespaces so we need two
 		forward = ScopeTracker()
 		back = ScopeTracker()
 
 		for r in self.refs:
-			if r.offset() >=0:
+			offset = r.offset()
+			if offset>=0:
 				label = forward.label(r)
 			else:
 				label = back.label(r)
-			print(r, label)
+			print(r, ('+' if offset>=0 else '-')*label)
 
 if __name__=='__main__':
-	x = X()
-	x.add(0x0, 0x10)
-	x.add(0x01, 0xf)
-	x.add(0x02, 0x30)
-	x.add(0x02f, 0x40)
-
-	x.add(0x1000, 0x0)
+	x = AcmeAnonAssigner()
+	x.add(0x0, 0x30)
+	x.add(0x10, 0x40)
+	x.add(0x020, 0x3e)
+	x.add(0x3c, 0x3d)
 
 	x.process()
