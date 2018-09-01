@@ -1,13 +1,12 @@
 # Handle ACME anonymous labels.
 # The ACME assembler can be found here: https://sourceforge.net/projects/acme-crossass/
 
+import heapq
+
 # ACME anonymous labels are a number of "+" (for forward references) or
 # "-" (back references) symbols. "-" is a distinct symbol from '--' (the same
 # goes for "+"). We use this class the track free "names", where a "name" is
 # the number of times the symbol is repeated. It returns the lowest free "name".
-
-import heapq
-
 class LowestFree(object):
 	def __init__(self):
 		self.free = -1
@@ -33,20 +32,22 @@ class RefInfo(object):
 		return max(self.src, self.dst)
 	def offset(self):
 		return self.dst-self.src
+	def size(self):
+		return abs(self.dst-self.src)
 
-	# we sort by 'dst', which is the end the label is applied to.
+	# we sort by 'dst' first and 'src' to break a tie.
 	def __eq__(self, other):
-		return self.dst == other.dst
+		return self.dst==other.dst and self.src==other.src
 	def __ne__(self, other):
-		return self.dst != other.dst
+		return self.dst!=other.dst or self.src!=other.src
 	def __lt__(self, other):
-		return self.dst < other.dst
+		return self.dst<other.dst or (self.dst==other.dst and self.src<other.src)
 	def __le__(self, other):
-		return self.dst <= other.dst
+		return self.dst<other.dst or (self.dst==other.dst and self.src<=other.src)
 	def __gt__(self, other):
-		return self.dst > other.dst
+		return self.dst>other.dst or (self.dst==other.dst and self.src>other.src)
 	def __ge__(self, other):
-		return self.dst >= other.dst
+		return self.dst>other.dst or (self.dst==other.dst and self.src>=other.src)
 
 	def __repr__(self):
 		o = self.offset()
@@ -70,8 +71,7 @@ class ScopeTracker(object):
 		top = r.top()
 		if self.active:
 			while top>self.active[0][0]:
-				overtaken = heapq.heappop(self.active)
-				self.lowest.release(overtaken[1])
+				self.lowest.release(heapq.heappop(self.active)[1])
 				if not self.active:
 					break
 		# label this one and add it to the active heap
@@ -105,6 +105,7 @@ class AcmeAnonAssigner(object):
 if __name__=='__main__':
 	x = AcmeAnonAssigner()
 	x.add(0x0, 0x100)
-	x.add(0x80, 0x20)
+	x.add(0x2, 0x100)
+	x.add(0x3, 0x100)
 
 	x.process()
