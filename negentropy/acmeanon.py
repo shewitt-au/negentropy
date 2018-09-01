@@ -34,20 +34,32 @@ class RefInfo(object):
 		return self.dst-self.src
 	def size(self):
 		return abs(self.dst-self.src)
+	def dir(self):
+		return 1 if self.dst>=self.src else -1
 
-	# we sort by 'dst' first and 'src' to break a tie.
+	# We compare by 'dst' first but back references are less than forward references.
+	# If 'dst' and direction are the same references with larger scopes are less
+	# than those with smaller scopes.
 	def __eq__(self, other):
 		return self.dst==other.dst and self.src==other.src
 	def __ne__(self, other):
 		return self.dst!=other.dst or self.src!=other.src
 	def __lt__(self, other):
-		return self.dst<other.dst or (self.dst==other.dst and self.src<other.src)
+		return self.dst<other.dst or \
+			(self.dst==other.dst and (self.dir()<other.dir() or \
+				(self.dir()==other.dir() and self.size()>other.size())))
 	def __le__(self, other):
-		return self.dst<other.dst or (self.dst==other.dst and self.src<=other.src)
+		return self.dst<other.dst or \
+			(self.dst==other.dst and (self.dir()<other.dir() or \
+				(self.dir()==other.dir() and self.size()>=other.size())))
 	def __gt__(self, other):
-		return self.dst>other.dst or (self.dst==other.dst and self.src>other.src)
+		return self.dst>other.dst or \
+			(self.dst==other.dst and (self.dir()>other.dir() or \
+				(self.dir()==other.dir() and self.size()<other.size())))
 	def __ge__(self, other):
-		return self.dst>other.dst or (self.dst==other.dst and self.src>=other.src)
+		return self.dst>other.dst or \
+			(self.dst==other.dst and (self.dir()>other.dir() or \
+				(self.dir()==other.dir() and self.size()<=other.size())))
 
 	def __repr__(self):
 		o = self.offset()
@@ -107,5 +119,9 @@ if __name__=='__main__':
 	x.add(0x0, 0x100)
 	x.add(0x2, 0x100)
 	x.add(0x3, 0x100)
+
+	r1 = RefInfo(0, 100)
+	r2 = RefInfo(0, 100)
+	print(r1==r2, r1!=r2, r1<r2, r1<=r2, r1>r2, r1>=r2)
 
 	x.process()
