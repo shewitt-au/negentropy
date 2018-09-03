@@ -37,6 +37,15 @@ class RefInfo(object):
 	def dir(self):
 		return 1 if self.dst>=self.src else -1
 
+	# Decide whether to include a reference based on the one before it
+	# as sorted by the comparison fun functions below.
+	def filter(self, contender):
+		print(self, contender)
+		if self.dst != contender.dst:
+			return True
+		assert (self.dir()==contender.dir()), "!!!" # TODO: this should be an exception
+		return False
+
 	# We compare by 'dst' first but back references are less than forward references.
 	# If 'dst' and direction are the same references with larger scopes are less
 	# than those with smaller scopes.
@@ -106,7 +115,7 @@ class AcmeAnonAssigner(object):
 		forward = ScopeTracker()
 		back = ScopeTracker()
 
-		for r in self.refs:
+		def process_item(r):
 			offset = r.offset()
 			if offset>=0:
 				label = forward.label(r)
@@ -114,14 +123,24 @@ class AcmeAnonAssigner(object):
 				label = back.label(r)
 			print(r, ('+' if offset>=0 else '-')*label)
 
+		it = iter(self.refs)
+		try:
+			r = next(it)
+		except StopIteration:
+			pass
+		else:
+			process_item(r)
+			prev = r
+			for r in it:
+				if prev.filter(r):
+					process_item(r)
+				prev = r
+
+
 if __name__=='__main__':
 	x = AcmeAnonAssigner()
-	x.add(0x0, 0x100)
-	x.add(0x2, 0x100)
-	x.add(0x3, 0x100)
-
-	r1 = RefInfo(0, 100)
-	r2 = RefInfo(0, 100)
-	print(r1==r2, r1!=r2, r1<r2, r1<=r2, r1>r2, r1>=r2)
-
+	r = [(3, 0x100), (1, 0x100), (0, 0x100), (5, 0x100)]
+	r.extend([(0x200, 0x100)])
+	for ri in r:
+		x.add(ri[0], ri[1])
 	x.process()
