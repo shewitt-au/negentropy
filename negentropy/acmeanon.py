@@ -21,6 +21,8 @@ class LowestFree(object):
     def release(self, num):
         self.free |= 1<<(num-1)
 
+# Hold information relating to a reference.
+# 'src' is the referencing address and 'dst' is the target to be labelled.
 class RefInfo(object):
     def __init__(self, src, dst):
         self.src = src
@@ -39,7 +41,7 @@ class RefInfo(object):
 
     # Decide whether to include a reference based on the one before it
     # as sorted by the comparison functions below.
-    def filter(self, contender):
+    def is_distinct(self, contender):
         if self.dst != contender.dst:
             return True
         assert (self.dir()==contender.dir()), "!!!" # TODO: this should be an exception
@@ -132,7 +134,7 @@ class AcmeAnonAssigner(object):
             process_item(r)
             prev = r
             for r in it:
-                if prev.filter(r):
+                if prev.is_distinct(r):
                     process_item(r)
                 prev = r
 
