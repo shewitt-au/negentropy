@@ -38,9 +38,8 @@ class RefInfo(object):
 		return 1 if self.dst>=self.src else -1
 
 	# Decide whether to include a reference based on the one before it
-	# as sorted by the comparison fun functions below.
+	# as sorted by the comparison functions below.
 	def filter(self, contender):
-		print(self, contender)
 		if self.dst != contender.dst:
 			return True
 		assert (self.dir()==contender.dir()), "!!!" # TODO: this should be an exception
@@ -48,7 +47,8 @@ class RefInfo(object):
 
 	# We compare by 'dst' first but back references are less than forward references.
 	# If 'dst' and direction are the same references with larger scopes are less
-	# than those with smaller scopes.
+	# than those with smaller scopes. The sorting order is important for the proper
+	# functioning of the algorithm.
 	def __eq__(self, other):
 		return self.dst==other.dst and self.src==other.src
 	def __ne__(self, other):
@@ -140,7 +140,8 @@ class AcmeAnonAssigner(object):
 if __name__=='__main__':
 	x = AcmeAnonAssigner()
 	r = [(3, 0x100), (1, 0x100), (0, 0x100), (5, 0x100)]
-	r.extend([(0x200, 0x100)])
+	r.extend([(0x80, 0x90), (0x85, 0x95)])
+	r.extend([(0x200, 0x105)])
 	for ri in r:
 		x.add(ri[0], ri[1])
 	x.process()
