@@ -3,6 +3,8 @@
 
 import heapq
 
+from .interval import Interval
+
 # ACME anonymous labels are a number of "+" (for forward references) or
 # "-" (back references) symbols. "-" is a distinct symbol from '--' (the same
 # goes for "+"). We use this class the track free "names", where a "name" is
@@ -91,8 +93,8 @@ class ScopeTracker(object):
 
     def label(self, r):
         # first we remove any references we have overtaken
-        top = r.top()
         if self.active:
+            top = r.top()
             while top>self.active[0][0]:
                 self.lowest.release(heapq.heappop(self.active)[1])
                 if not self.active:
@@ -110,7 +112,7 @@ class AcmeAnonAssigner(object):
     def add(self, src, dst):
         self.refs.append(RefInfo(src, dst))
 
-    def process(self):
+    def process(self, ctx):
         self.refs.sort()
 
         # forward and backward are in different namespaces so we need two
@@ -124,6 +126,7 @@ class AcmeAnonAssigner(object):
             else:
                 label = back.label(r)
             print(r, ('+' if offset>=0 else '-')*label)
+            ctx.syms.add((Interval(r.dst), ('+' if offset>=0 else '-')*label, False))
 
         it = iter(self.refs)
         try:
@@ -140,9 +143,10 @@ class AcmeAnonAssigner(object):
 
 if __name__=='__main__':
     x = AcmeAnonAssigner()
-    r = [(3, 0x100), (1, 0x100), (0, 0x100), (5, 0x100)]
-    r.extend([(0x80, 0x90), (0x85, 0x95)])
-    r.extend([(0x200, 0x105)])
+    r = [(0x10, 0x20), (0x15, 0x30), (0x28, 0x40), (0x32, 0x45)]
+    r2 = [(y,x) for x,y in r]
+    r.extend(r2)
+    print(r)
     for ri in r:
         x.add(ri[0], ri[1])
     x.process()

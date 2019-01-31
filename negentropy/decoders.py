@@ -8,6 +8,7 @@ from . import memmap
 from . import symbols as symmod
 from . import scriptparser
 from . import templates
+from . import acmeanon
 
 @unique
 class CuttingPolicy(Enum):
@@ -73,6 +74,8 @@ class Context(object):
         self.datasource_props = {}
         self.have_indexables = False
         self.options = {}
+
+        self.acmeanon = acmeanon.AcmeAnonAssigner()
 
         # parse
         config = args.config if args.config is not None else []

@@ -16,6 +16,9 @@ class M6502Decoder(decoders.Prefix):
             ctx.link_add_reachable(ii.ivl.first)
             if ii.target is not None:
                 ctx.link_add_referenced(ii.target)
+                if ctx.acmeanon:
+                    if ii.op_info.flow_transfer and ctx.syms.get_entry(ii.target) is None:
+                        ctx.acmeanon.add(ii.ivl.first, ii.target)
         cutter.done()
         # return the non-processed part of the interval
         return ivl if ii is None else Interval(ii.ivl.last+1, ivl.last)

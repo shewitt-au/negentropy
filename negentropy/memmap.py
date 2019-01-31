@@ -258,6 +258,9 @@ class MemType(object):
 
         self.map = new_map
 
+        if ctx.acmeanon:
+            ctx.acmeanon.process(ctx)
+
     def items(self, ctx, ivl):
         no_ats = ctx.options.get("no_ats", False)
         hole_idx = 0
