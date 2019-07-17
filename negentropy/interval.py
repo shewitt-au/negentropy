@@ -45,7 +45,7 @@ class Interval(object):
         return self.first>self.last
 
     def is_singular(self):
-        return not self.is_empty() and self.first==self.last
+        return self.first==self.last
 
     def __iter__(self):
         for v in range(self.first, self.last+1):
