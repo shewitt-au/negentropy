@@ -80,6 +80,7 @@ def main():
     # post-processing
     if args.gaps is True and args.defaultdecoder is None:
         args.defaultdecoder = "data"
+
     try:
         templates.run(args)
     except errors.Dis64Exception as e:
