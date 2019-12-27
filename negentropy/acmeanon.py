@@ -140,13 +140,3 @@ class AcmeAnonAssigner(object):
                 if prev.is_distinct(r):
                     process_item(r)
                 prev = r
-
-if __name__=='__main__':
-    x = AcmeAnonAssigner()
-    r = [(0x10, 0x20), (0x15, 0x30), (0x28, 0x40), (0x32, 0x45)]
-    r2 = [(y,x) for x,y in r]
-    r.extend(r2)
-    print(r)
-    for ri in r:
-        x.add(ri[0], ri[1])
-    x.process()

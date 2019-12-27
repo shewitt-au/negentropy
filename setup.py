@@ -26,7 +26,7 @@ setup(name='negentropy',
       author_email='retrointernals@gmail.com',
       license='MIT',
       packages=['negentropy'],
-      install_requires=['jinja2', 'pillow', 'lark'],
+      install_requires=['jinja2', 'pillow', 'lark', 'lark-parser'],
       entry_points={
           'console_scripts': ['negentropy=negentropy.negentropy:main'],
       },
