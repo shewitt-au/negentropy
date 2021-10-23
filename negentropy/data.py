@@ -17,10 +17,12 @@ class BytesDecoder(decoders.Prefix):
         def lines(self):
             target_already_exits = params['target_already_exits']
             for addr in range(ivl.first, ivl.last+1, self.linelen):
+                c = ctx.cmts.get_inline(addr)
                 yield {
                     'address': addr,
                     'is_destination' : not target_already_exits and ctx.is_destination(addr),
-                    'bytes': ctx.mem.r8m(addr, min(ivl.last-addr+1, self.linelen))
+                    'bytes': ctx.mem.r8m(addr, min(ivl.last-addr+1, self.linelen)),
+                    'comment': None if c is None else c[1]
                     }
                 target_already_exits = False
 

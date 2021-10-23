@@ -105,7 +105,8 @@
 {%- macro data_handler(section) -%}
 <div class="disass_code">
 {%- for i in section.lines -%}
-{{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])}}
+{{anchor(i)}}{{address(i)}}{{tabs()}}{{i.bytes|seq2str("{:02x}", s=[(1," "), (4, "  ")])-}}
+{{-comment_inline(i)}}
 {% endfor -%}
 </div>
 {% endmacro -%}
