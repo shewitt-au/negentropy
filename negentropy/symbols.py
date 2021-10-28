@@ -180,7 +180,6 @@ class DirectiveInfo(object):
         else:
             assert self.oaddress is not None, "one or the other of 'oaddress' and 'osymbol'"
             self.osymbol = ctx.syms.lookup(self.oaddress)
-            print(hex(self.oaddress), self.osymbol)
         ctx.link_add_referenced(self.oaddress)
 
     def operand(self, ctx, oper):
