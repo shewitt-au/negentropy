@@ -40,8 +40,10 @@ class ScriptTransformer(Transformer):
     def memmap(self, t):
         def handle(self, range, mmdecoder, properties={}, mmdataaddr=None):
             self.ctx.memtype.parse_add(range, self.ctx.decoder(mmdecoder), properties, mmdataaddr)
+        self.ctx.memtype.parse_begin()
         for e in t[0]:
             handle(self, **dict(e))
+        self.ctx.memtype.parse_end()
     def mmbody(self, t):
         return t
     def mmentry(self, t):
