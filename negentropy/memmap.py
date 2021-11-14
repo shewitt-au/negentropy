@@ -181,11 +181,15 @@ class MemType(object):
         self.map.append(MemRegion(decoder, ivl.first, ivl.last, props, data_addr))
         self.got_parse_data = True
 
-    def parse_end(self, ctx):
+    def parse_end(self):
         if not self.got_parse_data:
             if self.default_decoder is None:
-                self.default_decoder = ctx.decoder('data')
-            self.map.append(MemRegion(self.default_decoder, ctx.mem.range().first, ctx.mem.range().last, {}))
+                self.default_decoder = self.ctx.decoder('data')
+            self.map.append(
+                MemRegion(
+                    self.default_decoder,
+                    self.ctx.mem.range().first,
+                    self.ctx.mem.range().last, {}))
         # Sort so adjacent ranges are next to each other. See 'overlapping_indices'.
         self.map.sort()
 
@@ -228,8 +232,11 @@ class MemType(object):
         for region, is_hole in self._region_iter(ctx, ivl):
             if  is_hole:
                 # we found a hole and we've got a default decoder
-                if ctx.args.gaps:
+                if ctx.args.gaps: #TODO: Do we need this check?
                     ctx.holes += 1
+                region = region & ctx.mem.range()
+                if region.is_empty():
+                    continue
                 dr = MemRegion(self.default_decoder, region.first, region.last, {})
                 remains = dr.preprocess(ctx)
                 if remains.is_empty():
