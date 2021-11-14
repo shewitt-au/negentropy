@@ -232,11 +232,11 @@ class MemType(object):
         for region, is_hole in self._region_iter(ctx, ivl):
             if  is_hole:
                 # we found a hole and we've got a default decoder
-                if ctx.args.gaps: #TODO: Do we need this check?
-                    ctx.holes += 1
                 region = region & ctx.mem.range()
                 if region.is_empty():
                     continue
+                if ctx.args.gaps: #TODO: Do we need this check?
+                    ctx.holes += 1
                 dr = MemRegion(self.default_decoder, region.first, region.last, {})
                 remains = dr.preprocess(ctx)
                 if remains.is_empty():
