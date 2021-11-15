@@ -297,7 +297,8 @@ class MemType(object):
                     'type': "hole",
                     'contents': region.items(ctx),
                     'name': "hole_"+str(hole_idx),
-                    'next': "hole_"+str(hole_idx+1) if (hole_idx+1<ctx.holes) else None
+                    'next': "hole_"+str(hole_idx+1) if (hole_idx+1<ctx.holes) else None,
+                    'prev': "hole_"+str(hole_idx-1) if (hole_idx>0) else None
                     }
                 hole_idx += 1
             else:

@@ -141,7 +141,9 @@
 {%- macro hole_handler(section) -%}
 <a name="{{section.name}}"></a>
 <div class="disass_hole">
-{% if section.next %}<a href="#{{section.next}}">Next hole</a><br/><br/>{% endif %}
+{% if section.prev %}<a href="#{{section.prev}}">Prev</a>{% endif %}
+{% if section.next %}<a href="#{{section.next}}">Next</a>{% endif %}
+<br/><br/>
 {%- for r in section.contents -%}
 {{ r.type|dispatch(r) }}
 {% endfor -%}
